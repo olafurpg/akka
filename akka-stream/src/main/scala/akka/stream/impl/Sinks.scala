@@ -28,7 +28,7 @@ import java.util.Optional
  */
 private[akka] abstract class SinkModule[-In, Mat](val shape: SinkShape[In]) extends Module {
 
-  def create(context: MaterializationContext): (Subscriber[In] @uncheckedVariance, Mat)
+  def create(context: MaterializationContext): (AnyRef, Mat)
 
   override def replaceShape(s: Shape): Module =
     if (s != shape) throw new UnsupportedOperationException("cannot replace the shape of a Sink, you need to wrap it in a Graph for that")
@@ -61,8 +61,8 @@ private[akka] class PublisherSink[In](val attributes: Attributes, shape: SinkSha
 
   override def toString: String = "PublisherSink"
 
-  override def create(context: MaterializationContext): (Subscriber[In], Publisher[In]) = {
-    val proc = new VirtualProcessor[In]
+  override def create(context: MaterializationContext): (AnyRef, Publisher[In]) = {
+    val proc = new VirtualPublisher[In]
     (proc, proc)
   }
 
