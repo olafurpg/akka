@@ -22,10 +22,18 @@ import scala.compat.java8.FutureConverters._
  * SubFlows cannot contribute to the super-flow’s materialized value since they
  * are materialized later, during the runtime of the flow graph processing.
  */
-class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source[Out, Mat]#Repr, scaladsl.RunnableGraph[Mat]]) {
+class SubSource[+Out, +Mat](
+    delegate: scaladsl.SubFlow[Out,
+                               Mat,
+                               scaladsl.Source[Out, Mat]#Repr,
+                               scaladsl.RunnableGraph[Mat]]) {
 
   /** Converts this Flow to its Scala DSL counterpart */
-  def asScala: scaladsl.SubFlow[Out, Mat, scaladsl.Source[Out, Mat]#Repr, scaladsl.RunnableGraph[Mat]] @uncheckedVariance = delegate
+  def asScala: scaladsl.SubFlow[
+      Out,
+      Mat,
+      scaladsl.Source[Out, Mat]#Repr,
+      scaladsl.RunnableGraph[Mat]] @uncheckedVariance = delegate
 
   /**
    * Flatten the sub-flows back into the super-source by performing a merge
@@ -135,8 +143,12 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def mapConcat[T](f: function.Function[Out, java.lang.Iterable[T]]): SubSource[T, Mat] =
-    new SubSource(delegate.mapConcat { elem ⇒ Util.immutableSeq(f(elem)) })
+  def mapConcat[T](
+      f: function.Function[Out, java.lang.Iterable[T]]): SubSource[T, Mat] =
+    new SubSource(
+        delegate.mapConcat { elem ⇒
+      Util.immutableSeq(f(elem))
+    })
 
   /**
    * Transform each input element into an `Iterable` of output elements that is
@@ -162,10 +174,14 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def statefulMapConcat[T](f: function.Creator[function.Function[Out, java.lang.Iterable[T]]]): SubSource[T, Mat] =
-    new SubSource(delegate.statefulMapConcat { () ⇒
+  def statefulMapConcat[T](
+      f: function.Creator[function.Function[Out, java.lang.Iterable[T]]]
+  ): SubSource[T, Mat] =
+    new SubSource(
+        delegate.statefulMapConcat { () ⇒
       val fun = f.create()
-      elem ⇒ Util.immutableSeq(fun(elem))
+      elem ⇒
+        Util.immutableSeq(fun(elem))
     })
 
   /**
@@ -196,7 +212,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * @see [[#mapAsyncUnordered]]
    */
-  def mapAsync[T](parallelism: Int, f: function.Function[Out, CompletionStage[T]]): SubSource[T, Mat] =
+  def mapAsync[T](
+      parallelism: Int,
+      f: function.Function[Out, CompletionStage[T]]): SubSource[T, Mat] =
     new SubSource(delegate.mapAsync(parallelism)(x ⇒ f(x).toScala))
 
   /**
@@ -228,7 +246,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * @see [[#mapAsync]]
    */
-  def mapAsyncUnordered[T](parallelism: Int, f: function.Function[Out, CompletionStage[T]]): SubSource[T, Mat] =
+  def mapAsyncUnordered[T](
+      parallelism: Int,
+      f: function.Function[Out, CompletionStage[T]]): SubSource[T, Mat] =
     new SubSource(delegate.mapAsyncUnordered(parallelism)(x ⇒ f(x).toScala))
 
   /**
@@ -308,7 +328,6 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-
   /**
    * Ensure stream boundedness by limiting the number of elements from upstream.
    * If the number of incoming elements exceeds max, it will signal
@@ -331,7 +350,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * See also [[Flow.take]], [[Flow.takeWithin]], [[Flow.takeWhile]]
    */
-  def limit(n: Int): javadsl.SubSource[Out, Mat] = new SubSource(delegate.limit(n))
+  def limit(n: Int): javadsl.SubSource[Out, Mat] =
+    new SubSource(delegate.limit(n))
 
   /**
    * Ensure stream boundedness by evaluating the cost of incoming elements
@@ -356,11 +376,14 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * See also [[Flow.take]], [[Flow.takeWithin]], [[Flow.takeWhile]]
    */
-  def limitWeighted(n: Long)(costFn: function.Function[Out, Long]): javadsl.SubSource[Out, Mat] = {
+  def limitWeighted(n: Long)(
+      costFn: function.Function[Out, Long]): javadsl.SubSource[Out, Mat] = {
     new SubSource(delegate.limitWeighted(n)(costFn.apply))
   }
 
-  def sliding(n: Int, step: Int = 1): SubSource[java.util.List[Out @uncheckedVariance], Mat] =
+  def sliding(
+      n: Int,
+      step: Int = 1): SubSource[java.util.List[Out @uncheckedVariance], Mat] =
     new SubSource(delegate.sliding(n, step).map(_.asJava)) // TODO optimize to one step
 
   /**
@@ -417,8 +440,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def reduce(f: function.Function2[Out, Out, Out @uncheckedVariance]): SubSource[Out, Mat] =
-    new SubSource(delegate.reduce(f.apply))
+  def reduce(f: function.Function2[Out, Out, Out @uncheckedVariance]
+      ): SubSource[Out, Mat] = new SubSource(delegate.reduce(f.apply))
 
   /**
    * Intersperses stream with provided element, similar to how [[scala.collection.immutable.List.mkString]]
@@ -497,7 +520,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * `n` must be positive, and `d` must be greater than 0 seconds, otherwise
    * IllegalArgumentException is thrown.
    */
-  def groupedWithin(n: Int, d: FiniteDuration): SubSource[java.util.List[Out @uncheckedVariance], Mat] =
+  def groupedWithin(n: Int,
+                    d: FiniteDuration
+  ): SubSource[java.util.List[Out @uncheckedVariance], Mat] =
     new SubSource(delegate.groupedWithin(n, d).map(_.asJava)) // TODO optimize to one step
 
   /**
@@ -512,8 +537,7 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def drop(n: Long): SubSource[Out, Mat] =
-    new SubSource(delegate.drop(n))
+  def drop(n: Long): SubSource[Out, Mat] = new SubSource(delegate.drop(n))
 
   /**
    * Discard the elements received within the given duration at beginning of the stream.
@@ -589,7 +613,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * @param of time to shift all messages
    * @param strategy Strategy that is used when incoming elements cannot fit inside the buffer
    */
-  def delay(of: FiniteDuration, strategy: DelayOverflowStrategy): SubSource[Out, Mat] =
+  def delay(of: FiniteDuration,
+            strategy: DelayOverflowStrategy): SubSource[Out, Mat] =
     new SubSource(delegate.delay(of, strategy))
 
   /**
@@ -628,29 +653,34 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    */
   @deprecated("Use recoverWithRetries instead.", "2.4.4")
-  def recoverWith[T >: Out](pf: PartialFunction[Throwable, _ <: Graph[SourceShape[T], NotUsed]]): SubSource[T, Mat @uncheckedVariance] =
+  def recoverWith[T >: Out](
+      pf: PartialFunction[Throwable, _ <: Graph[SourceShape[T], NotUsed]]
+  ): SubSource[T, Mat @uncheckedVariance] =
     new SubSource(delegate.recoverWith(pf))
 
   /**
-    * RecoverWithRetries allows to switch to alternative Source on flow failure. It will stay in effect after
-    * a failure has been recovered up to `attempts` number of times so that each time there is a failure
-    * it is fed into the `pf` and a new Source may be materialized. Note that if you pass in 0, this won't
-    * attempt to recover at all. Passing in a negative number will behave exactly the same as  `recoverWith`.
-    *
-    * Since the underlying failure signal onError arrives out-of-band, it might jump over existing elements.
-    * This stage can recover the failure signal, but not the skipped elements, which will be dropped.
-    *
-    * '''Emits when''' element is available from the upstream or upstream is failed and element is available
-    * from alternative Source
-    *
-    * '''Backpressures when''' downstream backpressures
-    *
-    * '''Completes when''' upstream completes or upstream failed with exception pf can handle
-    *
-    * '''Cancels when''' downstream cancels
-    *
-    */
-  def recoverWithRetries[T >: Out](attempts: Int, pf: PartialFunction[Throwable, _ <: Graph[SourceShape[T], NotUsed]]): SubSource[T, Mat @uncheckedVariance] =
+   * RecoverWithRetries allows to switch to alternative Source on flow failure. It will stay in effect after
+   * a failure has been recovered up to `attempts` number of times so that each time there is a failure
+   * it is fed into the `pf` and a new Source may be materialized. Note that if you pass in 0, this won't
+   * attempt to recover at all. Passing in a negative number will behave exactly the same as  `recoverWith`.
+   *
+   * Since the underlying failure signal onError arrives out-of-band, it might jump over existing elements.
+   * This stage can recover the failure signal, but not the skipped elements, which will be dropped.
+   *
+   * '''Emits when''' element is available from the upstream or upstream is failed and element is available
+   * from alternative Source
+   *
+   * '''Backpressures when''' downstream backpressures
+   *
+   * '''Completes when''' upstream completes or upstream failed with exception pf can handle
+   *
+   * '''Cancels when''' downstream cancels
+   *
+   */
+  def recoverWithRetries[T >: Out](
+      attempts: Int,
+      pf: PartialFunction[Throwable, _ <: Graph[SourceShape[T], NotUsed]]
+  ): SubSource[T, Mat @uncheckedVariance] =
     new SubSource(delegate.recoverWithRetries(attempts, pf))
 
   /**
@@ -670,8 +700,7 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' the defined number of elements has been taken or downstream cancels
    */
-  def take(n: Long): SubSource[Out, Mat] =
-    new SubSource(delegate.take(n))
+  def take(n: Long): SubSource[Out, Mat] = new SubSource(delegate.take(n))
 
   /**
    * Terminate processing (and cancel the upstream publisher) after the given
@@ -718,7 +747,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * @param aggregate Takes the currently aggregated value and the current pending element to produce a new aggregate
    *
    */
-  def conflateWithSeed[S](seed: function.Function[Out, S], aggregate: function.Function2[S, Out, S]): SubSource[S, Mat] =
+  def conflateWithSeed[S](
+      seed: function.Function[Out, S],
+      aggregate: function.Function2[S, Out, S]): SubSource[S, Mat] =
     new SubSource(delegate.conflateWithSeed(seed.apply)(aggregate.apply))
 
   /**
@@ -745,7 +776,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * @param aggregate Takes the currently aggregated value and the current pending element to produce a new aggregate
    *
    */
-  def conflate[O2 >: Out](aggregate: function.Function2[O2, O2, O2]): SubSource[O2, Mat] =
+  def conflate[O2 >: Out](
+      aggregate: function.Function2[O2, O2, O2]): SubSource[O2, Mat] =
     new SubSource(delegate.conflate(aggregate.apply))
 
   /**
@@ -770,7 +802,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * @param seed Provides the first state for a batched value using the first unconsumed element as a start
    * @param aggregate Takes the currently batched value and the current pending element to produce a new aggregate
    */
-  def batch[S](max: Long, seed: function.Function[Out, S], aggregate: function.Function2[S, Out, S]): SubSource[S, Mat] =
+  def batch[S](max: Long,
+               seed: function.Function[Out, S],
+               aggregate: function.Function2[S, Out, S]): SubSource[S, Mat] =
     new SubSource(delegate.batch(max, seed.apply)(aggregate.apply))
 
   /**
@@ -801,8 +835,13 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * @param seed Provides the first state for a batched value using the first unconsumed element as a start
    * @param aggregate Takes the currently batched value and the current pending element to produce a new batch
    */
-  def batchWeighted[S](max: Long, costFn: function.Function[Out, Long], seed: function.Function[Out, S], aggregate: function.Function2[S, Out, S]): SubSource[S, Mat] =
-    new SubSource(delegate.batchWeighted(max, costFn.apply, seed.apply)(aggregate.apply))
+  def batchWeighted[S](
+      max: Long,
+      costFn: function.Function[Out, Long],
+      seed: function.Function[Out, S],
+      aggregate: function.Function2[S, Out, S]): SubSource[S, Mat] =
+    new SubSource(
+        delegate.batchWeighted(max, costFn.apply, seed.apply)(aggregate.apply))
 
   /**
    * Allows a faster downstream to progress independently of a slower publisher by extrapolating elements from an older
@@ -828,7 +867,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * @param extrapolate Takes the current extrapolation state to produce an output element and the next extrapolation
    *                    state.
    */
-  def expand[U](extrapolate: function.Function[Out, java.util.Iterator[U]]): SubSource[U, Mat] =
+  def expand[U](extrapolate: function.Function[Out, java.util.Iterator[U]]
+      ): SubSource[U, Mat] =
     new SubSource(delegate.expand(in ⇒ extrapolate(in).asScala))
 
   /**
@@ -850,7 +890,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * @param size The size of the buffer in element count
    * @param overflowStrategy Strategy that is used when incoming elements cannot fit inside the buffer
    */
-  def buffer(size: Int, overflowStrategy: OverflowStrategy): SubSource[Out, Mat] =
+  def buffer(
+      size: Int, overflowStrategy: OverflowStrategy): SubSource[Out, Mat] =
     new SubSource(delegate.buffer(size, overflowStrategy))
 
   /**
@@ -859,7 +900,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * operator that performs the transformation.
    */
   @deprecated("Use via(GraphStage) instead.", "2.4.3")
-  def transform[U](mkStage: function.Creator[Stage[Out, U]]): SubSource[U, Mat] =
+  def transform[U](
+      mkStage: function.Creator[Stage[Out, U]]): SubSource[U, Mat] =
     new SubSource(delegate.transform(() ⇒ mkStage.create()))
 
   /**
@@ -883,8 +925,17 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels or substream cancels
    */
-  def prefixAndTail(n: Int): SubSource[akka.japi.Pair[java.util.List[Out @uncheckedVariance], javadsl.Source[Out @uncheckedVariance, NotUsed]], Mat] =
-    new SubSource(delegate.prefixAndTail(n).map { case (taken, tail) ⇒ akka.japi.Pair(taken.asJava, tail.asJava) })
+  def prefixAndTail(n: Int
+      ): SubSource[akka.japi.Pair[
+                       java.util.List[Out @uncheckedVariance],
+                       javadsl.Source[Out @uncheckedVariance, NotUsed]],
+                   Mat] =
+    new SubSource(
+        delegate
+          .prefixAndTail(n)
+          .map {
+        case (taken, tail) ⇒ akka.japi.Pair(taken.asJava, tail.asJava)
+      })
 
   /**
    * Transform each input element into a `Source` of output elements that is
@@ -900,8 +951,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    * '''Cancels when''' downstream cancels
    *
    */
-  def flatMapConcat[T, M](f: function.Function[Out, _ <: Graph[SourceShape[T], M]]): SubSource[T, Mat] =
-    new SubSource(delegate.flatMapConcat(x ⇒ f(x)))
+  def flatMapConcat[T, M](
+      f: function.Function[Out, _ <: Graph[SourceShape[T], M]]
+  ): SubSource[T, Mat] = new SubSource(delegate.flatMapConcat(x ⇒ f(x)))
 
   /**
    * Transform each input element into a `Source` of output elements that is
@@ -916,7 +968,10 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def flatMapMerge[T, M](breadth: Int, f: function.Function[Out, _ <: Graph[SourceShape[T], M]]): SubSource[T, Mat] =
+  def flatMapMerge[T, M](
+      breadth: Int,
+      f: function.Function[Out, _ <: Graph[SourceShape[T], M]]
+  ): SubSource[T, Mat] =
     new SubSource(delegate.flatMapMerge(breadth, o ⇒ f(o)))
 
   /**
@@ -1015,7 +1070,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def interleave[T >: Out](that: Graph[SourceShape[T], _], segmentSize: Int): SubSource[T, Mat] =
+  def interleave[T >: Out](
+      that: Graph[SourceShape[T], _], segmentSize: Int): SubSource[T, Mat] =
     new SubSource(delegate.interleave(that, segmentSize))
 
   /**
@@ -1033,8 +1089,11 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def mergeSorted[U >: Out, M](that: Graph[SourceShape[U], M], comp: Comparator[U]): javadsl.SubSource[U, Mat] =
-    new SubSource(delegate.mergeSorted(that)(Ordering.comparatorToOrdering(comp)))
+  def mergeSorted[U >: Out, M](
+      that: Graph[SourceShape[U], M],
+      comp: Comparator[U]): javadsl.SubSource[U, Mat] =
+    new SubSource(
+        delegate.mergeSorted(that)(Ordering.comparatorToOrdering(comp)))
 
   /**
    * Combine the elements of current [[Flow]] and the given [[Source]] into a stream of tuples.
@@ -1047,7 +1106,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def zip[T](source: Graph[SourceShape[T], _]): SubSource[Out @uncheckedVariance Pair T, Mat] =
+  def zip[T](source: Graph[SourceShape[T], _]
+      ): SubSource[Out @uncheckedVariance Pair T, Mat] =
     new SubSource(delegate.zip(source))
 
   /**
@@ -1062,8 +1122,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def zipWith[Out2, Out3](that: Graph[SourceShape[Out2], _],
-                          combine: function.Function2[Out, Out2, Out3]): SubSource[Out3, Mat] =
+  def zipWith[Out2, Out3](
+      that: Graph[SourceShape[Out2], _],
+      combine: function.Function2[Out, Out2, Out3]): SubSource[Out3, Mat] =
     new SubSource(delegate.zipWith[Out2, Out3](that)(combinerToScala(combine)))
 
   /**
@@ -1128,7 +1189,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def keepAlive[U >: Out](maxIdle: FiniteDuration, injectedElem: function.Creator[U]): SubSource[U, Mat] =
+  def keepAlive[U >: Out](
+      maxIdle: FiniteDuration,
+      injectedElem: function.Creator[U]): SubSource[U, Mat] =
     new SubSource(delegate.keepAlive(maxIdle, () ⇒ injectedElem.create()))
 
   /**
@@ -1153,7 +1216,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def throttle(elements: Int, per: FiniteDuration, maximumBurst: Int,
+  def throttle(elements: Int,
+               per: FiniteDuration,
+               maximumBurst: Int,
                mode: ThrottleMode): javadsl.SubSource[Out, Mat] =
     new SubSource(delegate.throttle(elements, per, maximumBurst, mode))
 
@@ -1183,9 +1248,14 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def throttle(cost: Int, per: FiniteDuration, maximumBurst: Int,
-               costCalculation: function.Function[Out, Integer], mode: ThrottleMode): javadsl.SubSource[Out, Mat] =
-    new SubSource(delegate.throttle(cost, per, maximumBurst, costCalculation.apply _, mode))
+  def throttle(cost: Int,
+               per: FiniteDuration,
+               maximumBurst: Int,
+               costCalculation: function.Function[Out, Integer],
+               mode: ThrottleMode): javadsl.SubSource[Out, Mat] =
+    new SubSource(
+        delegate.throttle(
+            cost, per, maximumBurst, costCalculation.apply _, mode))
 
   /**
    * Detaches upstream demand from downstream demand without detaching the
@@ -1243,8 +1313,7 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
   /**
    * Put an asynchronous boundary around this `SubSource`
    */
-  def async: SubSource[Out, Mat] =
-    new SubSource(delegate.async)
+  def async: SubSource[Out, Mat] = new SubSource(delegate.async)
 
   /**
    * Logs elements flowing through the stream as well as completion and erroring.
@@ -1265,7 +1334,9 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def log(name: String, extract: function.Function[Out, Any], log: LoggingAdapter): SubSource[Out, Mat] =
+  def log(name: String,
+          extract: function.Function[Out, Any],
+          log: LoggingAdapter): SubSource[Out, Mat] =
     new SubSource(delegate.log(name, e ⇒ extract.apply(e))(log))
 
   /**
@@ -1287,7 +1358,8 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    *
    * '''Cancels when''' downstream cancels
    */
-  def log(name: String, extract: function.Function[Out, Any]): SubSource[Out, Mat] =
+  def log(name: String,
+          extract: function.Function[Out, Any]): SubSource[Out, Mat] =
     this.log(name, extract, null)
 
   /**
@@ -1327,5 +1399,4 @@ class SubSource[+Out, +Mat](delegate: scaladsl.SubFlow[Out, Mat, scaladsl.Source
    */
   def log(name: String): SubSource[Out, Mat] =
     this.log(name, ConstantFun.javaIdentityFunction[Out], null)
-
 }

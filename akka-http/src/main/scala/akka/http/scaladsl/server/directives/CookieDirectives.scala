@@ -55,8 +55,10 @@ trait CookieDirectives {
    * @group cookie
    */
   def deleteCookie(first: HttpCookie, more: HttpCookie*): Directive0 =
-    respondWithHeaders((first :: more.toList).map { c ⇒
-      `Set-Cookie`(c.copy(value = "deleted", expires = Some(DateTime.MinValue)))
+    respondWithHeaders(
+        (first :: more.toList).map { c ⇒
+      `Set-Cookie`(
+          c.copy(value = "deleted", expires = Some(DateTime.MinValue)))
     })
 
   /**
@@ -64,9 +66,10 @@ trait CookieDirectives {
    *
    * @group cookie
    */
-  def deleteCookie(name: String, domain: String = "", path: String = ""): Directive0 =
-    deleteCookie(HttpCookie(name, "", domain = domain.toOption, path = path.toOption))
-
+  def deleteCookie(
+      name: String, domain: String = "", path: String = ""): Directive0 =
+    deleteCookie(
+        HttpCookie(name, "", domain = domain.toOption, path = path.toOption))
 }
 
 object CookieDirectives extends CookieDirectives

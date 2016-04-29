@@ -4,7 +4,7 @@
 package akka.io
 
 import java.net.InetSocketAddress
-import akka.testkit.{ TestProbe, ImplicitSender, AkkaSpec }
+import akka.testkit.{TestProbe, ImplicitSender, AkkaSpec}
 import akka.util.ByteString
 import akka.actor.ActorRef
 import akka.io.Udp._
@@ -36,20 +36,19 @@ class UdpIntegrationSpec extends AkkaSpec("""
 
     "be able to send without binding" in {
       val serverAddress = addresses(0)
-      val server = bindUdp(serverAddress, testActor)
-      val data = ByteString("To infinity and beyond!")
+      val server        = bindUdp(serverAddress, testActor)
+      val data          = ByteString("To infinity and beyond!")
       simpleSender ! Send(data, serverAddress)
 
       expectMsgType[Received].data should ===(data)
-
     }
 
     "be able to send several packet back and forth with binding" in {
       val serverAddress = addresses(1)
       val clientAddress = addresses(2)
-      val server = bindUdp(serverAddress, testActor)
-      val client = bindUdp(clientAddress, testActor)
-      val data = ByteString("Fly little packet!")
+      val server        = bindUdp(serverAddress, testActor)
+      val client        = bindUdp(clientAddress, testActor)
+      val data          = ByteString("Fly little packet!")
 
       def checkSendingToClient(): Unit = {
         server ! Send(data, clientAddress)
@@ -77,30 +76,32 @@ class UdpIntegrationSpec extends AkkaSpec("""
     }
 
     "call SocketOption.beforeBind method before bind." in {
-      val commander = TestProbe()
+      val commander    = TestProbe()
       val assertOption = AssertBeforeBind()
-      commander.send(IO(Udp), Bind(testActor, addresses(3), options = List(assertOption)))
+      commander.send(
+          IO(Udp), Bind(testActor, addresses(3), options = List(assertOption)))
       commander.expectMsg(Bound(addresses(3)))
       assert(assertOption.beforeCalled === 1)
     }
 
     "call SocketOption.afterConnect method after binding." in {
-      val commander = TestProbe()
+      val commander    = TestProbe()
       val assertOption = AssertAfterChannelBind()
-      commander.send(IO(Udp), Bind(testActor, addresses(4), options = List(assertOption)))
+      commander.send(
+          IO(Udp), Bind(testActor, addresses(4), options = List(assertOption)))
       commander.expectMsg(Bound(addresses(4)))
       assert(assertOption.afterCalled === 1)
     }
 
     "call DatagramChannelCreator.create method when opening channel" in {
-      val commander = TestProbe()
+      val commander    = TestProbe()
       val assertOption = AssertOpenDatagramChannel()
-      commander.send(IO(Udp), Bind(testActor, addresses(5), options = List(assertOption)))
+      commander.send(
+          IO(Udp), Bind(testActor, addresses(5), options = List(assertOption)))
       commander.expectMsg(Bound(addresses(5)))
       assert(assertOption.openCalled === 1)
     }
   }
-
 }
 
 private case class AssertBeforeBind() extends SocketOption {

@@ -10,6 +10,7 @@ import java.math.BigInteger
 object PNCounterMap {
   val empty: PNCounterMap = new PNCounterMap(ORMap.empty)
   def apply(): PNCounterMap = empty
+
   /**
    * Java API
    */
@@ -27,14 +28,16 @@ object PNCounterMap {
  * This class is immutable, i.e. "modifying" methods return a new instance.
  */
 @SerialVersionUID(1L)
-final class PNCounterMap private[akka] (
-  private[akka] val underlying: ORMap[PNCounter])
-  extends ReplicatedData with ReplicatedDataSerialization with RemovedNodePruning {
+final class PNCounterMap private[akka](
+    private[akka] val underlying: ORMap[PNCounter])
+    extends ReplicatedData with ReplicatedDataSerialization
+    with RemovedNodePruning {
 
   type T = PNCounterMap
 
   /** Scala API */
-  def entries: Map[String, BigInt] = underlying.entries.map { case (k, c) ⇒ k -> c.value }
+  def entries: Map[String, BigInt] =
+    underlying.entries.map { case (k, c) ⇒ k -> c.value }
 
   /** Java API */
   def getEntries: java.util.Map[String, BigInteger] = {
@@ -50,7 +53,8 @@ final class PNCounterMap private[akka] (
   /**
    * Java API: The count for a key, or `null` if it doesn't exist
    */
-  def getValue(key: String): BigInteger = underlying.get(key).map(_.value.bigInteger).orNull
+  def getValue(key: String): BigInteger =
+    underlying.get(key).map(_.value.bigInteger).orNull
 
   def contains(key: String): Boolean = underlying.contains(key)
 
@@ -62,8 +66,8 @@ final class PNCounterMap private[akka] (
    * Increment the counter with the delta specified.
    * If the delta is negative then it will decrement instead of increment.
    */
-  def increment(key: String, delta: Long = 1)(implicit node: Cluster): PNCounterMap =
-    increment(node, key, delta)
+  def increment(key: String, delta: Long = 1)(
+      implicit node: Cluster): PNCounterMap = increment(node, key, delta)
 
   /**
    * Increment the counter with the delta specified.
@@ -75,15 +79,17 @@ final class PNCounterMap private[akka] (
   /**
    * INTERNAL API
    */
-  private[akka] def increment(node: UniqueAddress, key: String, delta: Long): PNCounterMap =
-    new PNCounterMap(underlying.updated(node, key, PNCounter())(_.increment(node, delta)))
+  private[akka] def increment(
+      node: UniqueAddress, key: String, delta: Long): PNCounterMap =
+    new PNCounterMap(
+        underlying.updated(node, key, PNCounter())(_.increment(node, delta)))
 
   /**
    * Decrement the counter with the delta specified.
    * If the delta is negative then it will increment instead of decrement.
    */
-  def decrement(key: String, delta: Long = 1)(implicit node: Cluster): PNCounterMap =
-    decrement(node, key, delta)
+  def decrement(key: String, delta: Long = 1)(
+      implicit node: Cluster): PNCounterMap = decrement(node, key, delta)
 
   /**
    * Decrement the counter with the delta specified.
@@ -95,8 +101,10 @@ final class PNCounterMap private[akka] (
   /**
    * INTERNAL API
    */
-  private[akka] def decrement(node: UniqueAddress, key: String, delta: Long): PNCounterMap = {
-    new PNCounterMap(underlying.updated(node, key, PNCounter())(_.decrement(node, delta)))
+  private[akka] def decrement(
+      node: UniqueAddress, key: String, delta: Long): PNCounterMap = {
+    new PNCounterMap(
+        underlying.updated(node, key, PNCounter())(_.decrement(node, delta)))
   }
 
   /**
@@ -126,7 +134,8 @@ final class PNCounterMap private[akka] (
   override def needPruningFrom(removedNode: UniqueAddress): Boolean =
     underlying.needPruningFrom(removedNode)
 
-  override def prune(removedNode: UniqueAddress, collapseInto: UniqueAddress): PNCounterMap =
+  override def prune(
+      removedNode: UniqueAddress, collapseInto: UniqueAddress): PNCounterMap =
     new PNCounterMap(underlying.prune(removedNode, collapseInto))
 
   override def pruningCleanup(removedNode: UniqueAddress): PNCounterMap =
@@ -149,4 +158,5 @@ object PNCounterMapKey {
 }
 
 @SerialVersionUID(1L)
-final case class PNCounterMapKey(_id: String) extends Key[PNCounterMap](_id) with ReplicatedDataSerialization
+final case class PNCounterMapKey(_id: String)
+    extends Key[PNCounterMap](_id) with ReplicatedDataSerialization

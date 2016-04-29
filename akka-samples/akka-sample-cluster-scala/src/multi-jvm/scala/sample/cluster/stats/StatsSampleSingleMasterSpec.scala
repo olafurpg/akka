@@ -24,9 +24,9 @@ import akka.cluster.singleton.ClusterSingletonProxySettings
 
 object StatsSampleSingleMasterSpecConfig extends MultiNodeConfig {
   // register the named roles (nodes) of the test
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
   def nodeList = Seq(first, second, third)
 
@@ -65,16 +65,19 @@ object StatsSampleSingleMasterSpecConfig extends MultiNodeConfig {
     }
     #//#router-deploy-config
     """))
-
 }
 
 // need one concrete test class per node
-class StatsSampleSingleMasterSpecMultiJvmNode1 extends StatsSampleSingleMasterSpec
-class StatsSampleSingleMasterSpecMultiJvmNode2 extends StatsSampleSingleMasterSpec
-class StatsSampleSingleMasterSpecMultiJvmNode3 extends StatsSampleSingleMasterSpec
+class StatsSampleSingleMasterSpecMultiJvmNode1
+    extends StatsSampleSingleMasterSpec
+class StatsSampleSingleMasterSpecMultiJvmNode2
+    extends StatsSampleSingleMasterSpec
+class StatsSampleSingleMasterSpecMultiJvmNode3
+    extends StatsSampleSingleMasterSpec
 
-abstract class StatsSampleSingleMasterSpec extends MultiNodeSpec(StatsSampleSingleMasterSpecConfig)
-  with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
+abstract class StatsSampleSingleMasterSpec
+    extends MultiNodeSpec(StatsSampleSingleMasterSpecConfig) with WordSpecLike
+    with Matchers with BeforeAndAfterAll with ImplicitSender {
 
   import StatsSampleSingleMasterSpecConfig._
 
@@ -89,42 +92,46 @@ abstract class StatsSampleSingleMasterSpec extends MultiNodeSpec(StatsSampleSing
       Cluster(system).subscribe(testActor, classOf[MemberUp])
       expectMsgClass(classOf[CurrentClusterState])
 
-      val firstAddress = node(first).address
+      val firstAddress  = node(first).address
       val secondAddress = node(second).address
-      val thirdAddress = node(third).address
+      val thirdAddress  = node(third).address
 
       Cluster(system) join firstAddress
 
       receiveN(3).collect { case MemberUp(m) => m.address }.toSet should be(
-        Set(firstAddress, secondAddress, thirdAddress))
+          Set(firstAddress, secondAddress, thirdAddress))
 
       Cluster(system).unsubscribe(testActor)
 
       system.actorOf(ClusterSingletonManager.props(
-        singletonProps = Props[StatsService], terminationMessage = PoisonPill,
-        settings = ClusterSingletonManagerSettings(system).withRole("compute")),
-        name = "statsService")
+                         singletonProps = Props[StatsService],
+                         terminationMessage = PoisonPill,
+                         settings = ClusterSingletonManagerSettings(system)
+                             .withRole("compute")),
+                     name = "statsService")
 
-      system.actorOf(ClusterSingletonProxy.props(singletonManagerPath = "/user/statsService",
-        ClusterSingletonProxySettings(system).withRole("compute")),
-        name = "statsServiceProxy")
+      system.actorOf(
+          ClusterSingletonProxy.props(
+              singletonManagerPath = "/user/statsService",
+              ClusterSingletonProxySettings(system).withRole("compute")),
+          name = "statsServiceProxy")
 
       testConductor.enter("all-up")
     }
 
     "show usage of the statsServiceProxy" in within(40 seconds) {
-      val proxy = system.actorSelection(RootActorPath(node(third).address) / "user" / "statsServiceProxy")
+      val proxy = system.actorSelection(
+          RootActorPath(node(third).address) / "user" / "statsServiceProxy")
 
       // eventually the service should be ok,
       // service and worker nodes might not be up yet
       awaitAssert {
         proxy ! StatsJob("this is the text that will be analyzed")
         expectMsgType[StatsResult](1.second).meanWordLength should be(
-          3.875 +- 0.001)
+            3.875 +- 0.001)
       }
 
       testConductor.enter("done")
     }
   }
-
 }

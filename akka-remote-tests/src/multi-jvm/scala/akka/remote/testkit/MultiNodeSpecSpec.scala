@@ -19,7 +19,8 @@ class MultiNodeSpecSpecMultiJvmNode2 extends MultiNodeSpecSpec
 class MultiNodeSpecSpecMultiJvmNode3 extends MultiNodeSpecSpec
 class MultiNodeSpecSpecMultiJvmNode4 extends MultiNodeSpecSpec
 
-class MultiNodeSpecSpec extends MultiNodeSpec(MultiNodeSpecMultiJvmSpec) with STMultiNodeSpec {
+class MultiNodeSpecSpec
+    extends MultiNodeSpec(MultiNodeSpecMultiJvmSpec) with STMultiNodeSpec {
 
   import MultiNodeSpecMultiJvmSpec._
 
@@ -31,6 +32,5 @@ class MultiNodeSpecSpec extends MultiNodeSpec(MultiNodeSpecMultiJvmSpec) with ST
       enterBarrier("startup")
       // this test is empty here since it only exercises the shutdown code in the MultiNodeSpec
     }
-
   }
 }

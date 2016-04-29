@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor
 
 import scala.concurrent.duration.FiniteDuration
@@ -12,6 +11,7 @@ import scala.concurrent.duration.FiniteDuration
  * This is an EXPERIMENTAL feature and is subject to change until it has received more real world testing.
  */
 object AbstractFSM {
+
   /**
    * A partial function value which does not match anything and can be used to
    * “reset” `whenUnhandled` and `onTermination` handlers.
@@ -33,7 +33,7 @@ object AbstractFSM {
 abstract class AbstractFSM[S, D] extends FSM[S, D] {
   import akka.japi.pf._
   import akka.japi.pf.FI._
-  import java.util.{ List ⇒ JList }
+  import java.util.{List ⇒ JList}
   import FSM._
 
   /**
@@ -53,7 +53,8 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param stateName designator for the state
    * @param stateFunctionBuilder partial function builder describing response to input
    */
-  final def when(stateName: S, stateFunctionBuilder: FSMStateFunctionBuilder[S, D]): Unit =
+  final def when(stateName: S,
+                 stateFunctionBuilder: FSMStateFunctionBuilder[S, D]): Unit =
     when(stateName, null, stateFunctionBuilder)
 
   /**
@@ -91,7 +92,8 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param stateData initial state data
    * @param timeout state timeout for the initial state, overriding the default timeout for that state
    */
-  final def startWith(stateName: S, stateData: D, timeout: FiniteDuration): Unit =
+  final def startWith(
+      stateName: S, stateData: D, timeout: FiniteDuration): Unit =
     startWith(stateName, stateData, Option(timeout))
 
   /**
@@ -101,8 +103,10 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * <b>Multiple handlers may be installed, and every one of them will be
    * called, not only the first one matching.</b>
    */
-  final def onTransition(transitionHandlerBuilder: FSMTransitionHandlerBuilder[S]): Unit =
-    onTransition(transitionHandlerBuilder.build().asInstanceOf[TransitionHandler])
+  final def onTransition(
+      transitionHandlerBuilder: FSMTransitionHandlerBuilder[S]): Unit =
+    onTransition(
+        transitionHandlerBuilder.build().asInstanceOf[TransitionHandler])
 
   /**
    * Add a handler which is called upon each state transition, i.e. not when
@@ -120,7 +124,8 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    *
    * The current state may be queried using ``stateName``.
    */
-  final def whenUnhandled(stateFunctionBuilder: FSMStateFunctionBuilder[S, D]): Unit =
+  final def whenUnhandled(
+      stateFunctionBuilder: FSMStateFunctionBuilder[S, D]): Unit =
     whenUnhandled(stateFunctionBuilder.build())
 
   /**
@@ -128,7 +133,8 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * this method again will overwrite the previous contents.
    */
   final def onTermination(stopBuilder: FSMStopBuilder[S, D]): Unit =
-    onTermination(stopBuilder.build().asInstanceOf[PartialFunction[StopEvent, Unit]])
+    onTermination(
+        stopBuilder.build().asInstanceOf[PartialFunction[StopEvent, Unit]])
 
   /**
    * Create an [[akka.japi.pf.FSMStateFunctionBuilder]] with the first case statement set.
@@ -141,8 +147,13 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchEvent[ET, DT <: D](eventType: Class[ET], dataType: Class[DT], predicate: TypedPredicate2[ET, DT], apply: Apply2[ET, DT, State]): FSMStateFunctionBuilder[S, D] =
-    new FSMStateFunctionBuilder[S, D]().event(eventType, dataType, predicate, apply)
+  final def matchEvent[ET, DT <: D](
+      eventType: Class[ET],
+      dataType: Class[DT],
+      predicate: TypedPredicate2[ET, DT],
+      apply: Apply2[ET, DT, State]): FSMStateFunctionBuilder[S, D] =
+    new FSMStateFunctionBuilder[S, D]()
+      .event(eventType, dataType, predicate, apply)
 
   /**
    * Create an [[akka.japi.pf.FSMStateFunctionBuilder]] with the first case statement set.
@@ -154,7 +165,10 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchEvent[ET, DT <: D](eventType: Class[ET], dataType: Class[DT], apply: Apply2[ET, DT, State]): FSMStateFunctionBuilder[S, D] =
+  final def matchEvent[ET, DT <: D](
+      eventType: Class[ET],
+      dataType: Class[DT],
+      apply: Apply2[ET, DT, State]): FSMStateFunctionBuilder[S, D] =
     new FSMStateFunctionBuilder[S, D]().event(eventType, dataType, apply)
 
   /**
@@ -167,7 +181,10 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchEvent[ET](eventType: Class[ET], predicate: TypedPredicate2[ET, D], apply: Apply2[ET, D, State]): FSMStateFunctionBuilder[S, D] =
+  final def matchEvent[ET](
+      eventType: Class[ET],
+      predicate: TypedPredicate2[ET, D],
+      apply: Apply2[ET, D, State]): FSMStateFunctionBuilder[S, D] =
     new FSMStateFunctionBuilder[S, D]().event(eventType, predicate, apply);
 
   /**
@@ -179,7 +196,9 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchEvent[ET](eventType: Class[ET], apply: Apply2[ET, D, State]): FSMStateFunctionBuilder[S, D] =
+  final def matchEvent[ET](
+      eventType: Class[ET],
+      apply: Apply2[ET, D, State]): FSMStateFunctionBuilder[S, D] =
     new FSMStateFunctionBuilder[S, D]().event(eventType, apply);
 
   /**
@@ -191,7 +210,9 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchEvent(predicate: TypedPredicate2[AnyRef, D], apply: Apply2[AnyRef, D, State]): FSMStateFunctionBuilder[S, D] =
+  final def matchEvent(
+      predicate: TypedPredicate2[AnyRef, D],
+      apply: Apply2[AnyRef, D, State]): FSMStateFunctionBuilder[S, D] =
     new FSMStateFunctionBuilder[S, D]().event(predicate, apply);
 
   /**
@@ -205,7 +226,10 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchEvent[DT <: D](eventMatches: JList[AnyRef], dataType: Class[DT], apply: Apply2[AnyRef, DT, State]): FSMStateFunctionBuilder[S, D] =
+  final def matchEvent[DT <: D](
+      eventMatches: JList[AnyRef],
+      dataType: Class[DT],
+      apply: Apply2[AnyRef, DT, State]): FSMStateFunctionBuilder[S, D] =
     new FSMStateFunctionBuilder[S, D]().event(eventMatches, dataType, apply);
 
   /**
@@ -218,7 +242,9 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchEvent(eventMatches: JList[AnyRef], apply: Apply2[AnyRef, D, State]): FSMStateFunctionBuilder[S, D] =
+  final def matchEvent(
+      eventMatches: JList[AnyRef],
+      apply: Apply2[AnyRef, D, State]): FSMStateFunctionBuilder[S, D] =
     new FSMStateFunctionBuilder[S, D]().event(eventMatches, apply);
 
   /**
@@ -231,7 +257,10 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchEventEquals[E, DT <: D](event: E, dataType: Class[DT], apply: Apply2[E, DT, State]): FSMStateFunctionBuilder[S, D] =
+  final def matchEventEquals[E, DT <: D](
+      event: E,
+      dataType: Class[DT],
+      apply: Apply2[E, DT, State]): FSMStateFunctionBuilder[S, D] =
     new FSMStateFunctionBuilder[S, D]().eventEquals(event, dataType, apply);
 
   /**
@@ -243,7 +272,8 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchEventEquals[E](event: E, apply: Apply2[E, D, State]): FSMStateFunctionBuilder[S, D] =
+  final def matchEventEquals[E](
+      event: E, apply: Apply2[E, D, State]): FSMStateFunctionBuilder[S, D] =
     new FSMStateFunctionBuilder[S, D]().eventEquals(event, apply);
 
   /**
@@ -254,7 +284,8 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchAnyEvent(apply: Apply2[AnyRef, D, State]): FSMStateFunctionBuilder[S, D] =
+  final def matchAnyEvent(
+      apply: Apply2[AnyRef, D, State]): FSMStateFunctionBuilder[S, D] =
     new FSMStateFunctionBuilder[S, D]().anyEvent(apply)
 
   /**
@@ -267,7 +298,9 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply when the states match
    * @return the builder with the case statement added
    */
-  final def matchState(fromState: S, toState: S, apply: UnitApplyVoid): FSMTransitionHandlerBuilder[S] =
+  final def matchState(fromState: S,
+                       toState: S,
+                       apply: UnitApplyVoid): FSMTransitionHandlerBuilder[S] =
     new FSMTransitionHandlerBuilder[S]().state(fromState, toState, apply)
 
   /**
@@ -280,7 +313,10 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply when the states match
    * @return the builder with the case statement added
    */
-  final def matchState(fromState: S, toState: S, apply: UnitApply2[S, S]): FSMTransitionHandlerBuilder[S] =
+  final def matchState(
+      fromState: S,
+      toState: S,
+      apply: UnitApply2[S, S]): FSMTransitionHandlerBuilder[S] =
     new FSMTransitionHandlerBuilder[S]().state(fromState, toState, apply)
 
   /**
@@ -292,7 +328,8 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchStop(reason: Reason, apply: UnitApply2[S, D]): FSMStopBuilder[S, D] =
+  final def matchStop(
+      reason: Reason, apply: UnitApply2[S, D]): FSMStopBuilder[S, D] =
     new FSMStopBuilder[S, D]().stop(reason, apply)
 
   /**
@@ -304,7 +341,9 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the reason, event and state data if there is a match
    * @return the builder with the case statement added
    */
-  final def matchStop[RT <: Reason](reasonType: Class[RT], apply: UnitApply3[RT, S, D]): FSMStopBuilder[S, D] =
+  final def matchStop[RT <: Reason](
+      reasonType: Class[RT],
+      apply: UnitApply3[RT, S, D]): FSMStopBuilder[S, D] =
     new FSMStopBuilder[S, D]().stop(reasonType, apply)
 
   /**
@@ -317,7 +356,10 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param predicate  a predicate that will be evaluated on the reason if the type matches
    * @return the builder with the case statement added
    */
-  final def matchStop[RT <: Reason](reasonType: Class[RT], predicate: TypedPredicate[RT], apply: UnitApply3[RT, S, D]): FSMStopBuilder[S, D] =
+  final def matchStop[RT <: Reason](
+      reasonType: Class[RT],
+      predicate: TypedPredicate[RT],
+      apply: UnitApply3[RT, S, D]): FSMStopBuilder[S, D] =
     new FSMStopBuilder[S, D]().stop(reasonType, predicate, apply)
 
   /**
@@ -327,7 +369,8 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the argument if the type matches
    * @return a builder with the case statement added
    */
-  final def matchData[DT <: D](dataType: Class[DT], apply: UnitApply[DT]): UnitPFBuilder[D] =
+  final def matchData[DT <: D](
+      dataType: Class[DT], apply: UnitApply[DT]): UnitPFBuilder[D] =
     UnitMatch.`match`(dataType, apply)
 
   /**
@@ -338,7 +381,9 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
    * @param apply  an action to apply to the argument if the type and predicate matches
    * @return a builder with the case statement added
    */
-  final def matchData[DT <: D](dataType: Class[DT], predicate: TypedPredicate[DT], apply: UnitApply[DT]): UnitPFBuilder[D] =
+  final def matchData[DT <: D](dataType: Class[DT],
+                               predicate: TypedPredicate[DT],
+                               apply: UnitApply[DT]): UnitPFBuilder[D] =
     UnitMatch.`match`(dataType, predicate, apply)
 
   /**
@@ -380,7 +425,8 @@ abstract class AbstractFSM[S, D] extends FSM[S, D] {
  *
  * This is an EXPERIMENTAL feature and is subject to change until it has received more real world testing.
  */
-abstract class AbstractLoggingFSM[S, D] extends AbstractFSM[S, D] with LoggingFSM[S, D]
+abstract class AbstractLoggingFSM[S, D]
+    extends AbstractFSM[S, D] with LoggingFSM[S, D]
 
 /**
  * Java API: compatible with lambda expressions

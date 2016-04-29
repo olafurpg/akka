@@ -5,8 +5,8 @@ package akka.stream.scaladsl
 
 import akka.testkit.DefaultTimeout
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Span, Millis }
-import scala.concurrent.{ Future, Await }
+import org.scalatest.time.{Span, Millis}
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 import scala.util.Failure
 import scala.util.control.NoStackTrace
@@ -20,7 +20,8 @@ import scala.collection.immutable
 class SourceSpec extends AkkaSpec with DefaultTimeout {
 
   implicit val materializer = ActorMaterializer()
-  implicit val config = PatienceConfig(timeout = Span(timeout.duration.toMillis, Millis))
+  implicit val config = PatienceConfig(
+      timeout = Span(timeout.duration.toMillis, Millis))
 
   "Single Source" must {
     "produce element" in {
@@ -34,7 +35,7 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
     }
 
     "reject later subscriber" in {
-      val p = Source.single(1).runWith(Sink.asPublisher(false))
+      val p  = Source.single(1).runWith(Sink.asPublisher(false))
       val c1 = TestSubscriber.manualProbe[Int]()
       val c2 = TestSubscriber.manualProbe[Int]()
       p.subscribe(c1)
@@ -47,7 +48,6 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
       p.subscribe(c2)
       c2.expectSubscriptionAndError()
     }
-
   }
 
   "Empty Source" must {
@@ -67,8 +67,8 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
   "Failed Source" must {
     "emit error immediately" in {
       val ex = new RuntimeException with NoStackTrace
-      val p = Source.failed(ex).runWith(Sink.asPublisher(false))
-      val c = TestSubscriber.manualProbe[Int]()
+      val p  = Source.failed(ex).runWith(Sink.asPublisher(false))
+      val c  = TestSubscriber.manualProbe[Int]()
       p.subscribe(c)
       c.expectSubscriptionAndError(ex)
 
@@ -82,7 +82,7 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
   "Maybe Source" must {
     "complete materialized future with None when stream cancels" in Utils.assertAllStagesStopped {
       val neverSource = Source.maybe[Int]
-      val pubSink = Sink.asPublisher[Int](false)
+      val pubSink     = Sink.asPublisher[Int](false)
 
       val (f, neverPub) = neverSource.toMat(pubSink)(Keep.both).run()
 
@@ -99,9 +99,12 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
 
     "allow external triggering of empty completion" in Utils.assertAllStagesStopped {
       val neverSource = Source.maybe[Int].filter(_ ⇒ false)
-      val counterSink = Sink.fold[Int, Int](0) { (acc, _) ⇒ acc + 1 }
+      val counterSink = Sink.fold[Int, Int](0) { (acc, _) ⇒
+        acc + 1
+      }
 
-      val (neverPromise, counterFuture) = neverSource.toMat(counterSink)(Keep.both).run()
+      val (neverPromise, counterFuture) =
+        neverSource.toMat(counterSink)(Keep.both).run()
 
       // external cancellation
       neverPromise.trySuccess(None) shouldEqual true
@@ -113,7 +116,8 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
       val neverSource = Source.maybe[Int]
       val counterSink = Sink.head[Int]
 
-      val (neverPromise, counterFuture) = neverSource.toMat(counterSink)(Keep.both).run()
+      val (neverPromise, counterFuture) =
+        neverSource.toMat(counterSink)(Keep.both).run()
 
       // external cancellation
       neverPromise.trySuccess(Some(6)) shouldEqual true
@@ -123,28 +127,32 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
 
     "allow external triggering of onError" in Utils.assertAllStagesStopped {
       val neverSource = Source.maybe[Int]
-      val counterSink = Sink.fold[Int, Int](0) { (acc, _) ⇒ acc + 1 }
+      val counterSink = Sink.fold[Int, Int](0) { (acc, _) ⇒
+        acc + 1
+      }
 
-      val (neverPromise, counterFuture) = neverSource.toMat(counterSink)(Keep.both).run()
+      val (neverPromise, counterFuture) =
+        neverSource.toMat(counterSink)(Keep.both).run()
 
       // external cancellation
       neverPromise.failure(new Exception("Boom") with NoStackTrace)
 
-      val ready = Await.ready(counterFuture, 3.seconds)
+      val ready       = Await.ready(counterFuture, 3.seconds)
       val Failure(ex) = ready.value.get
       ex.getMessage should include("Boom")
     }
-
   }
 
   "Composite Source" must {
     "merge from many inputs" in {
       val probes = immutable.Seq.fill(5)(TestPublisher.manualProbe[Int]())
       val source = Source.asSubscriber[Int]
-      val out = TestSubscriber.manualProbe[Int]
+      val out    = TestSubscriber.manualProbe[Int]
 
-      val s = Source.fromGraph(GraphDSL.create(source, source, source, source, source)(immutable.Seq(_, _, _, _, _)) { implicit b ⇒
-        (i0, i1, i2, i3, i4) ⇒
+      val s = Source
+        .fromGraph(
+            GraphDSL.create(source, source, source, source, source)(immutable
+                  .Seq(_, _, _, _, _)) { implicit b ⇒ (i0, i1, i2, i3, i4) ⇒
           import GraphDSL.Implicits._
           val m = b.add(Merge[Int](5))
           i0.out ~> m.in(0)
@@ -153,7 +161,9 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
           i3.out ~> m.in(3)
           i4.out ~> m.in(4)
           SourceShape(m.out)
-      }).to(Sink.fromSubscriber(out)).run()
+        })
+        .to(Sink.fromSubscriber(out))
+        .run()
 
       for (i ← 0 to 4) probes(i).subscribe(s(i))
       val sub = out.expectSubscription()
@@ -174,9 +184,12 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
     "combine from many inputs with simplified API" in {
       val probes = immutable.Seq.fill(3)(TestPublisher.manualProbe[Int]())
       val source = for (i ← 0 to 2) yield Source.fromPublisher(probes(i))
-      val out = TestSubscriber.manualProbe[Int]
+      val out    = TestSubscriber.manualProbe[Int]
 
-      Source.combine(source(0), source(1), source(2))(Merge(_)).to(Sink.fromSubscriber(out)).run()
+      Source
+        .combine(source(0), source(1), source(2))(Merge(_))
+        .to(Sink.fromSubscriber(out))
+        .run()
 
       val sub = out.expectSubscription()
       sub.request(3)
@@ -195,10 +208,14 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
 
     "combine from two inputs with simplified API" in {
       val probes = immutable.Seq.fill(2)(TestPublisher.manualProbe[Int]())
-      val source = Source.fromPublisher(probes(0)) :: Source.fromPublisher(probes(1)) :: Nil
+      val source =
+        Source.fromPublisher(probes(0)) :: Source.fromPublisher(probes(1)) :: Nil
       val out = TestSubscriber.manualProbe[Int]
 
-      Source.combine(source(0), source(1))(Merge(_)).to(Sink.fromSubscriber(out)).run()
+      Source
+        .combine(source(0), source(1))(Merge(_))
+        .to(Sink.fromSubscriber(out))
+        .run()
 
       val sub = out.expectSubscription()
       sub.request(3)
@@ -214,7 +231,6 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
       gotten.toSet should ===(Set(0, 1))
       out.expectComplete()
     }
-
   }
 
   "Repeat Source" must {
@@ -226,38 +242,80 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
   }
 
   "Unfold Source" must {
-    val expected = List(9227465, 5702887, 3524578, 2178309, 1346269, 832040, 514229, 317811, 196418, 121393, 75025, 46368, 28657, 17711, 10946, 6765, 4181, 2584, 1597, 987, 610, 377, 233, 144, 89, 55, 34, 21, 13, 8, 5, 3, 2, 1, 1, 0)
+    val expected = List(9227465,
+                        5702887,
+                        3524578,
+                        2178309,
+                        1346269,
+                        832040,
+                        514229,
+                        317811,
+                        196418,
+                        121393,
+                        75025,
+                        46368,
+                        28657,
+                        17711,
+                        10946,
+                        6765,
+                        4181,
+                        2584,
+                        1597,
+                        987,
+                        610,
+                        377,
+                        233,
+                        144,
+                        89,
+                        55,
+                        34,
+                        21,
+                        13,
+                        8,
+                        5,
+                        3,
+                        2,
+                        1,
+                        1,
+                        0)
 
     "generate a finite fibonacci sequence" in {
-      Source.unfold((0, 1)) {
-        case (a, _) if a > 10000000 ⇒ None
-        case (a, b)                 ⇒ Some((b, a + b) → a)
-      }.runFold(List.empty[Int]) { case (xs, x) ⇒ x :: xs }
+      Source
+        .unfold((0, 1)) {
+          case (a, _) if a > 10000000 ⇒ None
+          case (a, b)                 ⇒ Some((b, a + b) → a)
+        }
+        .runFold(List.empty[Int]) { case (xs, x) ⇒ x :: xs }
         .futureValue should ===(expected)
     }
 
     "terminate with a failure if there is an exception thrown" in {
       val t = new RuntimeException("expected")
-      EventFilter[RuntimeException](message = "expected", occurrences = 1) intercept
-        whenReady(
-          Source.unfold((0, 1)) {
-            case (a, _) if a > 10000000 ⇒ throw t
-            case (a, b)                 ⇒ Some((b, a + b) → a)
-          }.runFold(List.empty[Int]) { case (xs, x) ⇒ x :: xs }.failed) {
-            _ should be theSameInstanceAs (t)
-          }
+      EventFilter[RuntimeException](message = "expected", occurrences = 1) intercept whenReady(
+          Source
+            .unfold((0, 1)) {
+          case (a, _) if a > 10000000 ⇒ throw t
+          case (a, b)                 ⇒ Some((b, a + b) → a)
+        }
+            .runFold(List.empty[Int]) { case (xs, x) ⇒ x :: xs }
+            .failed) {
+        _ should be theSameInstanceAs (t)
+      }
     }
 
     "generate a finite fibonacci sequence asynchronously" in {
-      Source.unfoldAsync((0, 1)) {
-        case (a, _) if a > 10000000 ⇒ Future.successful(None)
-        case (a, b)                 ⇒ Future(Some((b, a + b) → a))(system.dispatcher)
-      }.runFold(List.empty[Int]) { case (xs, x) ⇒ x :: xs }
+      Source
+        .unfoldAsync((0, 1)) {
+          case (a, _) if a > 10000000 ⇒ Future.successful(None)
+          case (a, b)                 ⇒ Future(Some((b, a + b) → a))(system.dispatcher)
+        }
+        .runFold(List.empty[Int]) { case (xs, x) ⇒ x :: xs }
         .futureValue should ===(expected)
     }
 
     "generate an unbounded fibonacci sequence" in {
-      Source.unfold((0, 1))({ case (a, b) ⇒ Some((b, a + b) → a) })
+      Source
+        .unfold((0, 1))({ case (a, b) ⇒ Some((b, a + b) → a) })
         .take(36)
         .runFold(List.empty[Int]) { case (xs, x) ⇒ x :: xs }
         .futureValue should ===(expected)
@@ -266,39 +324,36 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
 
   "Iterator Source" must {
     "properly iterate" in {
-      Source.fromIterator(() ⇒ Iterator.iterate(false)(!_))
+      Source
+        .fromIterator(() ⇒ Iterator.iterate(false)(!_))
         .grouped(10)
         .runWith(Sink.head)
-        .futureValue should ===(immutable.Seq(false, true, false, true, false, true, false, true, false, true))
+        .futureValue should ===(immutable.Seq(
+              false, true, false, true, false, true, false, true, false, true))
     }
   }
 
   "ZipN Source" must {
     "properly zipN" in {
-      val sources = immutable.Seq(
-        Source(List(1, 2, 3)),
-        Source(List(10, 20, 30)),
-        Source(List(100, 200, 300)))
+      val sources = immutable.Seq(Source(List(1, 2, 3)),
+                                  Source(List(10, 20, 30)),
+                                  Source(List(100, 200, 300)))
 
-      Source.zipN(sources)
-        .runWith(Sink.seq)
-        .futureValue should ===(immutable.Seq(
-          immutable.Seq(1, 10, 100),
-          immutable.Seq(2, 20, 200),
-          immutable.Seq(3, 30, 300)))
+      Source.zipN(sources).runWith(Sink.seq).futureValue should ===(
+          immutable.Seq(immutable.Seq(1, 10, 100),
+                        immutable.Seq(2, 20, 200),
+                        immutable.Seq(3, 30, 300)))
     }
   }
 
   "ZipWithN Source" must {
     "properly zipWithN" in {
-      val sources = immutable.Seq(
-        Source(List(1, 2, 3)),
-        Source(List(10, 20, 30)),
-        Source(List(100, 200, 300)))
+      val sources = immutable.Seq(Source(List(1, 2, 3)),
+                                  Source(List(10, 20, 30)),
+                                  Source(List(100, 200, 300)))
 
-      Source.zipWithN[Int, Int](_.sum)(sources)
-        .runWith(Sink.seq)
-        .futureValue should ===(immutable.Seq(111, 222, 333))
+      Source.zipWithN[Int, Int](_.sum)(sources).runWith(Sink.seq).futureValue should ===(
+          immutable.Seq(111, 222, 333))
     }
   }
 
@@ -306,20 +361,30 @@ class SourceSpec extends AkkaSpec with DefaultTimeout {
 
     "continuously generate the same sequence" in {
       val expected = Seq(1, 2, 3, 1, 2, 3, 1, 2, 3)
-      Source.cycle(() ⇒ List(1, 2, 3).iterator).grouped(9).runWith(Sink.head).futureValue should ===(expected)
+      Source
+        .cycle(() ⇒ List(1, 2, 3).iterator)
+        .grouped(9)
+        .runWith(Sink.head)
+        .futureValue should ===(expected)
     }
 
     "throw an exception in case of empty iterator" in {
       val empty = Iterator.empty
-      assert(Source.cycle(() ⇒ empty).runWith(Sink.head).failed.futureValue.isInstanceOf[IllegalArgumentException])
+      assert(
+          Source
+            .cycle(() ⇒ empty)
+            .runWith(Sink.head)
+            .failed
+            .futureValue
+            .isInstanceOf[IllegalArgumentException])
     }
   }
 
   "A Source" must {
     "suitably override attribute handling methods" in {
       import Attributes._
-      val s: Source[Int, NotUsed] = Source.single(42).async.addAttributes(none).named("")
+      val s: Source[Int, NotUsed] =
+        Source.single(42).async.addAttributes(none).named("")
     }
   }
-
 }

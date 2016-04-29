@@ -5,7 +5,7 @@ package akka.stream
 
 import scala.collection.immutable
 import akka.stream.impl.StreamLayout._
-import akka.stream.impl.fusing.{ Fusing ⇒ Impl }
+import akka.stream.impl.fusing.{Fusing ⇒ Impl}
 import scala.annotation.unchecked.uncheckedVariance
 
 /**
@@ -31,17 +31,20 @@ object Fusing {
    * implementations based on [[akka.stream.stage.GraphStage]]) and not forbidden
    * via [[akka.stream.Attributes#AsyncBoundary]].
    */
-  def aggressive[S <: Shape, M](g: Graph[S, M]): FusedGraph[S, M] = Impl.aggressive(g)
+  def aggressive[S <: Shape, M](g: Graph[S, M]): FusedGraph[S, M] =
+    Impl.aggressive(g)
 
   /**
    * A fused graph of the right shape, containing a [[FusedModule]] which
    * holds more information on the operation structure of the contained stream
    * topology for convenient graph traversal.
    */
-  case class FusedGraph[+S <: Shape @uncheckedVariance, +M](override val module: FusedModule,
-                                                            override val shape: S) extends Graph[S, M] {
+  case class FusedGraph[+S <: Shape @uncheckedVariance, +M](
+      override val module: FusedModule, override val shape: S)
+      extends Graph[S, M] {
     // the @uncheckedVariance look like a compiler bug ... why does it work in Graph but not here?
-    override def withAttributes(attr: Attributes) = copy(module = module.withAttributes(attr))
+    override def withAttributes(attr: Attributes) =
+      copy(module = module.withAttributes(attr))
   }
 
   object FusedGraph {
@@ -64,5 +67,4 @@ object Fusing {
                                   inOwners: immutable.Map[InPort, Module],
                                   outOwners: immutable.Map[OutPort, Module],
                                   allModules: Set[Module])
-
 }

@@ -9,8 +9,8 @@ import java.nio.channels.DatagramChannel
 import java.nio.channels.SelectionKey._
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
-import akka.actor.{ Actor, ActorLogging, ActorRef }
-import akka.dispatch.{ UnboundedMessageQueueSemantics, RequiresMessageQueue }
+import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.dispatch.{UnboundedMessageQueueSemantics, RequiresMessageQueue}
 import akka.util.ByteString
 import akka.io.SelectionHandler._
 import akka.io.UdpConnected._
@@ -22,7 +22,8 @@ private[io] class UdpConnection(udpConn: UdpConnectedExt,
                                 channelRegistry: ChannelRegistry,
                                 commander: ActorRef,
                                 connect: Connect)
-  extends Actor with ActorLogging with RequiresMessageQueue[UnboundedMessageQueueSemantics] {
+    extends Actor with ActorLogging
+    with RequiresMessageQueue[UnboundedMessageQueueSemantics] {
 
   import connect._
   import udpConn._
@@ -92,8 +93,7 @@ private[io] class UdpConnection(udpConn: UdpConnectedExt,
       sender() ! CommandFailed(send)
 
     case send: Send if send.payload.isEmpty ⇒
-      if (send.wantsAck)
-        sender() ! send.ack
+      if (send.wantsAck) sender() ! send.ack
 
     case send: Send ⇒
       pendingSend = (send, sender())
@@ -139,22 +139,23 @@ private[io] class UdpConnection(udpConn: UdpConnectedExt,
     }
   }
 
-  override def postStop(): Unit =
-    if (channel.isOpen) {
-      log.debug("Closing DatagramChannel after being stopped")
-      try channel.close()
-      catch {
-        case NonFatal(e) ⇒ log.debug("Error closing DatagramChannel: {}", e)
-      }
+  override def postStop(): Unit = if (channel.isOpen) {
+    log.debug("Closing DatagramChannel after being stopped")
+    try channel.close() catch {
+      case NonFatal(e) ⇒ log.debug("Error closing DatagramChannel: {}", e)
     }
+  }
 
   private def reportConnectFailure(thunk: ⇒ Unit): Unit = {
     try {
       thunk
     } catch {
       case NonFatal(e) ⇒
-        log.debug("Failure while connecting UDP channel to remote address [{}] local address [{}]: {}",
-          remoteAddress, localAddress.getOrElse("undefined"), e)
+        log.debug(
+            "Failure while connecting UDP channel to remote address [{}] local address [{}]: {}",
+            remoteAddress,
+            localAddress.getOrElse("undefined"),
+            e)
         commander ! CommandFailed(connect)
         context.stop(self)
     }

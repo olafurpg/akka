@@ -3,8 +3,8 @@
  */
 package akka.http.javadsl
 
-import java.util.{ Collection ⇒ JCollection, Optional }
-import javax.net.ssl.{ SSLContext, SSLParameters }
+import java.util.{Collection ⇒ JCollection, Optional}
+import javax.net.ssl.{SSLContext, SSLParameters}
 import akka.http.scaladsl
 import akka.japi.Util
 import akka.stream.TLSClientAuth
@@ -26,11 +26,13 @@ object ConnectionContext {
             clientAuth: Optional[TLSClientAuth],
             sslParameters: Optional[SSLParameters]) =
     scaladsl.ConnectionContext.https(
-      sslContext,
-      OptionConverters.toScala(enabledCipherSuites).map(Util.immutableSeq(_)),
-      OptionConverters.toScala(enabledProtocols).map(Util.immutableSeq(_)),
-      OptionConverters.toScala(clientAuth),
-      OptionConverters.toScala(sslParameters))
+        sslContext,
+        OptionConverters
+          .toScala(enabledCipherSuites)
+          .map(Util.immutableSeq(_)),
+        OptionConverters.toScala(enabledProtocols).map(Util.immutableSeq(_)),
+        OptionConverters.toScala(clientAuth),
+        OptionConverters.toScala(sslParameters))
   //#https-context-creation
 
   /** Used to serve HTTP traffic. */
@@ -40,28 +42,34 @@ object ConnectionContext {
 
 abstract class ConnectionContext {
   def isSecure: Boolean
+
   /** Java API */
   def getDefaultPort: Int
 }
 
-abstract class HttpConnectionContext extends akka.http.javadsl.ConnectionContext {
-  override final def isSecure = false
+abstract class HttpConnectionContext
+    extends akka.http.javadsl.ConnectionContext {
+  override final def isSecure       = false
   override final def getDefaultPort = 80
 }
 
-abstract class HttpsConnectionContext extends akka.http.javadsl.ConnectionContext {
-  override final def isSecure = true
+abstract class HttpsConnectionContext
+    extends akka.http.javadsl.ConnectionContext {
+  override final def isSecure       = true
   override final def getDefaultPort = 443
 
   /** Java API */
   def getEnabledCipherSuites: Optional[JCollection[String]]
+
   /** Java API */
   def getEnabledProtocols: Optional[JCollection[String]]
+
   /** Java API */
   def getClientAuth: Optional[TLSClientAuth]
 
   /** Java API */
   def getSslContext: SSLContext
+
   /** Java API */
   def getSslParameters: Optional[SSLParameters]
 }

@@ -3,7 +3,7 @@
  */
 package akka.stream
 
-import akka.japi.{ function ⇒ japi }
+import akka.japi.{function ⇒ japi}
 
 object Supervision {
   sealed trait Directive
@@ -87,6 +87,6 @@ object Supervision {
   /**
    * Java API: Decider function that returns [[#restart]] for all exceptions.
    */
-  val getRestartingDecider: japi.Function[Throwable, Directive] = restartingDecider
-
+  val getRestartingDecider: japi.Function[Throwable, Directive] =
+    restartingDecider
 }

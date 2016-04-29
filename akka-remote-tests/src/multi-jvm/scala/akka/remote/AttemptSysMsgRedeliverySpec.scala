@@ -11,14 +11,14 @@ import akka.actor.Identify
 import akka.actor.Props
 import akka.remote.transport.ThrottlerTransportAdapter.Direction
 import akka.testkit._
-import testkit.{ STMultiNodeSpec, MultiNodeConfig, MultiNodeSpec }
+import testkit.{STMultiNodeSpec, MultiNodeConfig, MultiNodeSpec}
 import akka.actor.PoisonPill
 
 object AttemptSysMsgRedeliveryMultiJvmSpec extends MultiNodeConfig {
 
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
   commonConfig(debugConfig(on = false))
 
@@ -35,8 +35,9 @@ class AttemptSysMsgRedeliveryMultiJvmNode1 extends AttemptSysMsgRedeliverySpec
 class AttemptSysMsgRedeliveryMultiJvmNode2 extends AttemptSysMsgRedeliverySpec
 class AttemptSysMsgRedeliveryMultiJvmNode3 extends AttemptSysMsgRedeliverySpec
 
-class AttemptSysMsgRedeliverySpec extends MultiNodeSpec(AttemptSysMsgRedeliveryMultiJvmSpec)
-  with STMultiNodeSpec with ImplicitSender with DefaultTimeout {
+class AttemptSysMsgRedeliverySpec
+    extends MultiNodeSpec(AttemptSysMsgRedeliveryMultiJvmSpec)
+    with STMultiNodeSpec with ImplicitSender with DefaultTimeout {
   import AttemptSysMsgRedeliveryMultiJvmSpec._
 
   def initialParticipants = roles.size
@@ -82,5 +83,4 @@ class AttemptSysMsgRedeliverySpec extends MultiNodeSpec(AttemptSysMsgRedeliveryM
       enterBarrier("done")
     }
   }
-
 }

@@ -6,7 +6,7 @@ package akka.typed
 import scala.concurrent.duration.Duration
 import scala.collection.immutable.TreeMap
 import akka.util.Helpers
-import akka.{ actor ⇒ untyped }
+import akka.{actor ⇒ untyped}
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContextExecutor
 
@@ -131,7 +131,8 @@ trait ActorContext[T] {
    * by invoking [[akka.actor.Cancellable]] `cancel` on the returned
    * handle.
    */
-  def schedule[U](delay: FiniteDuration, target: ActorRef[U], msg: U): untyped.Cancellable
+  def schedule[U](
+      delay: FiniteDuration, target: ActorRef[U], msg: U): untyped.Cancellable
 
   /**
    * This Actor’s execution context. It can be used to run asynchronous tasks
@@ -154,19 +155,20 @@ trait ActorContext[T] {
  *
  * See [[EffectfulActorContext]] for more advanced uses.
  */
-class StubbedActorContext[T](
-  val name: String,
-  override val props: Props[T])(
-    override implicit val system: ActorSystem[Nothing]) extends ActorContext[T] {
+class StubbedActorContext[T](val name: String, override val props: Props[T])(
+    override implicit val system: ActorSystem[Nothing])
+    extends ActorContext[T] {
 
-  val inbox = Inbox.sync[T](name)
+  val inbox         = Inbox.sync[T](name)
   override val self = inbox.ref
 
   private var _children = TreeMap.empty[String, Inbox.SyncInbox[_]]
   private val childName = Iterator from 1 map (Helpers.base64(_))
 
-  override def children: Iterable[ActorRef[Nothing]] = _children.values map (_.ref)
-  override def child(name: String): Option[ActorRef[Nothing]] = _children get name map (_.ref)
+  override def children: Iterable[ActorRef[Nothing]] =
+    _children.values map (_.ref)
+  override def child(name: String): Option[ActorRef[Nothing]] =
+    _children get name map (_.ref)
   override def spawnAnonymous[U](props: Props[U]): ActorRef[U] = {
     val i = Inbox.sync[U](childName.next())
     _children += i.ref.untypedRef.path.name -> i
@@ -174,7 +176,9 @@ class StubbedActorContext[T](
   }
   override def spawn[U](props: Props[U], name: String): ActorRef[U] =
     _children get name match {
-      case Some(_) ⇒ throw new untyped.InvalidActorNameException(s"actor name $name is already taken")
+      case Some(_) ⇒
+        throw new untyped.InvalidActorNameException(
+            s"actor name $name is already taken")
       case None ⇒
         val i = Inbox.sync[U](name)
         _children += name -> i
@@ -187,7 +191,9 @@ class StubbedActorContext[T](
   }
   override def actorOf(props: untyped.Props, name: String): untyped.ActorRef =
     _children get name match {
-      case Some(_) ⇒ throw new untyped.InvalidActorNameException(s"actor name $name is already taken")
+      case Some(_) ⇒
+        throw new untyped.InvalidActorNameException(
+            s"actor name $name is already taken")
       case None ⇒
         val i = Inbox.sync[Any](name)
         _children += name -> i
@@ -200,20 +206,24 @@ class StubbedActorContext[T](
       case Some(inbox) ⇒ inbox.ref == child
     }
   }
-  def watch[U](other: ActorRef[U]): ActorRef[U] = other
-  def watch(other: akka.actor.ActorRef): other.type = other
-  def unwatch[U](other: ActorRef[U]): ActorRef[U] = other
+  def watch[U](other: ActorRef[U]): ActorRef[U]       = other
+  def watch(other: akka.actor.ActorRef): other.type   = other
+  def unwatch[U](other: ActorRef[U]): ActorRef[U]     = other
   def unwatch(other: akka.actor.ActorRef): other.type = other
-  def setReceiveTimeout(d: Duration): Unit = ()
+  def setReceiveTimeout(d: Duration): Unit            = ()
 
-  def schedule[U](delay: FiniteDuration, target: ActorRef[U], msg: U): untyped.Cancellable = new untyped.Cancellable {
-    def cancel() = false
+  def schedule[U](delay: FiniteDuration,
+                  target: ActorRef[U],
+                  msg: U): untyped.Cancellable = new untyped.Cancellable {
+    def cancel()    = false
     def isCancelled = true
   }
-  implicit def executionContext: ExecutionContextExecutor = system.executionContext
+  implicit def executionContext: ExecutionContextExecutor =
+    system.executionContext
   def spawnAdapter[U](f: U ⇒ T): ActorRef[U] = ???
 
-  def getInbox[U](name: String): Inbox.SyncInbox[U] = _children(name).asInstanceOf[Inbox.SyncInbox[U]]
+  def getInbox[U](name: String): Inbox.SyncInbox[U] =
+    _children(name).asInstanceOf[Inbox.SyncInbox[U]]
   def removeInbox(name: String): Unit = _children -= name
 }
 

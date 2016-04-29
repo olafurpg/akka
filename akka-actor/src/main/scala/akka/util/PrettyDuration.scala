@@ -19,9 +19,12 @@ object PrettyDuration {
    * JAVA API
    * Selects most apropriate TimeUnit for given duration and formats it accordingly
    */
-  def format(duration: Duration, includeNanos: Boolean, precision: Int): String = duration.pretty(includeNanos, precision)
+  def format(
+      duration: Duration, includeNanos: Boolean, precision: Int): String =
+    duration.pretty(includeNanos, precision)
 
-  implicit class PrettyPrintableDuration(val duration: Duration) extends AnyVal {
+  implicit class PrettyPrintableDuration(val duration: Duration)
+      extends AnyVal {
 
     /** Selects most apropriate TimeUnit for given duration and formats it accordingly, with 4 digits precision **/
     def pretty: String = pretty(includeNanos = false)
@@ -33,10 +36,14 @@ object PrettyDuration {
       duration match {
         case d: FiniteDuration ⇒
           val nanos = d.toNanos
-          val unit = chooseUnit(nanos)
+          val unit  = chooseUnit(nanos)
           val value = nanos.toDouble / NANOSECONDS.convert(1, unit)
 
-          s"%.${precision}g %s%s".formatLocal(Locale.ROOT, value, abbreviate(unit), if (includeNanos) s" ($nanos ns)" else "")
+          s"%.${precision}g %s%s".formatLocal(Locale.ROOT,
+                                              value,
+                                              abbreviate(unit),
+                                              if (includeNanos) s" ($nanos ns)"
+                                              else "")
 
         case Duration.MinusInf ⇒ s"-∞ (minus infinity)"
         case Duration.Inf      ⇒ s"∞ (infinity)"
@@ -66,5 +73,4 @@ object PrettyDuration {
       case DAYS         ⇒ "d"
     }
   }
-
 }

@@ -6,12 +6,14 @@ package akka.util
 /**
  * INTERNAL API
  */
-private[akka] abstract class TokenBucket(capacity: Long, nanosBetweenTokens: Long) {
+private[akka] abstract class TokenBucket(
+    capacity: Long, nanosBetweenTokens: Long) {
   require(capacity >= 0, "Capacity must be non-negative.")
-  require(nanosBetweenTokens > 0, "Time between tokens must be larger than zero nanoseconds.")
+  require(nanosBetweenTokens > 0,
+          "Time between tokens must be larger than zero nanoseconds.")
 
   private[this] var availableTokens: Long = _
-  private[this] var lastUpdate: Long = _
+  private[this] var lastUpdate: Long      = _
 
   /**
    * This method must be called before the token bucket can be used.
@@ -42,9 +44,10 @@ private[akka] abstract class TokenBucket(capacity: Long, nanosBetweenTokens: Lon
    * @return
    */
   def offer(cost: Long): Long = {
-    if (cost < 0) throw new IllegalArgumentException("Cost must be non-negative")
+    if (cost < 0)
+      throw new IllegalArgumentException("Cost must be non-negative")
 
-    val now = currentTime
+    val now         = currentTime
     val timeElapsed = now - lastUpdate
 
     val tokensArrived =
@@ -71,18 +74,18 @@ private[akka] abstract class TokenBucket(capacity: Long, nanosBetweenTokens: Lon
       val remainingCost = cost - availableTokens
       // Tokens always arrive at exact multiples of the token generation period, we must account for that
       val timeSinceTokenArrival = now - lastUpdate
-      val delay = remainingCost * nanosBetweenTokens - timeSinceTokenArrival
+      val delay                 = remainingCost * nanosBetweenTokens - timeSinceTokenArrival
       availableTokens = 0
       lastUpdate = now + delay
       delay
     }
   }
-
 }
 
 /**
  * Default implementation of [[TokenBucket]] that uses `System.nanoTime` as the time source.
  */
-final class NanoTimeTokenBucket(_cap: Long, _period: Long) extends TokenBucket(_cap, _period) {
+final class NanoTimeTokenBucket(_cap: Long, _period: Long)
+    extends TokenBucket(_cap, _period) {
   override def currentTime: Long = System.nanoTime()
 }

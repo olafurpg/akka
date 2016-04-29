@@ -10,6 +10,7 @@ import akka.http.impl.server.RouteStructure.RangeSupport
 import scala.annotation.varargs
 
 abstract class RangeDirectives extends PathDirectives {
+
   /**
    * Answers GET requests with an `Accept-Ranges: bytes` header and converts HttpResponses coming back from its inner
    * route into partial responses if the initial request contained a valid `Range` request header. The requested
@@ -24,5 +25,7 @@ abstract class RangeDirectives extends PathDirectives {
    *
    * For more information, see: https://tools.ietf.org/html/rfc7233
    */
-  @varargs def withRangeSupport(innerRoute: Route, moreInnerRoutes: Route*): Route = RangeSupport()(innerRoute, moreInnerRoutes.toList)
+  @varargs
+  def withRangeSupport(innerRoute: Route, moreInnerRoutes: Route*): Route =
+    RangeSupport()(innerRoute, moreInnerRoutes.toList)
 }

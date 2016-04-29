@@ -1,15 +1,15 @@
 package akka.sample.osgi.test
 
-import akka.actor.{ Identify => _, _ }
+import akka.actor.{Identify => _, _}
 import akka.sample.osgi.api._
 import akka.sample.osgi.test.TestOptions._
 import akka.testkit.TestProbe
 import javax.inject.Inject
 import org.junit.runner.RunWith
-import org.junit.{ Before, Test }
-import org.ops4j.pax.exam.junit.{ Configuration, JUnit4TestRunner }
+import org.junit.{Before, Test}
+import org.ops4j.pax.exam.junit.{Configuration, JUnit4TestRunner}
 import org.ops4j.pax.exam.util.Filter
-import org.ops4j.pax.exam.{ Option => PaxOption }
+import org.ops4j.pax.exam.{Option => PaxOption}
 import org.scalatest.junit.{AssertionsForJUnit, JUnitSuite}
 import org.scalatest.Matchers
 import scala.concurrent.duration._
@@ -30,20 +30,24 @@ import org.apache.karaf.tooling.exam.options.LogLevelOption
  * TODO attempt to use the Akka test probe
  */
 @RunWith(classOf[JUnit4TestRunner])
-class HakkerStatusTest extends JUnitSuite with Matchers with AssertionsForJUnit {
+class HakkerStatusTest
+    extends JUnitSuite with Matchers with AssertionsForJUnit {
 
-  @Inject @Filter(timeout = 30000)
+  @Inject
+  @Filter(timeout = 30000)
   var actorSystem: ActorSystem = _
 
-  @Inject @Filter(timeout = 30000)
+  @Inject
+  @Filter(timeout = 30000)
   var service: DiningHakkersService = _
 
   var testProbe: TestProbe = _
 
   @Configuration
-  def config: Array[PaxOption] = Array[PaxOption](
-    karafOptionsWithTestBundles(),
-    featureDiningHakkers() //, debugOptions(level = LogLevelOption.LogLevel.DEBUG)
+  def config: Array[PaxOption] =
+    Array[PaxOption](
+        karafOptionsWithTestBundles(),
+        featureDiningHakkers() //, debugOptions(level = LogLevelOption.LogLevel.DEBUG)
     )
 
   // Junit @Before and @After can be used as well
@@ -58,25 +62,27 @@ class HakkerStatusTest extends JUnitSuite with Matchers with AssertionsForJUnit 
 
     val name = "TestHakker"
     val hakker = Option(service.getHakker(name, 2))
-      .getOrElse(throw new IllegalStateException("No Hakker was created via DiningHakkerService"))
+      .getOrElse(throw new IllegalStateException(
+            "No Hakker was created via DiningHakkerService"))
 
     // takes some time for the first message to get through
     testProbe.within(10.seconds) {
       testProbe.send(hakker, Identify)
-      val Identification(fromHakker, busyWith) = testProbe.expectMsgType[Identification]
+      val Identification(fromHakker, busyWith) =
+        testProbe.expectMsgType[Identification]
 
-      println("---------------> %s is busy with %s.".format(fromHakker, busyWith))
+      println(
+          "---------------> %s is busy with %s.".format(fromHakker, busyWith))
       fromHakker should be("TestHakker")
       busyWith should not be (null)
     }
-
   }
 
   @Test
   def verifyHakkerTracker() {
 
-    val name = "TestHakker"
-    val hakker = service.getHakker(name, 3)
+    val name    = "TestHakker"
+    val hakker  = service.getHakker(name, 3)
     val tracker = service.getTracker()
     tracker ! TrackHakker(hakker)
     testProbe.within(10.seconds) {
@@ -90,5 +96,4 @@ class HakkerStatusTest extends JUnitSuite with Matchers with AssertionsForJUnit 
       }
     }
   }
-
 }

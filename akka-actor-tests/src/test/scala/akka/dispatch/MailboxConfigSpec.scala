@@ -5,15 +5,16 @@ package akka.dispatch
 
 import language.postfixOps
 
-import java.util.concurrent.{ ConcurrentLinkedQueue, BlockingQueue }
-import org.scalatest.{ BeforeAndAfterEach, BeforeAndAfterAll }
-import com.typesafe.config.{ Config, ConfigFactory }
+import java.util.concurrent.{ConcurrentLinkedQueue, BlockingQueue}
+import org.scalatest.{BeforeAndAfterEach, BeforeAndAfterAll}
+import com.typesafe.config.{Config, ConfigFactory}
 import akka.actor._
-import akka.testkit.{ EventFilter, AkkaSpec }
-import scala.concurrent.{ Future, Await, ExecutionContext }
+import akka.testkit.{EventFilter, AkkaSpec}
+import scala.concurrent.{Future, Await, ExecutionContext}
 import scala.concurrent.duration._
 
-abstract class MailboxSpec extends AkkaSpec with BeforeAndAfterAll with BeforeAndAfterEach {
+abstract class MailboxSpec
+    extends AkkaSpec with BeforeAndAfterAll with BeforeAndAfterEach {
   def name: String
 
   def factory: MailboxType ⇒ MessageQueue
@@ -28,7 +29,7 @@ abstract class MailboxSpec extends AkkaSpec with BeforeAndAfterAll with BeforeAn
 
     "create an unbounded mailbox" in {
       val config = UnboundedMailbox()
-      val q = factory(config)
+      val q      = factory(config)
       ensureInitialMailboxState(config, q)
     }
 
@@ -53,7 +54,8 @@ abstract class MailboxSpec extends AkkaSpec with BeforeAndAfterAll with BeforeAn
 
       system.eventStream.subscribe(testActor, classOf[DeadLetter])
       q.enqueue(testActor, exampleMessage)
-      expectMsg(DeadLetter(exampleMessage.message, system.deadLetters, testActor))
+      expectMsg(
+          DeadLetter(exampleMessage.message, system.deadLetters, testActor))
       system.eventStream.unsubscribe(testActor, classOf[DeadLetter])
 
       q.dequeue should ===(exampleMessage)
@@ -79,17 +81,20 @@ abstract class MailboxSpec extends AkkaSpec with BeforeAndAfterAll with BeforeAn
   }
 
   //CANDIDATE FOR TESTKIT
-  def spawn[T <: AnyRef](fun: ⇒ T): Future[T] = Future(fun)(ExecutionContext.global)
+  def spawn[T <: AnyRef](fun: ⇒ T): Future[T] =
+    Future(fun)(ExecutionContext.global)
 
-  def createMessageInvocation(msg: Any): Envelope = Envelope(msg, system.deadLetters, system)
+  def createMessageInvocation(msg: Any): Envelope =
+    Envelope(msg, system.deadLetters, system)
 
-  def ensureMailboxSize(q: MessageQueue, expected: Int): Unit = q.numberOfMessages match {
-    case -1 | `expected` ⇒
-      q.hasMessages should ===(expected != 0)
-    case other ⇒
-      other should ===(expected)
-      q.hasMessages should ===(expected != 0)
-  }
+  def ensureMailboxSize(q: MessageQueue, expected: Int): Unit =
+    q.numberOfMessages match {
+      case -1 | `expected` ⇒
+        q.hasMessages should ===(expected != 0)
+      case other ⇒
+        other should ===(expected)
+        q.hasMessages should ===(expected != 0)
+    }
 
   def ensureSingleConsumerEnqueueDequeue(config: MailboxType) {
     val q = factory(config)
@@ -114,10 +119,12 @@ abstract class MailboxSpec extends AkkaSpec with BeforeAndAfterAll with BeforeAn
   def ensureInitialMailboxState(config: MailboxType, q: MessageQueue) {
     q should not be null
     q match {
-      case aQueue: BlockingQueue[_] ⇒
+      case aQueue: BlockingQueue [_] ⇒
         config match {
-          case BoundedMailbox(capacity, _) ⇒ aQueue.remainingCapacity should ===(capacity)
-          case UnboundedMailbox()          ⇒ aQueue.remainingCapacity should ===(Int.MaxValue)
+          case BoundedMailbox(capacity, _) ⇒
+            aQueue.remainingCapacity should ===(capacity)
+          case UnboundedMailbox() ⇒
+            aQueue.remainingCapacity should ===(Int.MaxValue)
         }
       case _ ⇒
     }
@@ -132,48 +139,55 @@ abstract class MailboxSpec extends AkkaSpec with BeforeAndAfterAll with BeforeAn
     val q = factory(config)
     ensureInitialMailboxState(config, q)
 
-    EventFilter.warning(pattern = ".*received dead letter from Actor.*MailboxSpec/deadLetters.*",
-      occurrences = (enqueueN - dequeueN)) intercept {
+    EventFilter.warning(
+        pattern = ".*received dead letter from Actor.*MailboxSpec/deadLetters.*",
+        occurrences = (enqueueN - dequeueN)) intercept {
 
-        def createProducer(fromNum: Int, toNum: Int): Future[Vector[Envelope]] = spawn {
-          val messages = Vector() ++ (for (i ← fromNum to toNum) yield createMessageInvocation(i))
-          for (i ← messages) q.enqueue(testActor, i)
+      def createProducer(fromNum: Int, toNum: Int): Future[Vector[Envelope]] =
+        spawn {
+          val messages =
+            Vector() ++
+            (for (i ← fromNum to toNum) yield createMessageInvocation(i))
+          for (i    ← messages) q.enqueue(testActor, i)
           messages
         }
 
-        val producers = {
-          val step = 500
-          val ps = for (i ← (1 to enqueueN by step).toList) yield createProducer(i, Math.min(enqueueN, i + step - 1))
+      val producers = {
+        val step = 500
+        val ps = for (i ← (1 to enqueueN by step).toList) yield
+          createProducer(i, Math.min(enqueueN, i + step - 1))
 
-          if (parallel == false)
-            ps foreach { Await.ready(_, remainingOrDefault) }
+        if (parallel == false)
+          ps foreach { Await.ready(_, remainingOrDefault) }
 
-          ps
-        }
-
-        def createConsumer: Future[Vector[Envelope]] = spawn {
-          var r = Vector[Envelope]()
-
-          while (producers.exists(_.isCompleted == false) || q.hasMessages)
-            Option(q.dequeue) foreach { message ⇒ r = r :+ message }
-
-          r
-        }
-
-        val consumers = List.fill(maxConsumers)(createConsumer)
-
-        val ps = producers.map(Await.result(_, remainingOrDefault))
-        val cs = consumers.map(Await.result(_, remainingOrDefault))
-
-        ps.map(_.size).sum should ===(enqueueN) //Must have produced 1000 messages
-        cs.map(_.size).sum should ===(dequeueN) //Must have consumed all produced messages
-        //No message is allowed to be consumed by more than one consumer
-        cs.flatten.distinct.size should ===(dequeueN)
-        //All consumed messages should have been produced
-        (cs.flatten diff ps.flatten).size should ===(0)
-        //The ones that were produced and not consumed
-        (ps.flatten diff cs.flatten).size should ===(enqueueN - dequeueN)
+        ps
       }
+
+      def createConsumer: Future[Vector[Envelope]] = spawn {
+        var r = Vector[Envelope]()
+
+        while (producers.exists(_.isCompleted == false) ||
+        q.hasMessages) Option(q.dequeue) foreach { message ⇒
+          r = r :+ message
+        }
+
+        r
+      }
+
+      val consumers = List.fill(maxConsumers)(createConsumer)
+
+      val ps = producers.map(Await.result(_, remainingOrDefault))
+      val cs = consumers.map(Await.result(_, remainingOrDefault))
+
+      ps.map(_.size).sum should ===(enqueueN) //Must have produced 1000 messages
+      cs.map(_.size).sum should ===(dequeueN) //Must have consumed all produced messages
+      //No message is allowed to be consumed by more than one consumer
+      cs.flatten.distinct.size should ===(dequeueN)
+      //All consumed messages should have been produced
+      (cs.flatten diff ps.flatten).size should ===(0)
+      //The ones that were produced and not consumed
+      (ps.flatten diff cs.flatten).size should ===(enqueueN - dequeueN)
+    }
   }
 }
 
@@ -187,27 +201,35 @@ class DefaultMailboxSpec extends MailboxSpec {
 
 class PriorityMailboxSpec extends MailboxSpec {
   val comparator = PriorityGenerator(_.##)
-  lazy val name = "The priority mailbox implementation"
+  lazy val name  = "The priority mailbox implementation"
   def factory = {
-    case UnboundedMailbox()                    ⇒ new UnboundedPriorityMailbox(comparator).create(None, None)
-    case BoundedMailbox(capacity, pushTimeOut) ⇒ new BoundedPriorityMailbox(comparator, capacity, pushTimeOut).create(None, None)
+    case UnboundedMailbox() ⇒
+      new UnboundedPriorityMailbox(comparator).create(None, None)
+    case BoundedMailbox(capacity, pushTimeOut) ⇒
+      new BoundedPriorityMailbox(comparator, capacity, pushTimeOut)
+        .create(None, None)
   }
 }
 
 class StablePriorityMailboxSpec extends MailboxSpec {
   val comparator = PriorityGenerator(_.##)
-  lazy val name = "The stable priority mailbox implementation"
+  lazy val name  = "The stable priority mailbox implementation"
   def factory = {
-    case UnboundedMailbox()                    ⇒ new UnboundedStablePriorityMailbox(comparator).create(None, None)
-    case BoundedMailbox(capacity, pushTimeOut) ⇒ new BoundedStablePriorityMailbox(comparator, capacity, pushTimeOut).create(None, None)
+    case UnboundedMailbox() ⇒
+      new UnboundedStablePriorityMailbox(comparator).create(None, None)
+    case BoundedMailbox(capacity, pushTimeOut) ⇒
+      new BoundedStablePriorityMailbox(comparator, capacity, pushTimeOut)
+        .create(None, None)
   }
 }
 
 class ControlAwareMailboxSpec extends MailboxSpec {
   lazy val name = "The control aware mailbox implementation"
   def factory = {
-    case UnboundedMailbox()                    ⇒ new UnboundedControlAwareMailbox().create(None, None)
-    case BoundedMailbox(capacity, pushTimeOut) ⇒ new BoundedControlAwareMailbox(capacity, pushTimeOut).create(None, None)
+    case UnboundedMailbox() ⇒
+      new UnboundedControlAwareMailbox().create(None, None)
+    case BoundedMailbox(capacity, pushTimeOut) ⇒
+      new BoundedControlAwareMailbox(capacity, pushTimeOut).create(None, None)
   }
 }
 
@@ -218,11 +240,13 @@ object CustomMailboxSpec {
     }
     """
 
-  class MyMailboxType(settings: ActorSystem.Settings, config: Config) extends MailboxType {
-    override def create(owner: Option[ActorRef], system: Option[ActorSystem]) = owner match {
-      case Some(o) ⇒ new MyMailbox(o)
-      case None    ⇒ throw new Exception("no mailbox owner given")
-    }
+  class MyMailboxType(settings: ActorSystem.Settings, config: Config)
+      extends MailboxType {
+    override def create(owner: Option[ActorRef], system: Option[ActorSystem]) =
+      owner match {
+        case Some(o) ⇒ new MyMailbox(o)
+        case None    ⇒ throw new Exception("no mailbox owner given")
+      }
   }
 
   class MyMailbox(owner: ActorRef) extends UnboundedQueueBasedMessageQueue {
@@ -238,7 +262,12 @@ class CustomMailboxSpec extends AkkaSpec(CustomMailboxSpec.config) {
         case r: RepointableRef ⇒ r.isStarted
         case _                 ⇒ true
       }, 1 second, 10 millis)
-      val queue = actor.asInstanceOf[ActorRefWithCell].underlying.asInstanceOf[ActorCell].mailbox.messageQueue
+      val queue = actor
+        .asInstanceOf[ActorRefWithCell]
+        .underlying
+        .asInstanceOf[ActorCell]
+        .mailbox
+        .messageQueue
       queue.getClass should ===(classOf[CustomMailboxSpec.MyMailbox])
     }
   }
@@ -248,14 +277,17 @@ class SingleConsumerOnlyMailboxSpec extends MailboxSpec {
   lazy val name = "The single-consumer-only mailbox implementation"
   override def maxConsumers = 1
   def factory = {
-    case u: UnboundedMailbox             ⇒ SingleConsumerOnlyUnboundedMailbox().create(None, None)
-    case b @ BoundedMailbox(capacity, _) ⇒ NonBlockingBoundedMailbox(capacity).create(None, None)
+    case u: UnboundedMailbox ⇒
+      SingleConsumerOnlyUnboundedMailbox().create(None, None)
+    case b @ BoundedMailbox(capacity, _) ⇒
+      NonBlockingBoundedMailbox(capacity).create(None, None)
   }
 }
 
 object SingleConsumerOnlyMailboxVerificationSpec {
   case object Ping
-  val mailboxConf = ConfigFactory.parseString("""
+  val mailboxConf =
+    ConfigFactory.parseString("""
       akka.actor.serialize-messages = off
       test-unbounded-dispatcher {
       mailbox-type = "akka.dispatch.SingleConsumerOnlyUnboundedMailbox"
@@ -268,26 +300,26 @@ object SingleConsumerOnlyMailboxVerificationSpec {
       }""")
 }
 
-class SingleConsumerOnlyMailboxVerificationSpec extends AkkaSpec(SingleConsumerOnlyMailboxVerificationSpec.mailboxConf) {
+class SingleConsumerOnlyMailboxVerificationSpec
+    extends AkkaSpec(SingleConsumerOnlyMailboxVerificationSpec.mailboxConf) {
   import SingleConsumerOnlyMailboxVerificationSpec.Ping
 
   def pathologicalPingPong(dispatcherId: String): Unit = {
     val total = 2000000
     val runner = system.actorOf(Props(new Actor {
-      val a, b = context.watch(
-        context.actorOf(Props(new Actor {
-          var n = total / 2
-          def receive = {
-            case Ping ⇒
-              n -= 1
-              sender() ! Ping
-              if (n == 0)
-                context stop self
-          }
-        }).withDispatcher(dispatcherId)))
+      val a, b = context.watch(context.actorOf(Props(new Actor {
+        var n = total / 2
+        def receive = {
+          case Ping ⇒
+            n -= 1
+            sender() ! Ping
+            if (n == 0) context stop self
+        }
+      }).withDispatcher(dispatcherId)))
       def receive = {
-        case Ping                  ⇒ a.tell(Ping, b)
-        case Terminated(`a` | `b`) ⇒ if (context.children.isEmpty) context stop self
+        case Ping ⇒ a.tell(Ping, b)
+        case Terminated(`a` | `b`) ⇒
+          if (context.children.isEmpty) context stop self
       }
     }))
     watch(runner)
@@ -296,11 +328,13 @@ class SingleConsumerOnlyMailboxVerificationSpec extends AkkaSpec(SingleConsumerO
   }
 
   "A SingleConsumerOnlyMailbox" should {
-    "support pathological ping-ponging for the unbounded case" in within(30.seconds) {
+    "support pathological ping-ponging for the unbounded case" in within(
+        30.seconds) {
       pathologicalPingPong("test-unbounded-dispatcher")
     }
 
-    "support pathological ping-ponging for the bounded case" in within(30.seconds) {
+    "support pathological ping-ponging for the bounded case" in within(
+        30.seconds) {
       pathologicalPingPong("test-bounded-dispatcher")
     }
   }

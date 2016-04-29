@@ -3,10 +3,10 @@
  */
 package docs.stream.io
 
-import java.nio.file.{ Files, Paths }
+import java.nio.file.{Files, Paths}
 
 import akka.stream._
-import akka.stream.scaladsl.{ FileIO, Sink }
+import akka.stream.scaladsl.{FileIO, Sink}
 import akka.stream.testkit.Utils._
 import akka.stream.testkit._
 import akka.util.ByteString
@@ -16,7 +16,7 @@ import scala.concurrent.Future
 
 class StreamFileDocSpec extends AkkaSpec(UnboundedMailboxConfig) {
 
-  implicit val ec = system.dispatcher
+  implicit val ec           = system.dispatcher
   implicit val materializer = ActorMaterializer()
 
   // silence sysout
@@ -46,16 +46,16 @@ class StreamFileDocSpec extends AkkaSpec(UnboundedMailboxConfig) {
 
     //#file-source
 
-    val foreach: Future[IOResult] = FileIO.fromPath(file)
-      .to(Sink.ignore)
-      .run()
+    val foreach: Future[IOResult] = FileIO.fromPath(file).to(Sink.ignore).run()
     //#file-source
   }
 
   "configure dispatcher in code" in {
     //#custom-dispatcher-code
-    FileIO.fromPath(file)
-      .withAttributes(ActorAttributes.dispatcher("custom-blocking-io-dispatcher"))
+    FileIO
+      .fromPath(file)
+      .withAttributes(
+          ActorAttributes.dispatcher("custom-blocking-io-dispatcher"))
     //#custom-dispatcher-code
   }
 }

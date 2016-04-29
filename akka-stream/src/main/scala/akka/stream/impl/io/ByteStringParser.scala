@@ -13,11 +13,12 @@ import scala.util.control.NoStackTrace
 /**
  * INTERNAL API
  */
-private[akka] abstract class ByteStringParser[T] extends GraphStage[FlowShape[ByteString, T]] {
+private[akka] abstract class ByteStringParser[T]
+    extends GraphStage[FlowShape[ByteString, T]] {
   import ByteStringParser._
 
   private val bytesIn = Inlet[ByteString]("bytesIn")
-  private val objOut = Outlet[T]("objOut")
+  private val objOut  = Outlet[T]("objOut")
 
   override def initialAttributes = Attributes.name("ByteStringParser")
   final override val shape = FlowShape(bytesIn, objOut)
@@ -27,8 +28,8 @@ private[akka] abstract class ByteStringParser[T] extends GraphStage[FlowShape[By
     override def preStart(): Unit = pull(bytesIn)
     setHandler(objOut, eagerTerminateOutput)
 
-    private var buffer = ByteString.empty
-    private var current: ParseStep[T] = FinishedParser
+    private var buffer                        = ByteString.empty
+    private var current: ParseStep[T]         = FinishedParser
     private var acceptUpstreamFinish: Boolean = true
 
     final protected def startWith(step: ParseStep[T]): Unit = current = step
@@ -87,18 +88,21 @@ private[akka] object ByteStringParser {
                              acceptUpstreamFinish: Boolean = true)
 
   trait ParseStep[+T] {
+
     /**
      * Must return true when NeedMoreData will clean buffer. If returns false - next pulled
      * data will be appended to existing data in buffer
      */
     def canWorkWithPartialData: Boolean = false
     def parse(reader: ByteReader): ParseResult[T]
-    def onTruncation(): Unit = throw new IllegalStateException("truncated data in ByteStringParser")
+    def onTruncation(): Unit =
+      throw new IllegalStateException("truncated data in ByteStringParser")
   }
 
   object FinishedParser extends ParseStep[Nothing] {
     override def parse(reader: ByteReader) =
-      throw new IllegalStateException("no initial parser installed: you must use startWith(...)")
+      throw new IllegalStateException(
+          "no initial parser installed: you must use startWith(...)")
   }
 
   val NeedMoreData = new Exception with NoStackTrace
@@ -108,11 +112,11 @@ private[akka] object ByteStringParser {
     private[this] var off = 0
 
     def hasRemaining: Boolean = off < input.size
-    def remainingSize: Int = input.size - off
+    def remainingSize: Int    = input.size - off
 
     def currentOffset: Int = off
 
-    def remainingData: ByteString = input.drop(off)
+    def remainingData: ByteString   = input.drop(off)
     def fromStartToHere: ByteString = input.take(off)
 
     def take(n: Int): ByteString =
@@ -134,12 +138,14 @@ private[akka] object ByteStringParser {
         x & 0xFF
       } else throw NeedMoreData
     def readShortLE(): Int = readByte() | (readByte() << 8)
-    def readIntLE(): Int = readShortLE() | (readShortLE() << 16)
-    def readLongLE(): Long = (readIntLE() & 0xffffffffL) | ((readIntLE() & 0xffffffffL) << 32)
+    def readIntLE(): Int   = readShortLE() | (readShortLE() << 16)
+    def readLongLE(): Long =
+      (readIntLE() & 0xffffffffL) | ((readIntLE() & 0xffffffffL) << 32)
 
     def readShortBE(): Int = (readByte() << 8) | readByte()
-    def readIntBE(): Int = (readShortBE() << 16) | readShortBE()
-    def readLongBE(): Long = ((readIntBE() & 0xffffffffL) << 32) | (readIntBE() & 0xffffffffL)
+    def readIntBE(): Int   = (readShortBE() << 16) | readShortBE()
+    def readLongBE(): Long =
+      ((readIntBE() & 0xffffffffL) << 32) | (readIntBE() & 0xffffffffL)
 
     def skip(numBytes: Int): Unit =
       if (off + numBytes <= input.length) off += numBytes

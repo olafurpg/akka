@@ -16,10 +16,11 @@
 
 package akka.parboiled2
 
-import java.lang.{ StringBuilder ⇒ JStringBuilder }
+import java.lang.{StringBuilder ⇒ JStringBuilder}
 import scala.annotation.tailrec
 
 object CharUtils {
+
   /**
    * Returns the int value of a given hex digit char.
    * Note: this implementation is very fast (since it's branchless) and therefore
@@ -31,13 +32,15 @@ object CharUtils {
    * Computes the number of hex digits required to represent the given integer.
    * Leading zeros are not counted.
    */
-  def numberOfHexDigits(l: Long): Int = (math.max(63 - java.lang.Long.numberOfLeadingZeros(l), 0) >> 2) + 1
+  def numberOfHexDigits(l: Long): Int =
+    (math.max(63 - java.lang.Long.numberOfLeadingZeros(l), 0) >> 2) + 1
 
   /**
    * Returns the lower-case hex digit corresponding to the last 4 bits of the given Long.
    * (fast branchless implementation)
    */
-  def lowerHexDigit(long: Long): Char = lowerHexDigit_internal((long & 0x0FL).toInt)
+  def lowerHexDigit(long: Long): Char =
+    lowerHexDigit_internal((long & 0x0FL).toInt)
 
   /**
    * Returns the lower-case hex digit corresponding to the last 4 bits of the given Int.
@@ -45,13 +48,15 @@ object CharUtils {
    */
   def lowerHexDigit(int: Int): Char = lowerHexDigit_internal(int & 0x0F)
 
-  private def lowerHexDigit_internal(i: Int) = (48 + i + (39 & ((9 - i) >> 31))).toChar
+  private def lowerHexDigit_internal(i: Int) =
+    (48 + i + (39 & ((9 - i) >> 31))).toChar
 
   /**
    * Returns the upper-case hex digit corresponding to the last 4 bits of the given Long.
    * (fast branchless implementation)
    */
-  def upperHexDigit(long: Long): Char = upperHexDigit_internal((long & 0x0FL).toInt)
+  def upperHexDigit(long: Long): Char =
+    upperHexDigit_internal((long & 0x0FL).toInt)
 
   /**
    * Returns the upper-case hex digit corresponding to the last 4 bits of the given Int.
@@ -59,7 +64,8 @@ object CharUtils {
    */
   def upperHexDigit(int: Int): Char = upperHexDigit_internal(int & 0x0F)
 
-  private def upperHexDigit_internal(i: Int) = (48 + i + (7 & ((9 - i) >> 31))).toChar
+  private def upperHexDigit_internal(i: Int) =
+    (48 + i + (7 & ((9 - i) >> 31))).toChar
 
   /**
    * Efficiently converts the given long into an upper-case hex string.
@@ -100,7 +106,8 @@ object CharUtils {
   /**
    * Returns a String representing the given long in signed decimal representation.
    */
-  def signedDecimalString(long: Long): String = new String(signedDecimalChars(long))
+  def signedDecimalString(long: Long): String =
+    new String(signedDecimalChars(long))
 
   /**
    * Computes the number of characters required for the signed decimal representation of the given integer.
@@ -133,14 +140,15 @@ object CharUtils {
    * The characters are placed into the given buffer *before* the given `endIndex` (exclusively).
    * CAUTION: This algorithm cannot deal with `Long.MinValue`, you'll need to special case this value!
    */
-  def getSignedDecimalChars(long: Long, endIndex: Int, buf: Array[Char]): Unit = {
+  def getSignedDecimalChars(
+      long: Long, endIndex: Int, buf: Array[Char]): Unit = {
     def div10(i: Int) = {
       var q = (i << 3) + (i << 2)
       q += (q << 12) + (q << 8) + (q << 4) + i
       q >>>= 19
       q // 52429 * l / 524288 = l * 0.10000038146972656
     }
-    def mul10(i: Int) = (i << 3) + (i << 1)
+    def mul10(i: Int)   = (i << 3) + (i << 1)
     def mul100(l: Long) = (l << 6) + (l << 5) + (l << 2)
 
     phase1(math.abs(long), endIndex)
@@ -148,8 +156,8 @@ object CharUtils {
     // for large numbers we bite the bullet of performing one division every two digits 
     @tailrec def phase1(l: Long, ix: Int): Unit =
       if (l > 65535L) {
-        val q = l / 100
-        val r = (l - mul100(q)).toInt
+        val q  = l / 100
+        val r  = (l - mul100(q)).toInt
         val rq = div10(r)
         buf(ix - 2) = ('0' + rq).toChar
         buf(ix - 1) = ('0' + r - mul10(rq)).toChar
@@ -170,13 +178,15 @@ object CharUtils {
    * Efficiently lower-cases the given character.
    * Note: only works for 7-bit ASCII letters.
    */
-  def toLowerCase(c: Char): Char = if (CharPredicate.UpperAlpha(c)) (c + 0x20).toChar else c
+  def toLowerCase(c: Char): Char =
+    if (CharPredicate.UpperAlpha(c)) (c + 0x20).toChar else c
 
   /**
    * Efficiently upper-cases the given character.
    * Note: only works for 7-bit ASCII letters.
    */
-  def toUpperCase(c: Char): Char = if (CharPredicate.LowerAlpha(c)) (c + 0x20).toChar else c
+  def toUpperCase(c: Char): Char =
+    if (CharPredicate.LowerAlpha(c)) (c + 0x20).toChar else c
 
   def escape(c: Char): String = c match {
     case '\t'                           ⇒ "\\t"

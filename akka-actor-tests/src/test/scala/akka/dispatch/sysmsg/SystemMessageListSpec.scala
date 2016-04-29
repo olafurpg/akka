@@ -23,7 +23,8 @@ class SystemMessageListSpec extends AkkaSpec {
       val create2 = Failed(null, null, 2)
       ((create0 :: LNil).head eq create0) should ===(true)
       ((create1 :: create0 :: LNil).head eq create1) should ===(true)
-      ((create2 :: create1 :: create0 :: LNil).head eq create2) should ===(true)
+      ((create2 :: create1 :: create0 :: LNil).head eq create2) should ===(
+          true)
 
       (create2.next eq create1) should ===(true)
       (create1.next eq create0) should ===(true)
@@ -34,7 +35,7 @@ class SystemMessageListSpec extends AkkaSpec {
       val create0 = Failed(null, null, 0)
       val create1 = Failed(null, null, 1)
       val create2 = Failed(null, null, 2)
-      val list = create2 :: create1 :: create0 :: LNil
+      val list    = create2 :: create1 :: create0 :: LNil
 
       (list.head eq create2) should ===(true)
       (list.tail.head eq create1) should ===(true)
@@ -46,7 +47,7 @@ class SystemMessageListSpec extends AkkaSpec {
       val create0 = Failed(null, null, 0)
       val create1 = Failed(null, null, 1)
       val create2 = Failed(null, null, 2)
-      val list = create2 :: create1 :: create0 :: LNil
+      val list    = create2 :: create1 :: create0 :: LNil
 
       list.size should ===(3)
       list.isEmpty should ===(false)
@@ -59,14 +60,13 @@ class SystemMessageListSpec extends AkkaSpec {
 
       list.tail.tail.tail.size should ===(0)
       list.tail.tail.tail.isEmpty should ===(true)
-
     }
 
     "properly reverse contents" in {
-      val create0 = Failed(null, null, 0)
-      val create1 = Failed(null, null, 1)
-      val create2 = Failed(null, null, 2)
-      val list = create2 :: create1 :: create0 :: LNil
+      val create0                                 = Failed(null, null, 0)
+      val create1                                 = Failed(null, null, 1)
+      val create2                                 = Failed(null, null, 2)
+      val list                                    = create2 :: create1 :: create0 :: LNil
       val listRev: EarliestFirstSystemMessageList = list.reverse
 
       listRev.isEmpty should ===(false)
@@ -81,7 +81,6 @@ class SystemMessageListSpec extends AkkaSpec {
       (create1.next eq create2) should ===(true)
       (create2.next eq null) should ===(true)
     }
-
   }
 
   "EarliestFirstSystemMessageList" must {
@@ -111,6 +110,5 @@ class SystemMessageListSpec extends AkkaSpec {
       ((create0 :: LNil reverse_::: ENil).head eq create0) should ===(true)
       ((LNil reverse_::: create0 :: ENil).head eq create0) should ===(true)
     }
-
   }
 }

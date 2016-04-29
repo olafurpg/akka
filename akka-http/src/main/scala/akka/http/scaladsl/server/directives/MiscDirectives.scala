@@ -22,7 +22,9 @@ trait MiscDirectives {
    * @group misc
    */
   def validate(check: ⇒ Boolean, errorMsg: String): Directive0 =
-    Directive { inner ⇒ if (check) inner(()) else reject(ValidationRejection(errorMsg)) }
+    Directive { inner ⇒
+      if (check) inner(()) else reject(ValidationRejection(errorMsg))
+    }
 
   /**
    * Extracts the client's IP from either the X-Forwarded-For, Remote-Address or X-Real-IP header
@@ -30,7 +32,8 @@ trait MiscDirectives {
    *
    * @group misc
    */
-  def extractClientIP: Directive1[RemoteAddress] = MiscDirectives._extractClientIP
+  def extractClientIP: Directive1[RemoteAddress] =
+    MiscDirectives._extractClientIP
 
   /**
    * Rejects if the request entity is non-empty.
@@ -67,7 +70,8 @@ trait MiscDirectives {
    *
    * @group misc
    */
-  def selectPreferredLanguage(first: Language, more: Language*): Directive1[Language] =
+  def selectPreferredLanguage(
+      first: Language, more: Language*): Directive1[Language] =
     BasicDirectives.extractRequest.map { request ⇒
       LanguageNegotiator(request.headers).pickLanguage(first :: List(more: _*)) getOrElse first
     }
@@ -80,9 +84,9 @@ object MiscDirectives extends MiscDirectives {
   import RouteResult._
 
   private val _extractClientIP: Directive1[RemoteAddress] =
-    headerValuePF { case `X-Forwarded-For`(Seq(address, _*)) ⇒ address } |
-      headerValuePF { case `Remote-Address`(address) ⇒ address } |
-      headerValuePF { case `X-Real-Ip`(address) ⇒ address }
+    headerValuePF { case `X-Forwarded-For`(Seq(address, _ *)) ⇒ address } | headerValuePF {
+      case `Remote-Address`(address)                          ⇒ address
+    } | headerValuePF { case `X-Real-Ip`(address)             ⇒ address }
 
   private val _requestEntityEmpty: Directive0 =
     extract(_.request.entity.isKnownEmpty).flatMap(if (_) pass else reject)
@@ -90,9 +94,8 @@ object MiscDirectives extends MiscDirectives {
   private val _requestEntityPresent: Directive0 =
     extract(_.request.entity.isKnownEmpty).flatMap(if (_) reject else pass)
 
-  private val _rejectEmptyResponse: Directive0 =
-    mapRouteResult {
-      case Complete(response) if response.entity.isKnownEmpty ⇒ Rejected(Nil)
-      case x ⇒ x
-    }
+  private val _rejectEmptyResponse: Directive0 = mapRouteResult {
+    case Complete(response) if response.entity.isKnownEmpty ⇒ Rejected(Nil)
+    case x                                                  ⇒ x
+  }
 }

@@ -28,7 +28,7 @@ object ViewExample extends App {
     private var numReplicated = 0
 
     override def persistenceId: String = "sample-id-4"
-    override def viewId = "sample-view-id-4"
+    override def viewId                = "sample-view-id-4"
 
     def receive = {
       case "snap" =>
@@ -36,27 +36,30 @@ object ViewExample extends App {
         saveSnapshot(numReplicated)
       case SnapshotOffer(metadata, snapshot: Int) =>
         numReplicated = snapshot
-        println(s"view received snapshot offer ${snapshot} (metadata = ${metadata})")
+        println(
+            s"view received snapshot offer ${snapshot} (metadata = ${metadata})")
       case payload if isPersistent =>
         numReplicated += 1
-        println(s"view replayed event ${payload} (num replicated = ${numReplicated})")
+        println(
+            s"view replayed event ${payload} (num replicated = ${numReplicated})")
       case SaveSnapshotSuccess(metadata) =>
         println(s"view saved snapshot (metadata = ${metadata})")
       case SaveSnapshotFailure(metadata, reason) =>
-        println(s"view snapshot failure (metadata = ${metadata}), caused by ${reason}")
+        println(
+            s"view snapshot failure (metadata = ${metadata}), caused by ${reason}")
       case payload =>
         println(s"view received other message ${payload}")
     }
-
   }
 
   val system = ActorSystem("example")
 
   val persistentActor = system.actorOf(Props(classOf[ExamplePersistentActor]))
-  val view = system.actorOf(Props(classOf[ExampleView]))
+  val view            = system.actorOf(Props(classOf[ExampleView]))
 
   import system.dispatcher
 
-  system.scheduler.schedule(Duration.Zero, 2.seconds, persistentActor, "scheduled")
+  system.scheduler.schedule(
+      Duration.Zero, 2.seconds, persistentActor, "scheduled")
   system.scheduler.schedule(Duration.Zero, 5.seconds, view, "snap")
 }

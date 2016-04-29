@@ -1,13 +1,13 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor.dsl
 
 import akka.actor._
 import scala.reflect.ClassTag
 
-trait Creators { this: ActorDSL.type ⇒
+trait Creators {
+  this: ActorDSL.type ⇒
 
   /**
    * This trait provides a DSL for writing the inner workings of an actor, e.g.
@@ -33,11 +33,11 @@ trait Creators { this: ActorDSL.type ⇒
    */
   trait Act extends Actor {
 
-    private[this] var preStartFun: () ⇒ Unit = null
-    private[this] var postStopFun: () ⇒ Unit = null
+    private[this] var preStartFun: () ⇒ Unit                         = null
+    private[this] var postStopFun: () ⇒ Unit                         = null
     private[this] var preRestartFun: (Throwable, Option[Any]) ⇒ Unit = null
-    private[this] var postRestartFun: Throwable ⇒ Unit = null
-    private[this] var strategy: SupervisorStrategy = null
+    private[this] var postRestartFun: Throwable ⇒ Unit               = null
+    private[this] var strategy: SupervisorStrategy                   = null
 
     /**
      * @see [[akka.actor.OneForOneStrategy]]
@@ -105,7 +105,8 @@ trait Creators { this: ActorDSL.type ⇒
      * action is to call `super.preRestart()`, which will kill all children
      * and invoke `postStop()`.
      */
-    def whenFailing(body: (Throwable, Option[Any]) ⇒ Unit): Unit = preRestartFun = body
+    def whenFailing(body: (Throwable, Option[Any]) ⇒ Unit): Unit =
+      preRestartFun = body
 
     /**
      * Replace the `postRestart` action with the supplied function. Default
@@ -119,11 +120,18 @@ trait Creators { this: ActorDSL.type ⇒
      */
     def whenStopping(body: ⇒ Unit): Unit = postStopFun = () ⇒ body
 
-    override def preStart(): Unit = if (preStartFun != null) preStartFun() else super.preStart()
-    override def preRestart(cause: Throwable, msg: Option[Any]): Unit = if (preRestartFun != null) preRestartFun(cause, msg) else super.preRestart(cause, msg)
-    override def postRestart(cause: Throwable): Unit = if (postRestartFun != null) postRestartFun(cause) else super.postRestart(cause)
-    override def postStop(): Unit = if (postStopFun != null) postStopFun() else super.postStop()
-    override def supervisorStrategy: SupervisorStrategy = if (strategy != null) strategy else super.supervisorStrategy
+    override def preStart(): Unit =
+      if (preStartFun != null) preStartFun() else super.preStart()
+    override def preRestart(cause: Throwable, msg: Option[Any]): Unit =
+      if (preRestartFun != null) preRestartFun(cause, msg)
+      else super.preRestart(cause, msg)
+    override def postRestart(cause: Throwable): Unit =
+      if (postRestartFun != null) postRestartFun(cause)
+      else super.postRestart(cause)
+    override def postStop(): Unit =
+      if (postStopFun != null) postStopFun() else super.postStop()
+    override def supervisorStrategy: SupervisorStrategy =
+      if (strategy != null) strategy else super.supervisorStrategy
 
     /**
      * Default behavior of the actor is empty, use `become` to change this.
@@ -151,10 +159,11 @@ trait Creators { this: ActorDSL.type ⇒
    *        either be an [[akka.actor.ActorSystem]] or an [[akka.actor.ActorContext]],
    *        where the latter is always implicitly available within an [[akka.actor.Actor]].
    */
-  def actor[T <: Actor: ClassTag](ctor: ⇒ T)(implicit factory: ActorRefFactory): ActorRef = {
+  def actor[T <: Actor : ClassTag](ctor: ⇒ T)(
+      implicit factory: ActorRefFactory): ActorRef = {
     // configure dispatcher/mailbox based on runtime class
     val classOfActor = implicitly[ClassTag[T]].runtimeClass
-    val props = mkProps(classOfActor, () ⇒ ctor)
+    val props        = mkProps(classOfActor, () ⇒ ctor)
     factory.actorOf(props)
   }
 
@@ -170,10 +179,11 @@ trait Creators { this: ActorDSL.type ⇒
    *        either be an [[akka.actor.ActorSystem]] or an [[akka.actor.ActorContext]],
    *        where the latter is always implicitly available within an [[akka.actor.Actor]].
    */
-  def actor[T <: Actor: ClassTag](name: String)(ctor: ⇒ T)(implicit factory: ActorRefFactory): ActorRef = {
+  def actor[T <: Actor : ClassTag](name: String)(ctor: ⇒ T)(
+      implicit factory: ActorRefFactory): ActorRef = {
     // configure dispatcher/mailbox based on runtime class
     val classOfActor = implicitly[ClassTag[T]].runtimeClass
-    val props = mkProps(classOfActor, () ⇒ ctor)
+    val props        = mkProps(classOfActor, () ⇒ ctor)
 
     if (name == null) factory.actorOf(props)
     else factory.actorOf(props, name)
@@ -191,7 +201,8 @@ trait Creators { this: ActorDSL.type ⇒
    *        either be an [[akka.actor.ActorSystem]] or an [[akka.actor.ActorContext]],
    *        where the latter is always implicitly available within an [[akka.actor.Actor]].
    */
-  def actor[T <: Actor: ClassTag](factory: ActorRefFactory, name: String)(ctor: ⇒ T): ActorRef =
+  def actor[T <: Actor : ClassTag](factory: ActorRefFactory, name: String)(
+      ctor: ⇒ T): ActorRef =
     actor(name)(ctor)(implicitly[ClassTag[T]], factory)
 
   /**
@@ -205,7 +216,7 @@ trait Creators { this: ActorDSL.type ⇒
    *        either be an [[akka.actor.ActorSystem]] or an [[akka.actor.ActorContext]],
    *        where the latter is always implicitly available within an [[akka.actor.Actor]].
    */
-  def actor[T <: Actor: ClassTag](factory: ActorRefFactory)(ctor: ⇒ T): ActorRef =
+  def actor[T <: Actor : ClassTag](factory: ActorRefFactory)(
+      ctor: ⇒ T): ActorRef =
     actor(null: String)(ctor)(implicitly[ClassTag[T]], factory)
-
 }

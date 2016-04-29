@@ -1,11 +1,10 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.util
 
-import java.util.concurrent.locks.{ ReentrantLock }
-import java.util.concurrent.atomic.{ AtomicBoolean }
+import java.util.concurrent.locks.{ReentrantLock}
+import java.util.concurrent.atomic.{AtomicBoolean}
 
 final class ReentrantGuard extends ReentrantLock {
 
@@ -22,16 +21,17 @@ final class ReentrantGuard extends ReentrantLock {
 class Switch(startAsOn: Boolean = false) {
   private val switch = new AtomicBoolean(startAsOn) // FIXME switch to AQS
 
-  protected def transcend(from: Boolean, action: ⇒ Unit): Boolean = synchronized {
-    if (switch.compareAndSet(from, !from)) {
-      try action catch {
-        case t: Throwable ⇒
-          switch.compareAndSet(!from, from) // revert status
-          throw t
-      }
-      true
-    } else false
-  }
+  protected def transcend(from: Boolean, action: ⇒ Unit): Boolean =
+    synchronized {
+      if (switch.compareAndSet(from, !from)) {
+        try action catch {
+          case t: Throwable ⇒
+            switch.compareAndSet(!from, from) // revert status
+            throw t
+        }
+        true
+      } else false
+    }
 
   /**
    * Executes the provided action if the lock is on under a lock, so be _very_ careful with longrunning/blocking operations in it
@@ -60,12 +60,14 @@ class Switch(startAsOn: Boolean = false) {
   /**
    * Executes the provided action and returns its value if the switch is IMMEDIATELY on (i.e. no lock involved)
    */
-  def ifOnYield[T](action: ⇒ T): Option[T] = if (switch.get) Some(action) else None
+  def ifOnYield[T](action: ⇒ T): Option[T] =
+    if (switch.get) Some(action) else None
 
   /**
    * Executes the provided action and returns its value if the switch is IMMEDIATELY off (i.e. no lock involved)
    */
-  def ifOffYield[T](action: ⇒ T): Option[T] = if (!switch.get) Some(action) else None
+  def ifOffYield[T](action: ⇒ T): Option[T] =
+    if (!switch.get) Some(action) else None
 
   /**
    * Executes the provided action and returns if the action was executed or not, if the switch is IMMEDIATELY on (i.e. no lock involved)
@@ -91,13 +93,15 @@ class Switch(startAsOn: Boolean = false) {
    * Executes the provided action and returns its value if the switch is on, waiting for any pending changes to happen before (locking)
    * Be careful of longrunning or blocking within the provided action as it can lead to deadlocks or bad performance
    */
-  def whileOnYield[T](action: ⇒ T): Option[T] = synchronized { if (switch.get) Some(action) else None }
+  def whileOnYield[T](action: ⇒ T): Option[T] =
+    synchronized { if (switch.get) Some(action) else None }
 
   /**
    * Executes the provided action and returns its value if the switch is off, waiting for any pending changes to happen before (locking)
    * Be careful of longrunning or blocking within the provided action as it can lead to deadlocks or bad performance
    */
-  def whileOffYield[T](action: ⇒ T): Option[T] = synchronized { if (!switch.get) Some(action) else None }
+  def whileOffYield[T](action: ⇒ T): Option[T] =
+    synchronized { if (!switch.get) Some(action) else None }
 
   /**
    * Executes the provided action and returns if the action was executed or not, if the switch is on, waiting for any pending changes to happen before (locking)
@@ -125,7 +129,8 @@ class Switch(startAsOn: Boolean = false) {
    * Executes the provided callbacks depending on if the switch is either on or off waiting for any pending changes to happen before (locking)
    * Be careful of longrunning or blocking within the provided action as it can lead to deadlocks or bad performance
    */
-  def fold[T](on: ⇒ T)(off: ⇒ T): T = synchronized { if (switch.get) on else off }
+  def fold[T](on: ⇒ T)(off: ⇒ T): T =
+    synchronized { if (switch.get) on else off }
 
   /**
    * Executes the given code while holding this switch’s lock, i.e. protected from concurrent modification of the switch status.

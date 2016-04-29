@@ -4,7 +4,7 @@
 package akka.stream.impl.fusing
 
 import akka.Done
-import java.util.concurrent.atomic.{ AtomicBoolean, AtomicReference }
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
 import akka.actor.Cancellable
 import akka.dispatch.ExecutionContexts
@@ -15,7 +15,7 @@ import akka.stream.scaladsl._
 import akka.stream.impl.Stages.DefaultAttributes
 import akka.stream.stage._
 
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.FiniteDuration
 import akka.stream.impl.StreamLayout._
 import akka.stream.impl.ReactiveStreamsCompliance
@@ -25,20 +25,25 @@ import scala.util.Try
 /**
  * INTERNAL API
  */
-private[akka] final case class GraphStageModule(shape: Shape,
-                                                attributes: Attributes,
-                                                stage: GraphStageWithMaterializedValue[Shape, Any]) extends AtomicModule {
-  override def carbonCopy: Module = CopiedModule(shape.deepCopy(), Attributes.none, this)
+private[akka] final case class GraphStageModule(
+    shape: Shape,
+    attributes: Attributes,
+    stage: GraphStageWithMaterializedValue[Shape, Any])
+    extends AtomicModule {
+  override def carbonCopy: Module =
+    CopiedModule(shape.deepCopy(), Attributes.none, this)
 
   override def replaceShape(s: Shape): Module =
     if (s != shape) CompositeModule(this, s)
     else this
 
   override def withAttributes(attributes: Attributes): Module =
-    if (attributes ne this.attributes) new GraphStageModule(shape, attributes, stage)
+    if (attributes ne this.attributes)
+      new GraphStageModule(shape, attributes, stage)
     else this
 
-  override def toString: String = f"GraphStage($stage) [${System.identityHashCode(this)}%08x]"
+  override def toString: String =
+    f"GraphStage($stage) [${System.identityHashCode(this)}%08x]"
 }
 
 /**
@@ -49,24 +54,27 @@ object GraphStages {
   /**
    * INTERNAL API
    */
-  private[akka] abstract class SimpleLinearGraphStage[T] extends GraphStage[FlowShape[T, T]] {
-    val in = Inlet[T](Logging.simpleName(this) + ".in")
-    val out = Outlet[T](Logging.simpleName(this) + ".out")
+  private[akka] abstract class SimpleLinearGraphStage[T]
+      extends GraphStage[FlowShape[T, T]] {
+    val in             = Inlet[T](Logging.simpleName(this) + ".in")
+    val out            = Outlet[T](Logging.simpleName(this) + ".out")
     override val shape = FlowShape(in, out)
   }
 
   object Identity extends SimpleLinearGraphStage[Any] {
     override def initialAttributes = DefaultAttributes.identityOp
 
-    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
-      setHandler(in, new InHandler {
-        override def onPush(): Unit = push(out, grab(in))
-      })
+    override def createLogic(
+        inheritedAttributes: Attributes): GraphStageLogic =
+      new GraphStageLogic(shape) {
+        setHandler(in, new InHandler {
+          override def onPush(): Unit = push(out, grab(in))
+        })
 
-      setHandler(out, new OutHandler {
-        override def onPull(): Unit = pull(in)
-      })
-    }
+        setHandler(out, new OutHandler {
+          override def onPull(): Unit = pull(in)
+        })
+      }
 
     override def toString = "Identity"
   }
@@ -77,51 +85,58 @@ object GraphStages {
    * INTERNAL API
    */
   private[stream] final class Detacher[T] extends GraphStage[FlowShape[T, T]] {
-    val in = Inlet[T]("Detacher.in")
+    val in  = Inlet[T]("Detacher.in")
     val out = Outlet[T]("Detacher.out")
     override def initialAttributes = DefaultAttributes.detacher
     override val shape = FlowShape(in, out)
 
-    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
+    override def createLogic(
+        inheritedAttributes: Attributes): GraphStageLogic =
+      new GraphStageLogic(shape) {
 
-      setHandler(in, new InHandler {
-        override def onPush(): Unit = {
-          if (isAvailable(out)) {
-            push(out, grab(in))
-            tryPull(in)
+        setHandler(in, new InHandler {
+          override def onPush(): Unit = {
+            if (isAvailable(out)) {
+              push(out, grab(in))
+              tryPull(in)
+            }
           }
-        }
-        override def onUpstreamFinish(): Unit = {
-          if (!isAvailable(in)) completeStage()
-        }
-      })
-
-      setHandler(out, new OutHandler {
-        override def onPull(): Unit = {
-          if (isAvailable(in)) {
-            push(out, grab(in))
-            if (isClosed(in)) completeStage()
-            else pull(in)
+          override def onUpstreamFinish(): Unit = {
+            if (!isAvailable(in)) completeStage()
           }
-        }
-      })
+        })
 
-      override def preStart(): Unit = tryPull(in)
-    }
+        setHandler(out, new OutHandler {
+          override def onPull(): Unit = {
+            if (isAvailable(in)) {
+              push(out, grab(in))
+              if (isClosed(in)) completeStage()
+              else pull(in)
+            }
+          }
+        })
+
+        override def preStart(): Unit = tryPull(in)
+      }
 
     override def toString = "Detacher"
   }
 
   private val _detacher = new Detacher[Any]
-  def detacher[T]: GraphStage[FlowShape[T, T]] = _detacher.asInstanceOf[GraphStage[FlowShape[T, T]]]
+  def detacher[T]: GraphStage[FlowShape[T, T]] =
+    _detacher.asInstanceOf[GraphStage[FlowShape[T, T]]]
 
-  private object TerminationWatcher extends GraphStageWithMaterializedValue[FlowShape[Any, Any], Future[Done]] {
-    val in = Inlet[Any]("terminationWatcher.in")
-    val out = Outlet[Any]("terminationWatcher.out")
+  private object TerminationWatcher
+      extends GraphStageWithMaterializedValue[
+          FlowShape[Any, Any], Future[Done]] {
+    val in             = Inlet[Any]("terminationWatcher.in")
+    val out            = Outlet[Any]("terminationWatcher.out")
     override val shape = FlowShape(in, out)
-    override def initialAttributes: Attributes = DefaultAttributes.terminationWatcher
+    override def initialAttributes: Attributes =
+      DefaultAttributes.terminationWatcher
 
-    override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[Done]) = {
+    override def createLogicAndMaterializedValue(
+        inheritedAttributes: Attributes): (GraphStageLogic, Future[Done]) = {
       val finishPromise = Promise[Done]()
 
       (new GraphStageLogic(shape) {
@@ -139,7 +154,8 @@ object GraphStages {
           }
         })
         setHandler(out, new OutHandler {
-          override def onPull(): Unit = pull(in)
+          override def onPull(): Unit =
+            pull(in)
           override def onDownstreamFinish(): Unit = {
             finishPromise.success(Done)
             completeStage()
@@ -151,22 +167,27 @@ object GraphStages {
     override def toString = "TerminationWatcher"
   }
 
-  def terminationWatcher[T]: GraphStageWithMaterializedValue[FlowShape[T, T], Future[Done]] =
-    TerminationWatcher.asInstanceOf[GraphStageWithMaterializedValue[FlowShape[T, T], Future[Done]]]
+  def terminationWatcher[T]: GraphStageWithMaterializedValue[
+      FlowShape[T, T], Future[Done]] =
+    TerminationWatcher.asInstanceOf[GraphStageWithMaterializedValue[
+            FlowShape[T, T], Future[Done]]]
 
-  private class FlowMonitorImpl[T] extends AtomicReference[Any](Initialized) with FlowMonitor[T] {
+  private class FlowMonitorImpl[T]
+      extends AtomicReference[Any](Initialized) with FlowMonitor[T] {
     override def state = get match {
-      case s: StreamState[_] ⇒ s.asInstanceOf[StreamState[T]]
-      case msg               ⇒ Received(msg.asInstanceOf[T])
+      case s: StreamState [_] ⇒ s.asInstanceOf[StreamState[T]]
+      case msg                ⇒ Received(msg.asInstanceOf[T])
     }
   }
 
-  private class MonitorFlow[T] extends GraphStageWithMaterializedValue[FlowShape[T, T], FlowMonitor[T]] {
-    val in = Inlet[T]("FlowMonitor.in")
-    val out = Outlet[T]("FlowMonitor.out")
+  private class MonitorFlow[T]
+      extends GraphStageWithMaterializedValue[FlowShape[T, T], FlowMonitor[T]] {
+    val in    = Inlet[T]("FlowMonitor.in")
+    val out   = Outlet[T]("FlowMonitor.out")
     val shape = FlowShape.of(in, out)
 
-    override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, FlowMonitor[T]) = {
+    override def createLogicAndMaterializedValue(
+        inheritedAttributes: Attributes): (GraphStageLogic, FlowMonitor[T]) = {
       val monitor: FlowMonitorImpl[T] = new FlowMonitorImpl[T]
 
       val logic: GraphStageLogic = new GraphStageLogic(shape) {
@@ -174,7 +195,8 @@ object GraphStages {
           override def onPush(): Unit = {
             val msg = grab(in)
             push(out, msg)
-            monitor.set(if (msg.isInstanceOf[StreamState[_]]) Received(msg) else msg)
+            monitor.set(
+                if (msg.isInstanceOf[StreamState[_]]) Received(msg) else msg)
           }
           override def onUpstreamFinish(): Unit = {
             super.onUpstreamFinish()
@@ -186,7 +208,8 @@ object GraphStages {
           }
         })
         setHandler(out, new OutHandler {
-          override def onPull(): Unit = pull(in)
+          override def onPull(): Unit =
+            pull(in)
           override def onDownstreamFinish(): Unit = {
             super.onDownstreamFinish()
             monitor.set(Finished)
@@ -202,8 +225,8 @@ object GraphStages {
     override def toString = "MonitorFlow"
   }
 
-  def monitor[T]: GraphStageWithMaterializedValue[FlowShape[T, T], FlowMonitor[T]] =
-    new MonitorFlow[T]
+  def monitor[T]: GraphStageWithMaterializedValue[
+      FlowShape[T, T], FlowMonitor[T]] = new MonitorFlow[T]
 
   private object TickSource {
     class TickSourceCancellable(cancelled: AtomicBoolean) extends Cancellable {
@@ -220,23 +243,26 @@ object GraphStages {
     }
   }
 
-  final class TickSource[T](initialDelay: FiniteDuration, interval: FiniteDuration, tick: T)
-    extends GraphStageWithMaterializedValue[SourceShape[T], Cancellable] {
+  final class TickSource[T](
+      initialDelay: FiniteDuration, interval: FiniteDuration, tick: T)
+      extends GraphStageWithMaterializedValue[SourceShape[T], Cancellable] {
     override val shape = SourceShape(Outlet[T]("TickSource.out"))
-    val out = shape.out
+    val out            = shape.out
     override def initialAttributes: Attributes = DefaultAttributes.tickSource
-    override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Cancellable) = {
+    override def createLogicAndMaterializedValue(
+        inheritedAttributes: Attributes): (GraphStageLogic, Cancellable) = {
 
       val logic = new TimerGraphStageLogic(shape) with Cancellable {
         val cancelled = new AtomicBoolean(false)
-        val cancelCallback: AtomicReference[Option[AsyncCallback[Unit]]] = new AtomicReference(None)
+        val cancelCallback: AtomicReference[Option[AsyncCallback[Unit]]] =
+          new AtomicReference(None)
 
         override def preStart() = {
           cancelCallback.set(Some(getAsyncCallback[Unit](_ ⇒ completeStage())))
-          if (cancelled.get)
-            completeStage()
+          if (cancelled.get) completeStage()
           else
-            schedulePeriodicallyWithInitialDelay("TickTimer", initialDelay, interval)
+            schedulePeriodicallyWithInitialDelay(
+                "TickTimer", initialDelay, interval)
         }
 
         setHandler(out, eagerTerminateOutput)
@@ -258,7 +284,8 @@ object GraphStages {
       (logic, logic)
     }
 
-    override def toString: String = s"TickSource($initialDelay, $interval, $tick)"
+    override def toString: String =
+      s"TickSource($initialDelay, $interval, $tick)"
   }
 
   /**
@@ -266,31 +293,38 @@ object GraphStages {
    *
    * This source is not reusable, it is only created internally.
    */
-  private[stream] final class MaterializedValueSource[T](val computation: MaterializedValueNode, val out: Outlet[T]) extends GraphStage[SourceShape[T]] {
-    def this(computation: MaterializedValueNode) = this(computation, Outlet[T]("matValue"))
-    override def initialAttributes: Attributes = DefaultAttributes.materializedValueSource
+  private[stream] final class MaterializedValueSource[T](
+      val computation: MaterializedValueNode, val out: Outlet[T])
+      extends GraphStage[SourceShape[T]] {
+    def this(computation: MaterializedValueNode) =
+      this(computation, Outlet[T]("matValue"))
+    override def initialAttributes: Attributes =
+      DefaultAttributes.materializedValueSource
     override val shape = SourceShape(out)
 
     private val promise = Promise[T]
     def setValue(t: T): Unit = promise.success(t)
 
-    def copySrc: MaterializedValueSource[T] = new MaterializedValueSource(computation, out)
+    def copySrc: MaterializedValueSource[T] =
+      new MaterializedValueSource(computation, out)
 
     override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
       setHandler(out, eagerTerminateOutput)
       override def preStart(): Unit = {
         val cb = getAsyncCallback[T](t ⇒ emit(out, t, () ⇒ completeStage()))
-        promise.future.foreach(cb.invoke)(ExecutionContexts.sameThreadExecutionContext)
+        promise.future.foreach(cb.invoke)(
+            ExecutionContexts.sameThreadExecutionContext)
       }
     }
 
     override def toString: String = s"MaterializedValueSource($computation)"
   }
 
-  private[stream] final class SingleSource[T](val elem: T) extends GraphStage[SourceShape[T]] {
+  private[stream] final class SingleSource[T](val elem: T)
+      extends GraphStage[SourceShape[T]] {
     override def initialAttributes: Attributes = DefaultAttributes.singleSource
     ReactiveStreamsCompliance.requireNonNullElement(elem)
-    val out = Outlet[T]("single.out")
+    val out   = Outlet[T]("single.out")
     val shape = SourceShape(out)
     override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
       setHandler(out, new OutHandler {
@@ -303,10 +337,11 @@ object GraphStages {
     override def toString: String = s"SingleSource($elem)"
   }
 
-  private[stream] final class FutureSource[T](val future: Future[T]) extends GraphStage[SourceShape[T]] {
+  private[stream] final class FutureSource[T](val future: Future[T])
+      extends GraphStage[SourceShape[T]] {
     ReactiveStreamsCompliance.requireNonNullElement(future)
     val shape = SourceShape(Outlet[T]("future.out"))
-    val out = shape.out
+    val out   = shape.out
     override def initialAttributes: Attributes = DefaultAttributes.futureSource
     override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
       setHandler(out, new OutHandler {
@@ -333,7 +368,8 @@ object GraphStages {
    * This can either be implemented inside the stage itself, or this method can be used,
    * which adds a detacher stage to every input.
    */
-  private[stream] def withDetachedInputs[T](stage: GraphStage[UniformFanInShape[T, T]]) =
+  private[stream] def withDetachedInputs[T](
+      stage: GraphStage[UniformFanInShape[T, T]]) =
     GraphDSL.create() { implicit builder ⇒
       import GraphDSL.Implicits._
       val concat = builder.add(stage)
@@ -344,5 +380,4 @@ object GraphStages {
       }
       UniformFanInShape(concat.out, ds: _*)
     }
-
 }

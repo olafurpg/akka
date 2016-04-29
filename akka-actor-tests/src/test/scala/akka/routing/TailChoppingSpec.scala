@@ -7,8 +7,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.Status.Failure
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import akka.actor.{ ActorRef, Props, Actor, ActorSystem }
-import akka.pattern.{ AskTimeoutException, ask }
+import akka.actor.{ActorRef, Props, Actor, ActorSystem}
+import akka.pattern.{AskTimeoutException, ask}
 import akka.testkit._
 
 object TailChoppingSpec {
@@ -27,10 +27,12 @@ object TailChoppingSpec {
     }), "Actor:" + id)
 }
 
-class TailChoppingSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
+class TailChoppingSpec
+    extends AkkaSpec with DefaultTimeout with ImplicitSender {
   import TailChoppingSpec._
 
-  def oneOfShouldEqual(what: Any, default: Any, ref: ActorRef*)(f: ActorRef ⇒ Any) {
+  def oneOfShouldEqual(what: Any, default: Any, ref: ActorRef*)(
+      f: ActorRef ⇒ Any) {
     val results = ref.map(p ⇒ f(p))
     results.count(_ == what) should equal(1)
     results.count(_ == default) should equal(results.size - 1)
@@ -47,7 +49,8 @@ class TailChoppingSpec extends AkkaSpec with DefaultTimeout with ImplicitSender 
       val doneLatch = new TestLatch(2)
 
       val counter1 = new AtomicInteger
-      val actor1 = system.actorOf(Props(new Actor {
+      val actor1 = system.actorOf(
+          Props(new Actor {
         def receive = {
           case "end"    ⇒ doneLatch.countDown()
           case msg: Int ⇒ counter1.addAndGet(msg)
@@ -55,7 +58,8 @@ class TailChoppingSpec extends AkkaSpec with DefaultTimeout with ImplicitSender 
       }))
 
       val counter2 = new AtomicInteger
-      val actor2 = system.actorOf(Props(new Actor {
+      val actor2 = system.actorOf(
+          Props(new Actor {
         def receive = {
           case "end"    ⇒ doneLatch.countDown()
           case msg: Int ⇒ counter2.addAndGet(msg)
@@ -63,7 +67,8 @@ class TailChoppingSpec extends AkkaSpec with DefaultTimeout with ImplicitSender 
       }))
 
       val paths = List(actor1, actor2).map(_.path.toString)
-      val routedActor = system.actorOf(TailChoppingGroup(paths, within = 1.second, interval = 100.millisecond).props())
+      val routedActor = system.actorOf(TailChoppingGroup(
+              paths, within = 1.second, interval = 100.millisecond).props())
       routedActor ! Broadcast(1)
       routedActor ! Broadcast("end")
 
@@ -76,14 +81,16 @@ class TailChoppingSpec extends AkkaSpec with DefaultTimeout with ImplicitSender 
     "return response from second actor after inactivity from first one" in {
       val actor1 = newActor(1, 1.millis)
       val actor2 = newActor(2, 1.millis)
-      val probe = TestProbe()
-      val paths = List(actor1, actor2).map(_.path.toString)
-      val routedActor = system.actorOf(TailChoppingGroup(paths, within = 1.seconds, interval = 50.millisecond).props())
+      val probe  = TestProbe()
+      val paths  = List(actor1, actor2).map(_.path.toString)
+      val routedActor = system.actorOf(TailChoppingGroup(
+              paths, within = 1.seconds, interval = 50.millisecond).props())
 
       probe.send(routedActor, "")
       probe.expectMsg("ack")
 
-      oneOfShouldEqual(1, 1, actor1, actor2)(ref ⇒ Await.result(ref ? "times", timeout.duration))
+      oneOfShouldEqual(1, 1, actor1, actor2)(
+          ref ⇒ Await.result(ref ? "times", timeout.duration))
 
       routedActor ! Broadcast("stop")
     }
@@ -91,17 +98,20 @@ class TailChoppingSpec extends AkkaSpec with DefaultTimeout with ImplicitSender 
     "throw exception if no result will arrive within given time" in {
       val actor1 = newActor(3, 500.millis)
       val actor2 = newActor(4, 500.millis)
-      val probe = TestProbe()
-      val paths = List(actor1, actor2).map(_.path.toString)
-      val routedActor = system.actorOf(TailChoppingGroup(paths, within = 300.milliseconds,
-        interval = 50.milliseconds).props())
+      val probe  = TestProbe()
+      val paths  = List(actor1, actor2).map(_.path.toString)
+      val routedActor =
+        system.actorOf(TailChoppingGroup(paths,
+                                         within = 300.milliseconds,
+                                         interval = 50.milliseconds).props())
 
       probe.send(routedActor, "")
       probe.expectMsgPF() {
         case Failure(timeoutEx: AskTimeoutException) ⇒
       }
 
-      allShouldEqual(1, actor1, actor2)(ref ⇒ Await.result(ref ? "times", timeout.duration))
+      allShouldEqual(1, actor1, actor2)(
+          ref ⇒ Await.result(ref ? "times", timeout.duration))
 
       routedActor ! Broadcast("stop")
     }
@@ -109,9 +119,10 @@ class TailChoppingSpec extends AkkaSpec with DefaultTimeout with ImplicitSender 
     "reply ASAP" in {
       val actor1 = newActor(5, 1.seconds)
       val actor2 = newActor(6, 4.seconds)
-      val probe = TestProbe()
-      val paths = List(actor1, actor2).map(_.path.toString)
-      val routedActor = system.actorOf(TailChoppingGroup(paths, within = 5.seconds, interval = 100.milliseconds).props())
+      val probe  = TestProbe()
+      val paths  = List(actor1, actor2).map(_.path.toString)
+      val routedActor = system.actorOf(TailChoppingGroup(
+              paths, within = 5.seconds, interval = 100.milliseconds).props())
 
       probe.send(routedActor, "")
       probe.expectMsg(max = 2.seconds, "ack")

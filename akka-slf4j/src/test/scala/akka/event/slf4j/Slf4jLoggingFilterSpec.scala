@@ -4,7 +4,7 @@
 package akka.event.slf4j
 
 import akka.testkit.AkkaSpec
-import akka.actor.{ Actor, ActorLogging, Props }
+import akka.actor.{Actor, ActorLogging, Props}
 import scala.concurrent.duration._
 import akka.event.Logging
 import org.scalatest.BeforeAndAfterEach
@@ -64,10 +64,10 @@ object Slf4jLoggingFilterSpec {
         log.debug(s)
     }
   }
-
 }
 
-class Slf4jLoggingFilterSpec extends AkkaSpec(Slf4jLoggingFilterSpec.config) with BeforeAndAfterEach {
+class Slf4jLoggingFilterSpec
+    extends AkkaSpec(Slf4jLoggingFilterSpec.config) with BeforeAndAfterEach {
   import Slf4jLoggingFilterSpec._
 
   "Slf4jLoggingFilter" must {
@@ -92,7 +92,8 @@ class Slf4jLoggingFilterSpec extends AkkaSpec(Slf4jLoggingFilterSpec.config) wit
       val probe = TestProbe()
       system.eventStream.publish(SetTarget(probe.ref))
       probe.expectMsg("OK")
-      val debugLevelProducer = system.actorOf(Props[DebugLevelProducer], name = "debugLevelProducer")
+      val debugLevelProducer =
+        system.actorOf(Props[DebugLevelProducer], name = "debugLevelProducer")
       debugLevelProducer ! "test1"
       probe.expectMsgType[Warning].message should be("test1")
       probe.expectMsgType[Info].message should be("test1")
@@ -103,11 +104,11 @@ class Slf4jLoggingFilterSpec extends AkkaSpec(Slf4jLoggingFilterSpec.config) wit
       val probe = TestProbe()
       system.eventStream.publish(SetTarget(probe.ref))
       probe.expectMsg("OK")
-      val debugLevelProducer = system.actorOf(Props[WarningLevelProducer], name = "warningLevelProducer")
+      val debugLevelProducer = system.actorOf(Props[WarningLevelProducer],
+                                              name = "warningLevelProducer")
       debugLevelProducer ! "test2"
       probe.expectMsgType[Warning].message should be("test2")
       probe.expectNoMsg(500.millis)
     }
   }
-
 }

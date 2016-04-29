@@ -1,14 +1,13 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.dispatch
 
 import akka.event.Logging.Error
 import akka.actor.ActorCell
 import akka.event.Logging
 import akka.dispatch.sysmsg.SystemMessage
-import java.util.concurrent.{ ExecutorService, RejectedExecutionException }
+import java.util.concurrent.{ExecutorService, RejectedExecutionException}
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
@@ -26,30 +25,36 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
  *                   Larger values (or zero or negative) increase throughput, smaller values increase fairness
  */
 class Dispatcher(
-  _configurator: MessageDispatcherConfigurator,
-  val id: String,
-  val throughput: Int,
-  val throughputDeadlineTime: Duration,
-  executorServiceFactoryProvider: ExecutorServiceFactoryProvider,
-  val shutdownTimeout: FiniteDuration)
-  extends MessageDispatcher(_configurator) {
+    _configurator: MessageDispatcherConfigurator,
+    val id: String,
+    val throughput: Int,
+    val throughputDeadlineTime: Duration,
+    executorServiceFactoryProvider: ExecutorServiceFactoryProvider,
+    val shutdownTimeout: FiniteDuration)
+    extends MessageDispatcher(_configurator) {
 
   import configurator.prerequisites._
 
-  private class LazyExecutorServiceDelegate(factory: ExecutorServiceFactory) extends ExecutorServiceDelegate {
+  private class LazyExecutorServiceDelegate(factory: ExecutorServiceFactory)
+      extends ExecutorServiceDelegate {
     lazy val executor: ExecutorService = factory.createExecutorService
-    def copy(): LazyExecutorServiceDelegate = new LazyExecutorServiceDelegate(factory)
+    def copy(): LazyExecutorServiceDelegate =
+      new LazyExecutorServiceDelegate(factory)
   }
 
   @volatile private var executorServiceDelegate: LazyExecutorServiceDelegate =
-    new LazyExecutorServiceDelegate(executorServiceFactoryProvider.createExecutorServiceFactory(id, threadFactory))
+    new LazyExecutorServiceDelegate(
+        executorServiceFactoryProvider.createExecutorServiceFactory(
+            id, threadFactory))
 
-  protected final def executorService: ExecutorServiceDelegate = executorServiceDelegate
+  protected final def executorService: ExecutorServiceDelegate =
+    executorServiceDelegate
 
   /**
    * INTERNAL API
    */
-  protected[akka] def dispatch(receiver: ActorCell, invocation: Envelope): Unit = {
+  protected[akka] def dispatch(
+      receiver: ActorCell, invocation: Envelope): Unit = {
     val mbox = receiver.mailbox
     mbox.enqueue(receiver.self, invocation)
     registerForExecution(mbox, true, false)
@@ -58,7 +63,8 @@ class Dispatcher(
   /**
    * INTERNAL API
    */
-  protected[akka] def systemDispatch(receiver: ActorCell, invocation: SystemMessage): Unit = {
+  protected[akka] def systemDispatch(
+      receiver: ActorCell, invocation: SystemMessage): Unit = {
     val mbox = receiver.mailbox
     mbox.systemEnqueue(receiver.self, invocation)
     registerForExecution(mbox, false, true)
@@ -76,7 +82,11 @@ class Dispatcher(
           executorService execute invocation
         } catch {
           case e2: RejectedExecutionException ⇒
-            eventStream.publish(Error(e, getClass.getName, getClass, "executeTask was rejected twice!"))
+            eventStream.publish(
+                Error(e,
+                      getClass.getName,
+                      getClass,
+                      "executeTask was rejected twice!"))
             throw e2
         }
     }
@@ -85,20 +95,23 @@ class Dispatcher(
   /**
    * INTERNAL API
    */
-  protected[akka] def createMailbox(actor: akka.actor.Cell, mailboxType: MailboxType): Mailbox = {
-    new Mailbox(mailboxType.create(Some(actor.self), Some(actor.system))) with DefaultSystemMessageQueue
+  protected[akka] def createMailbox(
+      actor: akka.actor.Cell, mailboxType: MailboxType): Mailbox = {
+    new Mailbox(mailboxType.create(Some(actor.self), Some(actor.system)))
+    with DefaultSystemMessageQueue
   }
 
   private val esUpdater = AtomicReferenceFieldUpdater.newUpdater(
-    classOf[Dispatcher],
-    classOf[LazyExecutorServiceDelegate],
-    "executorServiceDelegate")
+      classOf[Dispatcher],
+      classOf[LazyExecutorServiceDelegate],
+      "executorServiceDelegate")
 
   /**
    * INTERNAL API
    */
   protected[akka] def shutdown: Unit = {
-    val newDelegate = executorServiceDelegate.copy() // Doesn't matter which one we copy
+    val newDelegate =
+      executorServiceDelegate.copy() // Doesn't matter which one we copy
     val es = esUpdater.getAndSet(this, newDelegate)
     es.shutdown()
   }
@@ -108,8 +121,12 @@ class Dispatcher(
    *
    * INTERNAL API
    */
-  protected[akka] override def registerForExecution(mbox: Mailbox, hasMessageHint: Boolean, hasSystemMessageHint: Boolean): Boolean = {
-    if (mbox.canBeScheduledForExecution(hasMessageHint, hasSystemMessageHint)) { //This needs to be here to ensure thread safety and no races
+  protected[akka] override def registerForExecution(
+      mbox: Mailbox,
+      hasMessageHint: Boolean,
+      hasSystemMessageHint: Boolean): Boolean = {
+    if (mbox.canBeScheduledForExecution(hasMessageHint, hasSystemMessageHint)) {
+      //This needs to be here to ensure thread safety and no races
       if (mbox.setAsScheduled()) {
         try {
           executorService execute mbox
@@ -119,10 +136,15 @@ class Dispatcher(
             try {
               executorService execute mbox
               true
-            } catch { //Retry once
+            } catch {
+              //Retry once
               case e: RejectedExecutionException ⇒
                 mbox.setAsIdle()
-                eventStream.publish(Error(e, getClass.getName, getClass, "registerForExecution was rejected twice!"))
+                eventStream.publish(
+                    Error(e,
+                          getClass.getName,
+                          getClass,
+                          "registerForExecution was rejected twice!"))
                 throw e
             }
         }
@@ -134,12 +156,14 @@ class Dispatcher(
 }
 
 object PriorityGenerator {
+
   /**
    * Creates a PriorityGenerator that uses the supplied function as priority generator
    */
-  def apply(priorityFunction: Any ⇒ Int): PriorityGenerator = new PriorityGenerator {
-    def gen(message: Any): Int = priorityFunction(message)
-  }
+  def apply(priorityFunction: Any ⇒ Int): PriorityGenerator =
+    new PriorityGenerator {
+      def gen(message: Any): Int = priorityFunction(message)
+    }
 }
 
 /**

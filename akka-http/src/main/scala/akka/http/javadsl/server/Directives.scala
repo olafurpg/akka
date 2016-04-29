@@ -13,11 +13,14 @@ abstract class AllDirectives extends WebSocketDirectives
  *
  */
 object Directives extends AllDirectives {
+
   /**
    * INTERNAL API
    */
-  private[http] def custom(f: (Route, immutable.Seq[Route]) ⇒ Route): Directive =
+  private[http] def custom(
+      f: (Route, immutable.Seq[Route]) ⇒ Route): Directive =
     new AbstractDirective {
-      def createRoute(first: Route, others: Array[Route]): Route = f(first, others.toList)
+      def createRoute(first: Route, others: Array[Route]): Route =
+        f(first, others.toList)
     }
 }

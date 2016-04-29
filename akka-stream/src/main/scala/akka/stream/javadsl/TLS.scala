@@ -1,9 +1,9 @@
 package akka.stream.javadsl
 
 import java.util.Optional
-import javax.net.ssl.{ SSLContext }
+import javax.net.ssl.{SSLContext}
 
-import akka.{ japi, NotUsed }
+import akka.{japi, NotUsed}
 import akka.stream._
 import akka.stream.TLSProtocol._
 import akka.util.ByteString
@@ -59,7 +59,10 @@ object TLS {
    *
    * This method uses the default closing behavior or [[IgnoreComplete]].
    */
-  def create(sslContext: SSLContext, firstSession: NegotiateNewSession, role: TLSRole): BidiFlow[SslTlsOutbound, ByteString, ByteString, SslTlsInbound, NotUsed] =
+  def create(sslContext: SSLContext,
+             firstSession: NegotiateNewSession,
+             role: TLSRole
+  ): BidiFlow[SslTlsOutbound, ByteString, ByteString, SslTlsInbound, NotUsed] =
     new javadsl.BidiFlow(scaladsl.TLS.apply(sslContext, firstSession, role))
 
   /**
@@ -78,9 +81,19 @@ object TLS {
    * The SSLEngine may use this information e.g. when an endpoint identification algorithm was
    * configured using [[SSLParameters.setEndpointIdentificationAlgorithm]].
    */
-  def create(sslContext: SSLContext, firstSession: NegotiateNewSession, role: TLSRole, hostInfo: Optional[japi.Pair[String, java.lang.Integer]], closing: TLSClosing): BidiFlow[SslTlsOutbound, ByteString, ByteString, SslTlsInbound, NotUsed] =
-    new javadsl.BidiFlow(scaladsl.TLS.apply(sslContext, firstSession, role, closing, OptionConverters.toScala(hostInfo).map(e ⇒ (e.first, e.second))))
-
+  def create(sslContext: SSLContext,
+             firstSession: NegotiateNewSession,
+             role: TLSRole,
+             hostInfo: Optional[japi.Pair[String, java.lang.Integer]],
+             closing: TLSClosing
+  ): BidiFlow[SslTlsOutbound, ByteString, ByteString, SslTlsInbound, NotUsed] =
+    new javadsl.BidiFlow(
+        scaladsl.TLS.apply(
+            sslContext,
+            firstSession,
+            role,
+            closing,
+            OptionConverters.toScala(hostInfo).map(e ⇒ (e.first, e.second))))
 }
 
 /**
@@ -94,8 +107,10 @@ object TLSPlacebo {
   /**
    * Returns a reusable [[BidiFlow]] instance representing a [[TLSPlacebo$]].
    */
-  def getInstance(): javadsl.BidiFlow[SslTlsOutbound, ByteString, ByteString, SessionBytes, NotUsed] = forJava
+  def getInstance(): javadsl.BidiFlow[
+      SslTlsOutbound, ByteString, ByteString, SessionBytes, NotUsed] = forJava
 
-  private val forJava: javadsl.BidiFlow[SslTlsOutbound, ByteString, ByteString, SessionBytes, NotUsed] =
+  private val forJava: javadsl.BidiFlow[
+      SslTlsOutbound, ByteString, ByteString, SessionBytes, NotUsed] =
     new javadsl.BidiFlow(scaladsl.TLSPlacebo())
 }

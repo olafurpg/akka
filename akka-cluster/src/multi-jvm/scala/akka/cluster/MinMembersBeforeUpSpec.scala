@@ -17,59 +17,75 @@ import akka.actor.Actor
 import akka.cluster.MemberStatus._
 
 object MinMembersBeforeUpMultiJvmSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
-  commonConfig(debugConfig(on = false).withFallback(ConfigFactory.parseString(
-    "akka.cluster.min-nr-of-members = 3")).
-    withFallback(MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
+  commonConfig(
+      debugConfig(on = false)
+        .withFallback(
+            ConfigFactory.parseString("akka.cluster.min-nr-of-members = 3"))
+        .withFallback(
+            MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
 }
 
 object MinMembersBeforeUpWithWeaklyUpMultiJvmSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
-  commonConfig(debugConfig(on = false).withFallback(ConfigFactory.parseString("""
+  commonConfig(
+      debugConfig(on = false)
+        .withFallback(ConfigFactory.parseString("""
       akka.cluster.min-nr-of-members = 3
-      akka.cluster.allow-weakly-up-members = on""")).
-    withFallback(MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
+      akka.cluster.allow-weakly-up-members = on"""))
+        .withFallback(
+            MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
 }
 
 object MinMembersOfRoleBeforeUpMultiJvmSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
-  commonConfig(debugConfig(on = false).withFallback(ConfigFactory.parseString(
-    "akka.cluster.role.backend.min-nr-of-members = 2")).
-    withFallback(MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
+  commonConfig(
+      debugConfig(on = false)
+        .withFallback(ConfigFactory.parseString(
+                "akka.cluster.role.backend.min-nr-of-members = 2"))
+        .withFallback(
+            MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
 
   nodeConfig(first)(
-    ConfigFactory.parseString("akka.cluster.roles =[frontend]"))
+      ConfigFactory.parseString("akka.cluster.roles =[frontend]"))
 
   nodeConfig(second, third)(
-    ConfigFactory.parseString("akka.cluster.roles =[backend]"))
+      ConfigFactory.parseString("akka.cluster.roles =[backend]"))
 }
 
 class MinMembersBeforeUpMultiJvmNode1 extends MinMembersBeforeUpSpec
 class MinMembersBeforeUpMultiJvmNode2 extends MinMembersBeforeUpSpec
 class MinMembersBeforeUpMultiJvmNode3 extends MinMembersBeforeUpSpec
 
-class MinMembersBeforeUpWithWeaklyUpMultiJvmNode1 extends MinMembersBeforeUpSpec
-class MinMembersBeforeUpWithWeaklyUpMultiJvmNode2 extends MinMembersBeforeUpSpec
-class MinMembersBeforeUpWithWeaklyUpMultiJvmNode3 extends MinMembersBeforeUpSpec
+class MinMembersBeforeUpWithWeaklyUpMultiJvmNode1
+    extends MinMembersBeforeUpSpec
+class MinMembersBeforeUpWithWeaklyUpMultiJvmNode2
+    extends MinMembersBeforeUpSpec
+class MinMembersBeforeUpWithWeaklyUpMultiJvmNode3
+    extends MinMembersBeforeUpSpec
 
-class MinMembersOfRoleBeforeUpMultiJvmNode1 extends MinMembersOfRoleBeforeUpSpec
-class MinMembersOfRoleBeforeUpMultiJvmNode2 extends MinMembersOfRoleBeforeUpSpec
-class MinMembersOfRoleBeforeUpMultiJvmNode3 extends MinMembersOfRoleBeforeUpSpec
+class MinMembersOfRoleBeforeUpMultiJvmNode1
+    extends MinMembersOfRoleBeforeUpSpec
+class MinMembersOfRoleBeforeUpMultiJvmNode2
+    extends MinMembersOfRoleBeforeUpSpec
+class MinMembersOfRoleBeforeUpMultiJvmNode3
+    extends MinMembersOfRoleBeforeUpSpec
 
-abstract class MinMembersBeforeUpSpec extends MinMembersBeforeUpBase(MinMembersBeforeUpMultiJvmSpec) {
+abstract class MinMembersBeforeUpSpec
+    extends MinMembersBeforeUpBase(MinMembersBeforeUpMultiJvmSpec) {
 
-  override def first: RoleName = MinMembersBeforeUpMultiJvmSpec.first
+  override def first: RoleName  = MinMembersBeforeUpMultiJvmSpec.first
   override def second: RoleName = MinMembersBeforeUpMultiJvmSpec.second
-  override def third: RoleName = MinMembersBeforeUpMultiJvmSpec.third
+  override def third: RoleName  = MinMembersBeforeUpMultiJvmSpec.third
 
   "Cluster leader" must {
     "wait with moving members to UP until minimum number of members have joined" taggedAs LongRunningTest in {
@@ -78,11 +94,15 @@ abstract class MinMembersBeforeUpSpec extends MinMembersBeforeUpBase(MinMembersB
   }
 }
 
-abstract class MinMembersBeforeUpWithWeaklyUpSpec extends MinMembersBeforeUpBase(MinMembersBeforeUpMultiJvmSpec) {
+abstract class MinMembersBeforeUpWithWeaklyUpSpec
+    extends MinMembersBeforeUpBase(MinMembersBeforeUpMultiJvmSpec) {
 
-  override def first: RoleName = MinMembersBeforeUpWithWeaklyUpMultiJvmSpec.first
-  override def second: RoleName = MinMembersBeforeUpWithWeaklyUpMultiJvmSpec.second
-  override def third: RoleName = MinMembersBeforeUpWithWeaklyUpMultiJvmSpec.third
+  override def first: RoleName =
+    MinMembersBeforeUpWithWeaklyUpMultiJvmSpec.first
+  override def second: RoleName =
+    MinMembersBeforeUpWithWeaklyUpMultiJvmSpec.second
+  override def third: RoleName =
+    MinMembersBeforeUpWithWeaklyUpMultiJvmSpec.third
 
   "Cluster leader" must {
     "wait with moving members to UP until minimum number of members have joined with weakly up enabled" taggedAs LongRunningTest in {
@@ -91,11 +111,12 @@ abstract class MinMembersBeforeUpWithWeaklyUpSpec extends MinMembersBeforeUpBase
   }
 }
 
-abstract class MinMembersOfRoleBeforeUpSpec extends MinMembersBeforeUpBase(MinMembersOfRoleBeforeUpMultiJvmSpec) {
+abstract class MinMembersOfRoleBeforeUpSpec
+    extends MinMembersBeforeUpBase(MinMembersOfRoleBeforeUpMultiJvmSpec) {
 
-  override def first: RoleName = MinMembersOfRoleBeforeUpMultiJvmSpec.first
+  override def first: RoleName  = MinMembersOfRoleBeforeUpMultiJvmSpec.first
   override def second: RoleName = MinMembersOfRoleBeforeUpMultiJvmSpec.second
-  override def third: RoleName = MinMembersOfRoleBeforeUpMultiJvmSpec.third
+  override def third: RoleName  = MinMembersOfRoleBeforeUpMultiJvmSpec.third
 
   "Cluster leader" must {
     "wait with moving members to UP until minimum number of members with specific role have joined" taggedAs LongRunningTest in {
@@ -105,8 +126,7 @@ abstract class MinMembersOfRoleBeforeUpSpec extends MinMembersBeforeUpBase(MinMe
 }
 
 abstract class MinMembersBeforeUpBase(multiNodeConfig: MultiNodeConfig)
-  extends MultiNodeSpec(multiNodeConfig)
-  with MultiNodeClusterSpec {
+    extends MultiNodeSpec(multiNodeConfig) with MultiNodeClusterSpec {
 
   import ClusterEvent._
 
@@ -157,5 +177,4 @@ abstract class MinMembersBeforeUpBase(multiNodeConfig: MultiNodeConfig)
 
     enterBarrier("after-1")
   }
-
 }

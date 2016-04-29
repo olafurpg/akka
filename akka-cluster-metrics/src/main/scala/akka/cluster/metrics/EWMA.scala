@@ -40,7 +40,6 @@ final case class EWMA(value: Double, alpha: Double) {
     if (newValue == value) this // no change
     else copy(value = newValue)
   }
-
 }
 
 object EWMA {
@@ -59,7 +58,8 @@ object EWMA {
    * its original relevance. The initial relevance of a data sample is given by
    * 1 – 0.5 ^ (collect-interval / half-life).
    */
-  def alpha(halfLife: FiniteDuration, collectInterval: FiniteDuration): Double = {
+  def alpha(
+      halfLife: FiniteDuration, collectInterval: FiniteDuration): Double = {
     val halfLifeMillis = halfLife.toMillis
     require(halfLife.toMillis > 0, "halfLife must be > 0 s")
     val decayRate = LogOf2 / halfLifeMillis

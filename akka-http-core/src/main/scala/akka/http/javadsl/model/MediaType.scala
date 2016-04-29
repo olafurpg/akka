@@ -16,8 +16,7 @@ object MediaType {
     def toContentType: ContentType.Binary
   }
 
-  trait NonBinary extends MediaType {
-  }
+  trait NonBinary extends MediaType {}
 
   trait WithFixedCharset extends NonBinary {
     def toContentType: ContentType.WithFixedCharset
@@ -27,8 +26,7 @@ object MediaType {
     def toContentType(charset: HttpCharset): ContentType.WithCharset
   }
 
-  trait Multipart extends WithOpenCharset {
-  }
+  trait Multipart extends WithOpenCharset {}
 
   trait Compressibility {
     def compressible: Boolean
@@ -36,6 +34,7 @@ object MediaType {
 }
 
 trait MediaType {
+
   /**
    * The main-type of this media-type.
    */

@@ -12,7 +12,7 @@ import akka.actor.SupervisorStrategy._
 import scala.concurrent.duration._
 import akka.util.Timeout
 import akka.event.LoggingReceive
-import akka.pattern.{ ask, pipe }
+import akka.pattern.{ask, pipe}
 import com.typesafe.config.ConfigFactory
 //#imports
 
@@ -30,8 +30,8 @@ object FaultHandlingDocSample extends App {
     }
     """)
 
-  val system = ActorSystem("FaultToleranceSample", config)
-  val worker = system.actorOf(Props[Worker], name = "worker")
+  val system   = ActorSystem("FaultToleranceSample", config)
+  val worker   = system.actorOf(Props[Worker], name = "worker")
   val listener = system.actorOf(Props[Listener], name = "listener")
   // start the work and listen on progress
   // note that the listener is used as sender of the tell,
@@ -90,7 +90,7 @@ class Worker extends Actor with ActorLogging {
   // about progress
   var progressListener: Option[ActorRef] = None
   val counterService = context.actorOf(Props[CounterService], name = "counter")
-  val totalCount = 51
+  val totalCount     = 51
   import context.dispatcher // Use this Actors' Dispatcher as ExecutionContext
 
   def receive = LoggingReceive {
@@ -134,15 +134,15 @@ class CounterService extends Actor {
 
   // Restart the storage child when StorageException is thrown.
   // After 3 restarts within 5 seconds it will be stopped.
-  override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 3,
-    withinTimeRange = 5 seconds) {
+  override val supervisorStrategy =
+    OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 5 seconds) {
       case _: Storage.StorageException => Restart
     }
 
   val key = self.path.name
   var storage: Option[ActorRef] = None
   var counter: Option[ActorRef] = None
-  var backlog = IndexedSeq.empty[(ActorRef, Any)]
+  var backlog                   = IndexedSeq.empty[(ActorRef, Any)]
   val MaxBacklog = 10000
 
   import context.dispatcher // Use this Actors' Dispatcher as ExecutionContext
@@ -158,7 +158,8 @@ class CounterService extends Actor {
    * Watch the child so we receive Terminated message when it has been terminated.
    */
   def initStorage() {
-    storage = Some(context.watch(context.actorOf(Props[Storage], name = "storage")))
+    storage = Some(
+        context.watch(context.actorOf(Props[Storage], name = "storage")))
     // Tell the counter, if any, to use the new storage
     counter foreach { _ ! UseStorage(storage) }
     // We need the initial value to be able to operate
@@ -177,7 +178,7 @@ class CounterService extends Actor {
       for ((replyTo, msg) <- backlog) c.tell(msg, sender = replyTo)
       backlog = IndexedSeq.empty
 
-    case msg: Increment       => forwardOrPlaceInBacklog(msg)
+    case msg: Increment => forwardOrPlaceInBacklog(msg)
 
     case msg: GetCurrentCount => forwardOrPlaceInBacklog(msg)
 
@@ -204,11 +205,10 @@ class CounterService extends Actor {
       case None =>
         if (backlog.size >= MaxBacklog)
           throw new ServiceUnavailable(
-            "CounterService not available, lack of initial value")
+              "CounterService not available, lack of initial value")
         backlog :+= (sender() -> msg)
     }
   }
-
 }
 
 //#messages
@@ -227,7 +227,7 @@ class Counter(key: String, initialValue: Long) extends Actor {
   import CounterService._
   import Storage._
 
-  var count = initialValue
+  var count                     = initialValue
   var storage: Option[ActorRef] = None
 
   def receive = LoggingReceive {
@@ -241,7 +241,6 @@ class Counter(key: String, initialValue: Long) extends Actor {
 
     case GetCurrentCount =>
       sender() ! CurrentCount(key, count)
-
   }
 
   def storeCount() {
@@ -249,7 +248,6 @@ class Counter(key: String, initialValue: Long) extends Actor {
     // We can continue without storage.
     storage foreach { _ ! Store(Entry(key, count)) }
   }
-
 }
 
 //#messages

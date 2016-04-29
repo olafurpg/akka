@@ -11,7 +11,7 @@ object Main2 {
 
   def main(args: Array[String]): Unit = {
     val system = ActorSystem("Hello")
-    val a = system.actorOf(Props[HelloWorld], "helloWorld")
+    val a      = system.actorOf(Props[HelloWorld], "helloWorld")
     system.actorOf(Props(classOf[Terminator], a), "terminator")
   }
 
@@ -23,5 +23,4 @@ object Main2 {
         context.system.terminate()
     }
   }
-
 }

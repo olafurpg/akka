@@ -10,31 +10,38 @@ import akka.testkit._
 import com.typesafe.config.ConfigFactory
 
 object LeaderDowningAllOtherNodesMultiJvmSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
   val fourth = role("fourth")
-  val fifth = role("fifth")
-  val sixth = role("sixth")
+  val fifth  = role("fifth")
+  val sixth  = role("sixth")
 
-  commonConfig(debugConfig(on = false).withFallback(
-    ConfigFactory.parseString("""
+  commonConfig(
+      debugConfig(on = false)
+        .withFallback(ConfigFactory.parseString("""
       akka.cluster.failure-detector.monitored-by-nr-of-members = 2
       akka.cluster.auto-down-unreachable-after = 1s
-      """)).
-    withFallback(MultiNodeClusterSpec.clusterConfig))
+      """))
+        .withFallback(MultiNodeClusterSpec.clusterConfig))
 }
 
-class LeaderDowningAllOtherNodesMultiJvmNode1 extends LeaderDowningAllOtherNodesSpec
-class LeaderDowningAllOtherNodesMultiJvmNode2 extends LeaderDowningAllOtherNodesSpec
-class LeaderDowningAllOtherNodesMultiJvmNode3 extends LeaderDowningAllOtherNodesSpec
-class LeaderDowningAllOtherNodesMultiJvmNode4 extends LeaderDowningAllOtherNodesSpec
-class LeaderDowningAllOtherNodesMultiJvmNode5 extends LeaderDowningAllOtherNodesSpec
-class LeaderDowningAllOtherNodesMultiJvmNode6 extends LeaderDowningAllOtherNodesSpec
+class LeaderDowningAllOtherNodesMultiJvmNode1
+    extends LeaderDowningAllOtherNodesSpec
+class LeaderDowningAllOtherNodesMultiJvmNode2
+    extends LeaderDowningAllOtherNodesSpec
+class LeaderDowningAllOtherNodesMultiJvmNode3
+    extends LeaderDowningAllOtherNodesSpec
+class LeaderDowningAllOtherNodesMultiJvmNode4
+    extends LeaderDowningAllOtherNodesSpec
+class LeaderDowningAllOtherNodesMultiJvmNode5
+    extends LeaderDowningAllOtherNodesSpec
+class LeaderDowningAllOtherNodesMultiJvmNode6
+    extends LeaderDowningAllOtherNodesSpec
 
 abstract class LeaderDowningAllOtherNodesSpec
-  extends MultiNodeSpec(LeaderDowningAllOtherNodesMultiJvmSpec)
-  with MultiNodeClusterSpec {
+    extends MultiNodeSpec(LeaderDowningAllOtherNodesMultiJvmSpec)
+    with MultiNodeClusterSpec {
 
   import LeaderDowningAllOtherNodesMultiJvmSpec._
   import ClusterEvent._
@@ -47,16 +54,16 @@ abstract class LeaderDowningAllOtherNodesSpec
     }
 
     "remove all shutdown nodes" taggedAs LongRunningTest in {
-      val others = roles.drop(1)
+      val others            = roles.drop(1)
       val shutdownAddresses = others.map(address).toSet
       enterBarrier("before-all-other-shutdown")
       runOn(first) {
-        for (node ← others)
-          testConductor.exit(node, 0).await
+        for (node ← others) testConductor.exit(node, 0).await
       }
       enterBarrier("all-other-shutdown")
-      awaitMembersUp(numberOfMembers = 1, canNotBePartOfMemberRing = shutdownAddresses, 30.seconds)
+      awaitMembersUp(numberOfMembers = 1,
+                     canNotBePartOfMemberRing = shutdownAddresses,
+                     30.seconds)
     }
-
   }
 }

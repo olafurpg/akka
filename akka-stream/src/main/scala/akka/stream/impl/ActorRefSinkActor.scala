@@ -22,7 +22,9 @@ private[akka] object ActorRefSinkActor {
 /**
  * INTERNAL API
  */
-private[akka] class ActorRefSinkActor(ref: ActorRef, highWatermark: Int, onCompleteMessage: Any) extends ActorSubscriber {
+private[akka] class ActorRefSinkActor(
+    ref: ActorRef, highWatermark: Int, onCompleteMessage: Any)
+    extends ActorSubscriber {
   import ActorSubscriberMessage._
 
   override val requestStrategy = WatermarkRequestStrategy(highWatermark)
@@ -41,5 +43,4 @@ private[akka] class ActorRefSinkActor(ref: ActorRef, highWatermark: Int, onCompl
     case Terminated(`ref`) ⇒
       context.stop(self) // will cancel upstream
   }
-
 }

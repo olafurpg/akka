@@ -7,8 +7,7 @@ import akka.persistence.PersistentActor
 import akka.actor.Props
 
 object TestActor {
-  def props(persistenceId: String): Props =
-    Props(new TestActor(persistenceId))
+  def props(persistenceId: String): Props = Props(new TestActor(persistenceId))
 
   case class DeleteCmd(toSeqNr: Long = Long.MaxValue)
 }
@@ -31,5 +30,4 @@ class TestActor(override val persistenceId: String) extends PersistentActor {
         sender() ! evt + "-done"
       }
   }
-
 }

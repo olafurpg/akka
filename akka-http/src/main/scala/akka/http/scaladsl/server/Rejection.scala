@@ -37,8 +37,10 @@ case class MissingQueryParamRejection(parameterName: String) extends Rejection
  * Rejection created by parameter filters.
  * Signals that the request was rejected because a query parameter could not be interpreted.
  */
-case class MalformedQueryParamRejection(parameterName: String, errorMsg: String,
-                                        cause: Option[Throwable] = None) extends Rejection
+case class MalformedQueryParamRejection(parameterName: String,
+                                        errorMsg: String,
+                                        cause: Option[Throwable] = None)
+    extends Rejection
 
 /**
  * Rejection created by form field filters.
@@ -50,8 +52,10 @@ case class MissingFormFieldRejection(fieldName: String) extends Rejection
  * Rejection created by form field filters.
  * Signals that the request was rejected because a form field could not be interpreted.
  */
-case class MalformedFormFieldRejection(fieldName: String, errorMsg: String,
-                                       cause: Option[Throwable] = None) extends Rejection
+case class MalformedFormFieldRejection(fieldName: String,
+                                       errorMsg: String,
+                                       cause: Option[Throwable] = None)
+    extends Rejection
 
 /**
  * Rejection created by header directives.
@@ -63,27 +67,34 @@ case class MissingHeaderRejection(headerName: String) extends Rejection
  * Rejection created by header directives.
  * Signals that the request was rejected because a header value is malformed.
  */
-case class MalformedHeaderRejection(headerName: String, errorMsg: String,
-                                    cause: Option[Throwable] = None) extends Rejection
+case class MalformedHeaderRejection(headerName: String,
+                                    errorMsg: String,
+                                    cause: Option[Throwable] = None)
+    extends Rejection
 
 /**
  * Rejection created by unmarshallers.
  * Signals that the request was rejected because the requests content-type is unsupported.
  */
-case class UnsupportedRequestContentTypeRejection(supported: immutable.Set[ContentTypeRange]) extends Rejection
+case class UnsupportedRequestContentTypeRejection(
+    supported: immutable.Set[ContentTypeRange])
+    extends Rejection
 
 /**
  * Rejection created by decoding filters.
  * Signals that the request was rejected because the requests content encoding is unsupported.
  */
-case class UnsupportedRequestEncodingRejection(supported: HttpEncoding) extends Rejection
+case class UnsupportedRequestEncodingRejection(supported: HttpEncoding)
+    extends Rejection
 
 /**
  * Rejection created by range directives.
  * Signals that the request was rejected because the requests contains only unsatisfiable ByteRanges.
  * The actualEntityLength gives the client a hint to create satisfiable ByteRanges.
  */
-case class UnsatisfiableRangeRejection(unsatisfiableRanges: immutable.Seq[ByteRange], actualEntityLength: Long) extends Rejection
+case class UnsatisfiableRangeRejection(
+    unsatisfiableRanges: immutable.Seq[ByteRange], actualEntityLength: Long)
+    extends Rejection
 
 /**
  * Rejection created by range directives.
@@ -99,7 +110,9 @@ case class TooManyRangesRejection(maxRanges: Int) extends Rejection
  * Note that semantic issues with the request content (e.g. because some parameter was out of range)
  * will usually trigger a `ValidationRejection` instead.
  */
-case class MalformedRequestContentRejection(message: String, cause: Option[Throwable] = None) extends Rejection
+case class MalformedRequestContentRejection(
+    message: String, cause: Option[Throwable] = None)
+    extends Rejection
 
 /**
  * Rejection created by unmarshallers.
@@ -112,16 +125,21 @@ case object RequestEntityExpectedRejection extends Rejection
  * Signals that the request was rejected because the service is not capable of producing a response entity whose
  * content type is accepted by the client
  */
-case class UnacceptedResponseContentTypeRejection(supported: immutable.Set[ContentNegotiator.Alternative]) extends Rejection
+case class UnacceptedResponseContentTypeRejection(
+    supported: immutable.Set[ContentNegotiator.Alternative])
+    extends Rejection
 
 /**
  * Rejection created by encoding filters.
  * Signals that the request was rejected because the service is not capable of producing a response entity whose
  * content encoding is accepted by the client
  */
-case class UnacceptedResponseEncodingRejection(supported: immutable.Set[HttpEncoding]) extends Rejection
+case class UnacceptedResponseEncodingRejection(
+    supported: immutable.Set[HttpEncoding])
+    extends Rejection
 object UnacceptedResponseEncodingRejection {
-  def apply(supported: HttpEncoding): UnacceptedResponseEncodingRejection = UnacceptedResponseEncodingRejection(Set(supported))
+  def apply(supported: HttpEncoding): UnacceptedResponseEncodingRejection =
+    UnacceptedResponseEncodingRejection(Set(supported))
 }
 
 /**
@@ -129,10 +147,12 @@ object UnacceptedResponseEncodingRejection {
  * Signals that the request was rejected because the user could not be authenticated. The reason for the rejection is
  * specified in the cause.
  */
-case class AuthenticationFailedRejection(cause: AuthenticationFailedRejection.Cause,
-                                         challenge: HttpChallenge) extends Rejection
+case class AuthenticationFailedRejection(
+    cause: AuthenticationFailedRejection.Cause, challenge: HttpChallenge)
+    extends Rejection
 
 object AuthenticationFailedRejection {
+
   /**
    * Signals the cause of the failed authentication.
    */
@@ -172,14 +192,17 @@ case object ExpectedWebSocketRequestRejection extends Rejection
  * Rejection created when a websocket request was not handled because none of the given subprotocols
  * was supported.
  */
-case class UnsupportedWebSocketSubprotocolRejection(supportedProtocol: String) extends Rejection
+case class UnsupportedWebSocketSubprotocolRejection(supportedProtocol: String)
+    extends Rejection
 
 /**
  * Rejection created by the `validation` directive as well as for `IllegalArgumentExceptions`
  * thrown by domain model constructors (e.g. via `require`).
  * It signals that an expected value was semantically invalid.
  */
-case class ValidationRejection(message: String, cause: Option[Throwable] = None) extends Rejection
+case class ValidationRejection(
+    message: String, cause: Option[Throwable] = None)
+    extends Rejection
 
 /**
  * A special Rejection that serves as a container for a transformation function on rejections.
@@ -199,7 +222,9 @@ case class ValidationRejection(message: String, cause: Option[Throwable] = None)
  * MethodRejection added by the `get` directive is canceled by the `put` directive (since the HTTP method
  * did indeed match eventually).
  */
-case class TransformationRejection(transform: immutable.Seq[Rejection] ⇒ immutable.Seq[Rejection]) extends Rejection
+case class TransformationRejection(
+    transform: immutable.Seq[Rejection] ⇒ immutable.Seq[Rejection])
+    extends Rejection
 
 /**
  * A Throwable wrapping a Rejection.

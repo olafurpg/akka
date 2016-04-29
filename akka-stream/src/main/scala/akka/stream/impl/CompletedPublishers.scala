@@ -3,8 +3,8 @@
  */
 package akka.stream.impl
 
-import org.reactivestreams.{ Subscriber, Publisher, Subscription }
-import scala.concurrent.{ ExecutionContext, Promise }
+import org.reactivestreams.{Subscriber, Publisher, Subscription}
+import scala.concurrent.{ExecutionContext, Promise}
 
 /**
  * INTERNAL API
@@ -19,14 +19,15 @@ private[akka] case object EmptyPublisher extends Publisher[Nothing] {
     } catch {
       case _: SpecViolation ⇒ // nothing we can do
     }
-  def apply[T]: Publisher[T] = this.asInstanceOf[Publisher[T]]
+  def apply[T]: Publisher[T]    = this.asInstanceOf[Publisher[T]]
   override def toString: String = "already-completed-publisher"
 }
 
 /**
  * INTERNAL API
  */
-private[akka] final case class ErrorPublisher(t: Throwable, name: String) extends Publisher[Nothing] {
+private[akka] final case class ErrorPublisher(t: Throwable, name: String)
+    extends Publisher[Nothing] {
   ReactiveStreamsCompliance.requireNonNullElement(t)
 
   import ReactiveStreamsCompliance._
@@ -38,7 +39,7 @@ private[akka] final case class ErrorPublisher(t: Throwable, name: String) extend
     } catch {
       case _: SpecViolation ⇒ // nothing we can do
     }
-  def apply[T]: Publisher[T] = this.asInstanceOf[Publisher[T]]
+  def apply[T]: Publisher[T]    = this.asInstanceOf[Publisher[T]]
   override def toString: String = name
 }
 
@@ -46,11 +47,12 @@ private[akka] final case class ErrorPublisher(t: Throwable, name: String) extend
  * INTERNAL API
  */
 private[akka] final case class MaybePublisher[T](
-  promise: Promise[Option[T]],
-  name: String)(implicit ec: ExecutionContext) extends Publisher[T] {
+    promise: Promise[Option[T]], name: String)(implicit ec: ExecutionContext)
+    extends Publisher[T] {
   import ReactiveStreamsCompliance._
 
-  private[this] class MaybeSubscription(subscriber: Subscriber[_ >: T]) extends Subscription {
+  private[this] class MaybeSubscription(subscriber: Subscriber[_ >: T])
+      extends Subscription {
     private[this] var done: Boolean = false
     override def cancel(): Unit = {
       done = true
@@ -94,25 +96,26 @@ private[akka] final case class MaybePublisher[T](
  */
 private[akka] case object CancelledSubscription extends Subscription {
   override def request(elements: Long): Unit = ()
-  override def cancel(): Unit = ()
+  override def cancel(): Unit                = ()
 }
 
 private[akka] final class CancellingSubscriber[T] extends Subscriber[T] {
-  override def onError(t: Throwable): Unit = ()
+  override def onError(t: Throwable): Unit        = ()
   override def onSubscribe(s: Subscription): Unit = s.cancel()
-  override def onComplete(): Unit = ()
-  override def onNext(t: T): Unit = ()
+  override def onComplete(): Unit                 = ()
+  override def onNext(t: T): Unit                 = ()
 }
 
 /**
  * INTERNAL API
  */
-private[akka] case object RejectAdditionalSubscribers extends Publisher[Nothing] {
+private[akka] case object RejectAdditionalSubscribers
+    extends Publisher[Nothing] {
   import ReactiveStreamsCompliance._
   override def subscribe(subscriber: Subscriber[_ >: Nothing]): Unit =
     try rejectAdditionalSubscriber(subscriber, "Publisher") catch {
       case _: SpecViolation ⇒ // nothing we can do
     }
-  def apply[T]: Publisher[T] = this.asInstanceOf[Publisher[T]]
+  def apply[T]: Publisher[T]    = this.asInstanceOf[Publisher[T]]
   override def toString: String = "already-subscribed-publisher"
 }

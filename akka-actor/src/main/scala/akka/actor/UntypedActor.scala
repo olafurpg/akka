@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor
 
 /**
@@ -106,7 +105,8 @@ abstract class UntypedActor extends Actor {
    * The UntypedActorContext is not thread safe so do not expose it outside of the
    * UntypedActor.
    */
-  def getContext(): UntypedActorContext = context.asInstanceOf[UntypedActorContext]
+  def getContext(): UntypedActorContext =
+    context.asInstanceOf[UntypedActorContext]
 
   /**
    * Returns the ActorRef for this actor.
@@ -124,7 +124,8 @@ abstract class UntypedActor extends Actor {
    * User overridable definition the strategy to use for supervising
    * child actors.
    */
-  override def supervisorStrategy: SupervisorStrategy = super.supervisorStrategy
+  override def supervisorStrategy: SupervisorStrategy =
+    super.supervisorStrategy
 
   /**
    * User overridable callback.
@@ -152,7 +153,8 @@ abstract class UntypedActor extends Actor {
    * up of resources before Actor is terminated.
    */
   @throws(classOf[Exception])
-  override def preRestart(reason: Throwable, message: Option[Any]): Unit = super.preRestart(reason, message)
+  override def preRestart(reason: Throwable, message: Option[Any]): Unit =
+    super.preRestart(reason, message)
 
   /**
    * User overridable callback: By default it calls `preStart()`.
@@ -172,6 +174,4 @@ abstract class UntypedActor extends Actor {
    * to the actor's system's [[akka.event.EventStream]].
    */
   override def unhandled(message: Any): Unit = super.unhandled(message)
-
 }
-

@@ -7,9 +7,9 @@ import language.postfixOps
 import akka.testkit._
 import org.scalatest.junit.JUnitSuiteLike
 import com.typesafe.config.ConfigFactory
-import scala.concurrent.{ ExecutionContext, Await, Future }
+import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.concurrent.duration._
-import java.util.concurrent.{ RejectedExecutionException, ConcurrentLinkedQueue }
+import java.util.concurrent.{RejectedExecutionException, ConcurrentLinkedQueue}
 import akka.util.Timeout
 import akka.japi.Util.immutableSeq
 import akka.pattern.ask
@@ -23,16 +23,18 @@ object ActorSystemSpec {
 
   class Waves extends Actor {
     var master: ActorRef = _
-    var terminaters = Set[ActorRef]()
+    var terminaters      = Set[ActorRef]()
 
     def receive = {
       case n: Int ⇒
         master = sender()
-        terminaters = Set() ++ (for (i ← 1 to n) yield {
-          val man = context.watch(context.system.actorOf(Props[Terminater]))
-          man ! "run"
-          man
-        })
+        terminaters = Set() ++
+        (for (i ← 1 to n) yield {
+              val man =
+                context.watch(context.system.actorOf(Props[Terminater]))
+              man ! "run"
+              man
+            })
       case Terminated(child) if terminaters contains child ⇒
         terminaters -= child
         if (terminaters.isEmpty) {
@@ -61,7 +63,8 @@ object ActorSystemSpec {
     }
   }
 
-  final case class FastActor(latch: TestLatch, testActor: ActorRef) extends Actor {
+  final case class FastActor(latch: TestLatch, testActor: ActorRef)
+      extends Actor {
     val ref1 = context.actorOf(Props.empty)
     val ref2 = context.actorFor(ref1.path.toString)
     testActor ! ref2.getClass
@@ -72,17 +75,23 @@ object ActorSystemSpec {
     }
   }
 
-  class SlowDispatcher(_config: Config, _prerequisites: DispatcherPrerequisites) extends MessageDispatcherConfigurator(_config, _prerequisites) {
+  class SlowDispatcher(
+      _config: Config, _prerequisites: DispatcherPrerequisites)
+      extends MessageDispatcherConfigurator(_config, _prerequisites) {
     private val instance = new Dispatcher(
-      this,
-      config.getString("id"),
-      config.getInt("throughput"),
-      config.getNanosDuration("throughput-deadline-time"),
-      configureExecutor(),
-      config.getMillisDuration("shutdown-timeout")) {
+        this,
+        config.getString("id"),
+        config.getInt("throughput"),
+        config.getNanosDuration("throughput-deadline-time"),
+        configureExecutor(),
+        config.getMillisDuration("shutdown-timeout")) {
       val doneIt = new Switch
-      override protected[akka] def registerForExecution(mbox: Mailbox, hasMessageHint: Boolean, hasSystemMessageHint: Boolean): Boolean = {
-        val ret = super.registerForExecution(mbox, hasMessageHint, hasSystemMessageHint)
+      override protected[akka] def registerForExecution(
+          mbox: Mailbox,
+          hasMessageHint: Boolean,
+          hasSystemMessageHint: Boolean): Boolean = {
+        val ret = super.registerForExecution(
+            mbox, hasMessageHint, hasSystemMessageHint)
         doneIt.switchOn {
           TestKit.awaitCond(mbox.actor.actor != null, 1.second)
           mbox.actor.actor match {
@@ -99,7 +108,8 @@ object ActorSystemSpec {
     override def dispatcher(): MessageDispatcher = instance
   }
 
-  class TestExecutionContext(testActor: ActorRef, underlying: ExecutionContext) extends ExecutionContext {
+  class TestExecutionContext(testActor: ActorRef, underlying: ExecutionContext)
+      extends ExecutionContext {
 
     def execute(runnable: Runnable): Unit = {
       testActor ! "called"
@@ -116,57 +126,65 @@ object ActorSystemSpec {
       slow {
         type="${classOf[SlowDispatcher].getName}"
       }"""
-
 }
 
-class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSender {
+class ActorSystemSpec
+    extends AkkaSpec(ActorSystemSpec.config) with ImplicitSender {
 
   import ActorSystemSpec.FastActor
 
   "An ActorSystem" must {
 
     "use scala.concurrent.Future's InternalCallbackEC" in {
-      system.asInstanceOf[ActorSystemImpl].internalCallingThreadExecutionContext.getClass.getName should ===("scala.concurrent.Future$InternalCallbackExecutor$")
+      system
+        .asInstanceOf[ActorSystemImpl]
+        .internalCallingThreadExecutionContext
+        .getClass
+        .getName should ===(
+          "scala.concurrent.Future$InternalCallbackExecutor$")
     }
 
     "reject invalid names" in {
-      for (
-        n ← Seq(
-          "-hallowelt",
-          "_hallowelt",
-          "hallo*welt",
-          "hallo@welt",
-          "hallo#welt",
-          "hallo$welt",
-          "hallo%welt",
-          "hallo/welt")
-      ) intercept[IllegalArgumentException] {
+      for (n ← Seq("-hallowelt",
+                   "_hallowelt",
+                   "hallo*welt",
+                   "hallo@welt",
+                   "hallo#welt",
+                   "hallo$welt",
+                   "hallo%welt",
+                   "hallo/welt")) intercept[IllegalArgumentException] {
         ActorSystem(n)
       }
     }
 
     "allow valid names" in {
-      shutdown(ActorSystem("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"))
+      shutdown(ActorSystem(
+              "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"))
     }
 
     "log dead letters" in {
-      val sys = ActorSystem("LogDeadLetters", ConfigFactory.parseString("akka.loglevel=INFO").withFallback(AkkaSpec.testConf))
+      val sys = ActorSystem("LogDeadLetters",
+                            ConfigFactory
+                              .parseString("akka.loglevel=INFO")
+                              .withFallback(AkkaSpec.testConf))
       try {
         val a = sys.actorOf(Props[ActorSystemSpec.Terminater])
         watch(a)
         a ! "run"
         expectTerminated(a)
-        EventFilter.info(pattern = "not delivered", occurrences = 1).intercept {
-          a ! "boom"
-        }(sys)
+        EventFilter
+          .info(pattern = "not delivered", occurrences = 1)
+          .intercept {
+            a ! "boom"
+          }(sys)
       } finally shutdown(sys)
     }
 
     "run termination callbacks in order" in {
       val system2 = ActorSystem("TerminationCallbacks", AkkaSpec.testConf)
-      val result = new ConcurrentLinkedQueue[Int]
-      val count = 10
-      val latch = TestLatch(count)
+      val result  = new ConcurrentLinkedQueue[Int]
+      val count   = 10
+      val latch   = TestLatch(count)
 
       for (i ← 1 to count) {
         system2.registerOnTermination {
@@ -194,7 +212,9 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
         callbackWasRun = true
       }
       import system.dispatcher
-      system2.scheduler.scheduleOnce(200.millis.dilated) { system2.terminate() }
+      system2.scheduler.scheduleOnce(200.millis.dilated) {
+        system2.terminate()
+      }
 
       system2.awaitTermination(5 seconds)
       Await.ready(system2.whenTerminated, 5 seconds)
@@ -206,7 +226,7 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
       system.isTerminated should ===(false)
       val wt = system.whenTerminated
       wt.isCompleted should ===(false)
-      val f = system.terminate()
+      val f          = system.terminate()
       val terminated = Await.result(wt, 10 seconds)
       terminated.actor should ===(system.provider.rootGuardian)
       terminated.addressTerminated should ===(true)
@@ -222,19 +242,24 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
       system2.awaitTermination(10 seconds)
 
       intercept[RejectedExecutionException] {
-        system2.registerOnTermination { println("IF YOU SEE THIS THEN THERE'S A BUG HERE") }
+        system2.registerOnTermination {
+          println("IF YOU SEE THIS THEN THERE'S A BUG HERE")
+        }
       }.getMessage should ===("ActorSystem already terminated.")
     }
 
     "reliably create waves of actors" in {
       import system.dispatcher
       implicit val timeout = Timeout((20 seconds).dilated)
-      val waves = for (i ← 1 to 3) yield system.actorOf(Props[ActorSystemSpec.Waves]) ? 50000
-      Await.result(Future.sequence(waves), timeout.duration + 5.seconds) should ===(Vector("done", "done", "done"))
+      val waves = for (i ← 1 to 3) yield
+        system.actorOf(Props[ActorSystemSpec.Waves]) ? 50000
+      Await.result(Future.sequence(waves), timeout.duration + 5.seconds) should ===(
+          Vector("done", "done", "done"))
     }
 
     "find actors that just have been created" in {
-      system.actorOf(Props(new FastActor(TestLatch(), testActor)).withDispatcher("slow"))
+      system.actorOf(
+          Props(new FastActor(TestLatch(), testActor)).withDispatcher("slow"))
       expectMsgType[Class[_]] should ===(classOf[LocalActorRef])
     }
 
@@ -249,7 +274,8 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
           val t = system.actorOf(Props[ActorSystemSpec.Terminater])
           failing should not be true // because once failing => always failing (it’s due to shutdown)
           created :+= t
-          if (created.size % 1000 == 0) Thread.sleep(50) // in case of unfair thread scheduling
+          if (created.size % 1000 == 0)
+            Thread.sleep(50) // in case of unfair thread scheduling
         } catch {
           case _: IllegalStateException ⇒ failing = true
         }
@@ -261,7 +287,12 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
         }
       }
 
-      created filter (ref ⇒ !ref.isTerminated && !ref.asInstanceOf[ActorRefWithCell].underlying.isInstanceOf[UnstartedCell]) should ===(Seq.empty[ActorRef])
+      created filter
+      (ref ⇒
+            !ref.isTerminated && !ref
+              .asInstanceOf[ActorRefWithCell]
+              .underlying
+              .isInstanceOf[UnstartedCell]) should ===(Seq.empty[ActorRef])
     }
 
     "shut down when /user fails" in {
@@ -273,10 +304,14 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
     }
 
     "allow configuration of guardian supervisor strategy" in {
-      implicit val system = ActorSystem("Stop",
-        ConfigFactory.parseString("akka.actor.guardian-supervisor-strategy=akka.actor.StoppingSupervisorStrategy")
-          .withFallback(AkkaSpec.testConf))
-      val a = system.actorOf(Props(new Actor {
+      implicit val system = ActorSystem(
+          "Stop",
+          ConfigFactory
+            .parseString(
+                "akka.actor.guardian-supervisor-strategy=akka.actor.StoppingSupervisorStrategy")
+            .withFallback(AkkaSpec.testConf))
+      val a = system.actorOf(
+          Props(new Actor {
         def receive = {
           case "die" ⇒ throw new Exception("hello")
         }
@@ -286,17 +321,22 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
       EventFilter[Exception]("hello", occurrences = 1) intercept {
         a ! "die"
       }
-      val t = probe.expectMsg(Terminated(a)(existenceConfirmed = true, addressTerminated = false))
+      val t = probe.expectMsg(
+          Terminated(a)(existenceConfirmed = true, addressTerminated = false))
       t.existenceConfirmed should ===(true)
       t.addressTerminated should ===(false)
       shutdown(system)
     }
 
     "shut down when /user escalates" in {
-      implicit val system = ActorSystem("Stop",
-        ConfigFactory.parseString("akka.actor.guardian-supervisor-strategy=\"akka.actor.ActorSystemSpec$Strategy\"")
-          .withFallback(AkkaSpec.testConf))
-      val a = system.actorOf(Props(new Actor {
+      implicit val system = ActorSystem(
+          "Stop",
+          ConfigFactory
+            .parseString(
+                "akka.actor.guardian-supervisor-strategy=\"akka.actor.ActorSystemSpec$Strategy\"")
+            .withFallback(AkkaSpec.testConf))
+      val a = system.actorOf(
+          Props(new Actor {
         def receive = {
           case "die" ⇒ throw new Exception("hello")
         }
@@ -309,12 +349,15 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
 
     "work with a passed in ExecutionContext" in {
       val ecProbe = TestProbe()
-      val ec = new ActorSystemSpec.TestExecutionContext(ecProbe.ref, ExecutionContexts.global())
+      val ec = new ActorSystemSpec.TestExecutionContext(
+          ecProbe.ref, ExecutionContexts.global())
 
-      val system2 = ActorSystem(name = "default", defaultExecutionContext = Some(ec))
+      val system2 =
+        ActorSystem(name = "default", defaultExecutionContext = Some(ec))
 
       try {
-        val ref = system2.actorOf(Props(new Actor {
+        val ref = system2.actorOf(
+            Props(new Actor {
           def receive = {
             case "ping" ⇒ sender() ! "pong"
           }
@@ -333,13 +376,18 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
 
     "not use passed in ExecutionContext if executor is configured" in {
       val ecProbe = TestProbe()
-      val ec = new ActorSystemSpec.TestExecutionContext(ecProbe.ref, ExecutionContexts.global())
+      val ec = new ActorSystemSpec.TestExecutionContext(
+          ecProbe.ref, ExecutionContexts.global())
 
-      val config = ConfigFactory.parseString("akka.actor.default-dispatcher.executor = \"fork-join-executor\"")
-      val system2 = ActorSystem(name = "default", config = Some(config), defaultExecutionContext = Some(ec))
+      val config = ConfigFactory.parseString(
+          "akka.actor.default-dispatcher.executor = \"fork-join-executor\"")
+      val system2 = ActorSystem(name = "default",
+                                config = Some(config),
+                                defaultExecutionContext = Some(ec))
 
       try {
-        val ref = system2.actorOf(Props(new Actor {
+        val ref = system2.actorOf(
+            Props(new Actor {
           def receive = {
             case "ping" ⇒ sender() ! "pong"
           }
@@ -357,8 +405,11 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
     }
 
     "not allow top-level actor creation with custom guardian" in {
-      val sys = new ActorSystemImpl("custom", ConfigFactory.defaultReference(),
-        getClass.getClassLoader, None, Some(Props.empty))
+      val sys = new ActorSystemImpl("custom",
+                                    ConfigFactory.defaultReference(),
+                                    getClass.getClassLoader,
+                                    None,
+                                    Some(Props.empty))
       sys.start()
       try {
         intercept[UnsupportedOperationException] {
@@ -370,5 +421,4 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
       } finally shutdown(sys)
     }
   }
-
 }

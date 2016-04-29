@@ -7,14 +7,17 @@ import akka.stream.impl.StreamLayout
 import scala.annotation.unchecked.uncheckedVariance
 
 trait Graph[+S <: Shape, +M] {
+
   /**
    * Type-level accessor for the shape parameter of this graph.
    */
   type Shape = S @uncheckedVariance
+
   /**
    * The shape of a graph is all that is externally visible: its inlets and outlets.
    */
   def shape: S
+
   /**
    * INTERNAL API.
    *
@@ -31,5 +34,6 @@ trait Graph[+S <: Shape, +M] {
    */
   def async: Graph[S, M] = addAttributes(Attributes.asyncBoundary)
 
-  def addAttributes(attr: Attributes): Graph[S, M] = withAttributes(module.attributes and attr)
+  def addAttributes(attr: Attributes): Graph[S, M] =
+    withAttributes(module.attributes and attr)
 }

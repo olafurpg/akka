@@ -27,36 +27,43 @@ import akka.util.Helpers.ConfigOps
  *   purposes. It is only used for measuring intervals (duration).
  */
 class DeadlineFailureDetector(
-  val acceptableHeartbeatPause: FiniteDuration,
-  val heartbeatInterval: FiniteDuration)(
-    implicit clock: Clock) extends FailureDetector {
+    val acceptableHeartbeatPause: FiniteDuration,
+    val heartbeatInterval: FiniteDuration)(implicit clock: Clock)
+    extends FailureDetector {
 
   /**
    * Constructor that reads parameters from config.
    * Expecting config properties named `acceptable-heartbeat-pause`.
    */
   def this(config: Config, ev: EventStream) =
-    this(
-      acceptableHeartbeatPause = config.getMillisDuration("acceptable-heartbeat-pause"),
-      heartbeatInterval = config.getMillisDuration("heartbeat-interval"))
+    this(acceptableHeartbeatPause = config.getMillisDuration(
+               "acceptable-heartbeat-pause"),
+         heartbeatInterval = config.getMillisDuration("heartbeat-interval"))
 
   // for backwards compatibility with 2.3.x
-  @deprecated("Use constructor with acceptableHeartbeatPause and heartbeatInterval", "2.4")
+  @deprecated(
+      "Use constructor with acceptableHeartbeatPause and heartbeatInterval",
+      "2.4")
   def this(acceptableHeartbeatPause: FiniteDuration)(implicit clock: Clock) =
     this(acceptableHeartbeatPause, heartbeatInterval = 1.millis)(clock)
 
-  require(acceptableHeartbeatPause >= Duration.Zero, "failure-detector.acceptable-heartbeat-pause must be >= 0 s")
-  require(heartbeatInterval > Duration.Zero, "failure-detector.heartbeat-interval must be > 0 s")
+  require(acceptableHeartbeatPause >= Duration.Zero,
+          "failure-detector.acceptable-heartbeat-pause must be >= 0 s")
+  require(heartbeatInterval > Duration.Zero,
+          "failure-detector.heartbeat-interval must be > 0 s")
 
-  private val deadlineMillis = acceptableHeartbeatPause.toMillis + heartbeatInterval.toMillis
-  @volatile private var heartbeatTimestamp = 0L //not used until active (first heartbeat)
+  private val deadlineMillis =
+    acceptableHeartbeatPause.toMillis + heartbeatInterval.toMillis
+  @volatile private var heartbeatTimestamp =
+    0L //not used until active (first heartbeat)
   @volatile private var active = false
 
   override def isAvailable: Boolean = isAvailable(clock())
 
   private def isAvailable(timestamp: Long): Boolean =
     if (active) (heartbeatTimestamp + deadlineMillis) > timestamp
-    else true // treat unmanaged connections, e.g. with zero heartbeats, as healthy connections
+    else
+      true // treat unmanaged connections, e.g. with zero heartbeats, as healthy connections
 
   override def isMonitoring: Boolean = active
 
@@ -64,6 +71,4 @@ class DeadlineFailureDetector(
     heartbeatTimestamp = clock()
     active = true
   }
-
 }
-

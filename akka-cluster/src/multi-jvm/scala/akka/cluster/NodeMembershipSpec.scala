@@ -9,11 +9,12 @@ import akka.remote.testkit.MultiNodeSpec
 import akka.testkit._
 
 object NodeMembershipMultiJvmSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
-  commonConfig(debugConfig(on = false).withFallback(MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
+  commonConfig(debugConfig(on = false).withFallback(
+          MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
 }
 
 class NodeMembershipMultiJvmNode1 extends NodeMembershipSpec
@@ -21,8 +22,8 @@ class NodeMembershipMultiJvmNode2 extends NodeMembershipSpec
 class NodeMembershipMultiJvmNode3 extends NodeMembershipSpec
 
 abstract class NodeMembershipSpec
-  extends MultiNodeSpec(NodeMembershipMultiJvmSpec)
-  with MultiNodeClusterSpec {
+    extends MultiNodeSpec(NodeMembershipMultiJvmSpec)
+    with MultiNodeClusterSpec {
 
   import NodeMembershipMultiJvmSpec._
 
@@ -40,7 +41,8 @@ abstract class NodeMembershipSpec
         cluster.join(first)
         awaitAssert(clusterView.members.size should ===(2))
         assertMembers(clusterView.members, first, second)
-        awaitAssert(clusterView.members.map(_.status) should ===(Set(MemberStatus.Up)))
+        awaitAssert(
+            clusterView.members.map(_.status) should ===(Set(MemberStatus.Up)))
       }
 
       enterBarrier("after-1")
@@ -54,22 +56,25 @@ abstract class NodeMembershipSpec
 
       awaitAssert(clusterView.members.size should ===(3))
       assertMembers(clusterView.members, first, second, third)
-      awaitAssert(clusterView.members.map(_.status) should ===(Set(MemberStatus.Up)))
+      awaitAssert(
+          clusterView.members.map(_.status) should ===(Set(MemberStatus.Up)))
 
       enterBarrier("after-2")
     }
 
     "correct member age" taggedAs LongRunningTest in {
-      val firstMember = clusterView.members.find(_.address == address(first)).get
-      val secondMember = clusterView.members.find(_.address == address(second)).get
-      val thirdMember = clusterView.members.find(_.address == address(third)).get
+      val firstMember =
+        clusterView.members.find(_.address == address(first)).get
+      val secondMember =
+        clusterView.members.find(_.address == address(second)).get
+      val thirdMember =
+        clusterView.members.find(_.address == address(third)).get
       firstMember.isOlderThan(thirdMember) should ===(true)
       thirdMember.isOlderThan(firstMember) should ===(false)
       secondMember.isOlderThan(thirdMember) should ===(true)
       thirdMember.isOlderThan(secondMember) should ===(false)
 
       enterBarrier("after-3")
-
     }
   }
 }

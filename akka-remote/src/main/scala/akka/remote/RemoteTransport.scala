@@ -1,13 +1,12 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.remote
 
 import akka.AkkaException
 import akka.Done
 import akka.actor._
-import akka.event.{ LoggingAdapter }
+import akka.event.{LoggingAdapter}
 import scala.collection.immutable
 import scala.concurrent.Future
 import scala.util.control.NoStackTrace
@@ -17,14 +16,15 @@ import scala.util.control.NoStackTrace
  * such as inability to start, wrong configuration etc.
  */
 @SerialVersionUID(1L)
-class RemoteTransportException(message: String, cause: Throwable) extends AkkaException(message, cause)
+class RemoteTransportException(message: String, cause: Throwable)
+    extends AkkaException(message, cause)
 
 /**
  * [[RemoteTransportException]] without stack trace.
  */
 @SerialVersionUID(1L)
 class RemoteTransportExceptionNoStackTrace(message: String, cause: Throwable)
-  extends RemoteTransportException(message, cause) with NoStackTrace
+    extends RemoteTransportException(message, cause) with NoStackTrace
 
 /**
  * INTERNAL API
@@ -36,7 +36,9 @@ class RemoteTransportExceptionNoStackTrace(message: String, cause: Throwable)
  * be available (i.e. fully initialized) by the time the first message is
  * received or when the start() method returns, whatever happens first.
  */
-private[akka] abstract class RemoteTransport(val system: ExtendedActorSystem, val provider: RemoteActorRefProvider) {
+private[akka] abstract class RemoteTransport(
+    val system: ExtendedActorSystem, val provider: RemoteActorRefProvider) {
+
   /**
    * Shuts down the remoting
    */
@@ -68,7 +70,9 @@ private[akka] abstract class RemoteTransport(val system: ExtendedActorSystem, va
   /**
    * Sends the given message to the recipient supplying the sender() if any
    */
-  def send(message: Any, senderOption: Option[ActorRef], recipient: RemoteActorRef): Unit
+  def send(message: Any,
+           senderOption: Option[ActorRef],
+           recipient: RemoteActorRef): Unit
 
   /**
    * Sends a management command to the underlying transport stack. The call returns with a Future that indicates
@@ -76,7 +80,9 @@ private[akka] abstract class RemoteTransport(val system: ExtendedActorSystem, va
    * @param cmd Command message to send to the transports.
    * @return A Future that indicates when the message was successfully handled or dropped.
    */
-  def managementCommand(cmd: Any): Future[Boolean] = { Future.successful(false) }
+  def managementCommand(cmd: Any): Future[Boolean] = {
+    Future.successful(false)
+  }
 
   /**
    * A Logger that can be used to log issues that may occur
@@ -95,5 +101,4 @@ private[akka] abstract class RemoteTransport(val system: ExtendedActorSystem, va
    * When this method returns true, some functionality will be turned off for security purposes.
    */
   protected def useUntrustedMode: Boolean
-
 }

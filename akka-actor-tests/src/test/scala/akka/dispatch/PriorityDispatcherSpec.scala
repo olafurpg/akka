@@ -4,8 +4,8 @@ import language.postfixOps
 
 import com.typesafe.config.Config
 
-import akka.actor.{ Props, ActorSystem, Actor }
-import akka.testkit.{ DefaultTimeout, AkkaSpec }
+import akka.actor.{Props, ActorSystem, Actor}
+import akka.testkit.{DefaultTimeout, AkkaSpec}
 import scala.concurrent.duration._
 
 object PriorityDispatcherSpec {
@@ -18,19 +18,22 @@ object PriorityDispatcherSpec {
     }
     """
 
-  class Unbounded(settings: ActorSystem.Settings, config: Config) extends UnboundedPriorityMailbox(PriorityGenerator({
-    case i: Int  ⇒ i //Reverse order
-    case 'Result ⇒ Int.MaxValue
-  }: Any ⇒ Int))
+  class Unbounded(settings: ActorSystem.Settings, config: Config)
+      extends UnboundedPriorityMailbox(
+          PriorityGenerator({
+        case i: Int  ⇒ i //Reverse order
+        case 'Result ⇒ Int.MaxValue
+      }: Any ⇒ Int))
 
-  class Bounded(settings: ActorSystem.Settings, config: Config) extends BoundedPriorityMailbox(PriorityGenerator({
-    case i: Int  ⇒ i //Reverse order
-    case 'Result ⇒ Int.MaxValue
-  }: Any ⇒ Int), 1000, 10 seconds)
-
+  class Bounded(settings: ActorSystem.Settings, config: Config)
+      extends BoundedPriorityMailbox(PriorityGenerator({
+        case i: Int  ⇒ i //Reverse order
+        case 'Result ⇒ Int.MaxValue
+      }: Any ⇒ Int), 1000, 10 seconds)
 }
 
-class PriorityDispatcherSpec extends AkkaSpec(PriorityDispatcherSpec.config) with DefaultTimeout {
+class PriorityDispatcherSpec
+    extends AkkaSpec(PriorityDispatcherSpec.config) with DefaultTimeout {
 
   "A PriorityDispatcher" must {
     "Order it's messages according to the specified comparator using an unbounded mailbox" in {
@@ -56,7 +59,9 @@ class PriorityDispatcherSpec extends AkkaSpec(PriorityDispatcherSpec.config) wit
 
         val acc = scala.collection.mutable.ListBuffer[Int]()
 
-        scala.util.Random.shuffle(msgs) foreach { m ⇒ self ! m }
+        scala.util.Random.shuffle(msgs) foreach { m ⇒
+          self ! m
+        }
 
         self.tell('Result, testActor)
 
@@ -67,10 +72,8 @@ class PriorityDispatcherSpec extends AkkaSpec(PriorityDispatcherSpec.config) wit
       }).withDispatcher(dispatcherKey))
 
       def receive = Actor.emptyBehavior
-
     }))
 
     expectMsgType[List[Int]] should ===(msgs)
   }
-
 }

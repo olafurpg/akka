@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster.metrics
 
 import java.io.File
@@ -68,13 +67,14 @@ trait SigarProvider {
       provisionSigarLibrary()
       verifiedSigarInstance
     } recover {
-      case e: Throwable ⇒ throw new RuntimeException("Failed to load sigar:", e)
+      case e: Throwable ⇒
+        throw new RuntimeException("Failed to load sigar:", e)
     } get
   }
-
 }
 
 object SigarProvider {
+
   /**
    * Release underlying sigar proxy resources.
    *
@@ -88,7 +88,8 @@ object SigarProvider {
 /**
  * Provide sigar instance as `SigarProxy` with configured location via [[ClusterMetricsSettings]].
  */
-case class DefaultSigarProvider(settings: ClusterMetricsSettings) extends SigarProvider {
+case class DefaultSigarProvider(settings: ClusterMetricsSettings)
+    extends SigarProvider {
   def extractFolder = settings.NativeLibraryExtractFolder
 }
 
@@ -96,9 +97,8 @@ case class DefaultSigarProvider(settings: ClusterMetricsSettings) extends SigarP
  * INTERNAL API
  */
 private[metrics] object TryNative {
-  def apply[T](r: ⇒ T): Try[T] =
-    try Success(r) catch {
-      // catching all, for example java.lang.LinkageError that are not caught by `NonFatal` in `Try`
-      case e: Throwable ⇒ Failure(e)
-    }
+  def apply[T](r: ⇒ T): Try[T] = try Success(r) catch {
+    // catching all, for example java.lang.LinkageError that are not caught by `NonFatal` in `Try`
+    case e: Throwable ⇒ Failure(e)
+  }
 }

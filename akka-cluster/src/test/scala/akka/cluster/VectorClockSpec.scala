@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster
 
 import akka.testkit.AkkaSpec
@@ -240,7 +239,7 @@ class VectorClockSpec extends AkkaSpec {
       val b1 = b :+ node2
 
       val a2 = a1 :+ node1
-      val c = a2.merge(b1)
+      val c  = a2.merge(b1)
       val c1 = c :+ node3
 
       (c1 > a2) should ===(true)
@@ -258,7 +257,7 @@ class VectorClockSpec extends AkkaSpec {
       val a1 = a :+ node1
       val b1 = b :+ node2
 
-      val c = a1.merge(b1)
+      val c  = a1.merge(b1)
       val c1 = c.prune(node1) :+ node3
       c1.versions.contains(node1) should be(false)
       (c1 <> c) should be(true)

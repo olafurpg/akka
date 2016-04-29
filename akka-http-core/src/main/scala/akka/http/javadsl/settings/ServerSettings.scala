@@ -3,7 +3,7 @@
  */
 package akka.http.javadsl.settings
 
-import java.util.{ Optional, Random }
+import java.util.{Optional, Random}
 
 import akka.http.impl.settings.ServerSettingsImpl
 import akka.http.javadsl.model.headers.Host
@@ -14,7 +14,7 @@ import com.typesafe.config.Config
 import scala.collection.JavaConverters._
 import scala.compat.java8.OptionConverters._
 
-import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 /**
  * Public API but not intended for subclassing
@@ -37,21 +37,36 @@ abstract class ServerSettings { self: ServerSettingsImpl ⇒
 
   // ---
 
-  def withServerHeader(newValue: Optional[Server]): ServerSettings = self.copy(serverHeader = newValue.asScala.map(_.asScala))
-  def withTimeouts(newValue: ServerSettings.Timeouts): ServerSettings = self.copy(timeouts = newValue.asScala)
-  def withMaxConnections(newValue: Int): ServerSettings = self.copy(maxConnections = newValue)
-  def withPipeliningLimit(newValue: Int): ServerSettings = self.copy(pipeliningLimit = newValue)
-  def withRemoteAddressHeader(newValue: Boolean): ServerSettings = self.copy(remoteAddressHeader = newValue)
-  def withRawRequestUriHeader(newValue: Boolean): ServerSettings = self.copy(rawRequestUriHeader = newValue)
-  def withTransparentHeadRequests(newValue: Boolean): ServerSettings = self.copy(transparentHeadRequests = newValue)
-  def withVerboseErrorMessages(newValue: Boolean): ServerSettings = self.copy(verboseErrorMessages = newValue)
-  def withResponseHeaderSizeHint(newValue: Int): ServerSettings = self.copy(responseHeaderSizeHint = newValue)
-  def withBacklog(newValue: Int): ServerSettings = self.copy(backlog = newValue)
-  def withSocketOptions(newValue: java.lang.Iterable[SocketOption]): ServerSettings = self.copy(socketOptions = newValue.asScala.toList)
-  def withDefaultHostHeader(newValue: Host): ServerSettings = self.copy(defaultHostHeader = newValue.asScala)
-  def withParserSettings(newValue: ParserSettings): ServerSettings = self.copy(parserSettings = newValue.asScala)
-  def withWebsocketRandomFactory(newValue: java.util.function.Supplier[Random]): ServerSettings = self.copy(websocketRandomFactory = () ⇒ newValue.get())
-
+  def withServerHeader(newValue: Optional[Server]): ServerSettings =
+    self.copy(serverHeader = newValue.asScala.map(_.asScala))
+  def withTimeouts(newValue: ServerSettings.Timeouts): ServerSettings =
+    self.copy(timeouts = newValue.asScala)
+  def withMaxConnections(newValue: Int): ServerSettings =
+    self.copy(maxConnections = newValue)
+  def withPipeliningLimit(newValue: Int): ServerSettings =
+    self.copy(pipeliningLimit = newValue)
+  def withRemoteAddressHeader(newValue: Boolean): ServerSettings =
+    self.copy(remoteAddressHeader = newValue)
+  def withRawRequestUriHeader(newValue: Boolean): ServerSettings =
+    self.copy(rawRequestUriHeader = newValue)
+  def withTransparentHeadRequests(newValue: Boolean): ServerSettings =
+    self.copy(transparentHeadRequests = newValue)
+  def withVerboseErrorMessages(newValue: Boolean): ServerSettings =
+    self.copy(verboseErrorMessages = newValue)
+  def withResponseHeaderSizeHint(newValue: Int): ServerSettings =
+    self.copy(responseHeaderSizeHint = newValue)
+  def withBacklog(newValue: Int): ServerSettings =
+    self.copy(backlog = newValue)
+  def withSocketOptions(
+      newValue: java.lang.Iterable[SocketOption]): ServerSettings =
+    self.copy(socketOptions = newValue.asScala.toList)
+  def withDefaultHostHeader(newValue: Host): ServerSettings =
+    self.copy(defaultHostHeader = newValue.asScala)
+  def withParserSettings(newValue: ParserSettings): ServerSettings =
+    self.copy(parserSettings = newValue.asScala)
+  def withWebsocketRandomFactory(
+      newValue: java.util.function.Supplier[Random]): ServerSettings =
+    self.copy(websocketRandomFactory = () ⇒ newValue.get())
 }
 
 object ServerSettings extends SettingsCompanion[ServerSettings] {
@@ -61,14 +76,19 @@ object ServerSettings extends SettingsCompanion[ServerSettings] {
     def bindTimeout: FiniteDuration
 
     // ---
-    def withIdleTimeout(newValue: Duration): ServerSettings.Timeouts = self.copy(idleTimeout = newValue)
-    def withRequestTimeout(newValue: Duration): ServerSettings.Timeouts = self.copy(requestTimeout = newValue)
-    def withBindTimeout(newValue: FiniteDuration): ServerSettings.Timeouts = self.copy(bindTimeout = newValue)
+    def withIdleTimeout(newValue: Duration): ServerSettings.Timeouts =
+      self.copy(idleTimeout = newValue)
+    def withRequestTimeout(newValue: Duration): ServerSettings.Timeouts =
+      self.copy(requestTimeout = newValue)
+    def withBindTimeout(newValue: FiniteDuration): ServerSettings.Timeouts =
+      self.copy(bindTimeout = newValue)
 
     /** INTERNAL API */
     protected def self = this.asInstanceOf[ServerSettingsImpl.Timeouts]
   }
 
-  override def create(config: Config): ServerSettings = ServerSettingsImpl(config)
-  override def create(configOverrides: String): ServerSettings = ServerSettingsImpl(configOverrides)
+  override def create(config: Config): ServerSettings =
+    ServerSettingsImpl(config)
+  override def create(configOverrides: String): ServerSettings =
+    ServerSettingsImpl(configOverrides)
 }

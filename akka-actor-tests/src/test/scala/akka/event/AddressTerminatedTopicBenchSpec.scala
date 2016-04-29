@@ -34,19 +34,22 @@ class AddressTerminatedTopicBenchSpec extends AkkaSpec("akka.loglevel=INFO") {
       try {
         val num = 20000
 
-        val t1 = System.nanoTime()
-        val p = Props(classOf[Subscriber], testActor)
+        val t1          = System.nanoTime()
+        val p           = Props(classOf[Subscriber], testActor)
         val subscribers = Vector.fill(num)(sys.actorOf(p))
         receiveN(num, 10.seconds)
-        log.info("Starting {} actors took {} ms", num, (System.nanoTime() - t1).nanos.toMillis)
+        log.info("Starting {} actors took {} ms",
+                 num,
+                 (System.nanoTime() - t1).nanos.toMillis)
 
         val t2 = System.nanoTime()
         shutdown(sys, 10.seconds, verifySystemShutdown = true)
-        log.info("Stopping {} actors took {} ms", num, (System.nanoTime() - t2).nanos.toMillis)
+        log.info("Stopping {} actors took {} ms",
+                 num,
+                 (System.nanoTime() - t2).nanos.toMillis)
       } finally {
         if (!sys.isTerminated) shutdown(sys)
       }
     }
-
   }
 }

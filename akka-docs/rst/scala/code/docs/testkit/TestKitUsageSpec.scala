@@ -18,7 +18,7 @@ import akka.actor.Actor
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.actor.Props
-import akka.testkit.{ TestActors, DefaultTimeout, ImplicitSender, TestKit }
+import akka.testkit.{TestActors, DefaultTimeout, ImplicitSender, TestKit}
 import scala.concurrent.duration._
 import scala.collection.immutable
 
@@ -26,21 +26,22 @@ import scala.collection.immutable
  * a Test to show some TestKit examples
  */
 class TestKitUsageSpec
-  extends TestKit(ActorSystem("TestKitUsageSpec",
-    ConfigFactory.parseString(TestKitUsageSpec.config)))
-  with DefaultTimeout with ImplicitSender
-  with WordSpecLike with Matchers with BeforeAndAfterAll {
+    extends TestKit(
+        ActorSystem("TestKitUsageSpec",
+                    ConfigFactory.parseString(TestKitUsageSpec.config)))
+    with DefaultTimeout with ImplicitSender with WordSpecLike with Matchers
+    with BeforeAndAfterAll {
   import TestKitUsageSpec._
 
-  val echoRef = system.actorOf(TestActors.echoActorProps)
+  val echoRef    = system.actorOf(TestActors.echoActorProps)
   val forwardRef = system.actorOf(Props(classOf[ForwardingActor], testActor))
-  val filterRef = system.actorOf(Props(classOf[FilteringActor], testActor))
+  val filterRef  = system.actorOf(Props(classOf[FilteringActor], testActor))
   val randomHead = Random.nextInt(6)
   val randomTail = Random.nextInt(10)
-  val headList = immutable.Seq().padTo(randomHead, "0")
-  val tailList = immutable.Seq().padTo(randomTail, "1")
-  val seqRef =
-    system.actorOf(Props(classOf[SequencingActor], testActor, headList, tailList))
+  val headList   = immutable.Seq().padTo(randomHead, "0")
+  val tailList   = immutable.Seq().padTo(randomTail, "1")
+  val seqRef = system.actorOf(
+      Props(classOf[SequencingActor], testActor, headList, tailList))
 
   override def afterAll {
     shutdown()
@@ -135,14 +136,16 @@ object TestKitUsageSpec {
    * like to test that the interesting value is received and that you cant
    * be bothered with the rest
    */
-  class SequencingActor(next: ActorRef, head: immutable.Seq[String],
-                        tail: immutable.Seq[String]) extends Actor {
+  class SequencingActor(next: ActorRef,
+                        head: immutable.Seq[String],
+                        tail: immutable.Seq[String])
+      extends Actor {
     def receive = {
       case msg => {
-        head foreach { next ! _ }
-        next ! msg
-        tail foreach { next ! _ }
-      }
+          head foreach { next ! _ }
+          next ! msg
+          tail foreach { next ! _ }
+        }
     }
   }
 }

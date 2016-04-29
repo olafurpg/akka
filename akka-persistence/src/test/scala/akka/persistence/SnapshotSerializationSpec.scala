@@ -1,12 +1,11 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.persistence
 
-import akka.actor.{ Props, ActorRef }
+import akka.actor.{Props, ActorRef}
 import akka.serialization.Serializer
-import akka.testkit.{ ImplicitSender }
+import akka.testkit.{ImplicitSender}
 import java.io._
 
 object SnapshotSerializationSpec {
@@ -27,7 +26,7 @@ object SnapshotSerializationSpec {
 
   class MySerializer extends Serializer {
     def includeManifest: Boolean = true
-    def identifier = 5177
+    def identifier               = 5177
 
     def toBinary(obj: AnyRef): Array[Byte] = {
       val bStream = new ByteArrayOutputStream()
@@ -42,12 +41,13 @@ object SnapshotSerializationSpec {
 
     def fromBinary(bytes: Array[Byte], clazz: Option[Class[_]]): AnyRef = {
       val bStream = new ByteArrayInputStream(bytes)
-      val reader = new BufferedReader(new InputStreamReader(bStream))
+      val reader  = new BufferedReader(new InputStreamReader(bStream))
       new MySnapshot(reader.readLine())
     }
   }
 
-  class TestPersistentActor(name: String, probe: ActorRef) extends NamedPersistentActor(name) {
+  class TestPersistentActor(name: String, probe: ActorRef)
+      extends NamedPersistentActor(name) {
 
     override def receiveRecover: Receive = {
       case SnapshotOffer(md, s) ⇒ probe ! ((md, s))
@@ -61,11 +61,15 @@ object SnapshotSerializationSpec {
       case other                   ⇒ probe ! other
     }
   }
-
 }
 
-class SnapshotSerializationSpec extends PersistenceSpec(PersistenceSpec.config("leveldb", "SnapshotSerializationSpec", serialization = "off", extraConfig = Some(
-  """
+class SnapshotSerializationSpec
+    extends PersistenceSpec(
+        PersistenceSpec.config(
+            "leveldb",
+            "SnapshotSerializationSpec",
+            serialization = "off",
+            extraConfig = Some("""
     akka.actor {
       serializers {
         my-snapshot = "akka.persistence.SnapshotSerializationSpec$MySerializer"
@@ -81,12 +85,14 @@ class SnapshotSerializationSpec extends PersistenceSpec(PersistenceSpec.config("
 
   "A PersistentActor with custom Serializer" must {
     "be able to handle serialization header of more than 255 bytes" in {
-      val sPersistentActor = system.actorOf(Props(classOf[TestPersistentActor], name, testActor))
+      val sPersistentActor =
+        system.actorOf(Props(classOf[TestPersistentActor], name, testActor))
       val persistenceId = name
 
       sPersistentActor ! "blahonga"
       expectMsg(0)
-      val lPersistentActor = system.actorOf(Props(classOf[TestPersistentActor], name, testActor))
+      val lPersistentActor =
+        system.actorOf(Props(classOf[TestPersistentActor], name, testActor))
       expectMsgPF() {
         case (SnapshotMetadata(`persistenceId`, 0, timestamp), state) ⇒
           state should ===(new MySnapshot("blahonga"))

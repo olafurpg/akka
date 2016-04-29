@@ -23,7 +23,8 @@ import akka.dispatch.Dispatchers
  * A system also implements the [[ActorRef]] type, and sending a message to
  * the system directs that message to the root Actor.
  */
-abstract class ActorSystem[-T](_name: String) extends ActorRef[T] { this: ScalaActorRef[T] ⇒
+abstract class ActorSystem[-T](_name: String) extends ActorRef[T] {
+  this: ScalaActorRef[T] ⇒
 
   /**
    * INTERNAL API.
@@ -85,7 +86,8 @@ abstract class ActorSystem[-T](_name: String) extends ActorRef[T] { this: ScalaA
   /**
    * The user guardian’s untyped [[akka.actor.ActorRef]].
    */
-  private[akka] override def untypedRef: akka.actor.ActorRef = untyped.provider.guardian
+  private[akka] override def untypedRef: akka.actor.ActorRef =
+    untyped.provider.guardian
 
   /**
    * Main event bus of this actor system, used for example for logging.
@@ -102,13 +104,15 @@ abstract class ActorSystem[-T](_name: String) extends ActorRef[T] { this: ScalaA
    * will recursively stop all its child actors, then the system guardian
    * (below which the logging actors reside).
    */
-  def terminate(): Future[Terminated] = untyped.terminate().map(t ⇒ Terminated(ActorRef(t.actor)))
+  def terminate(): Future[Terminated] =
+    untyped.terminate().map(t ⇒ Terminated(ActorRef(t.actor)))
 
   /**
    * Returns a Future which will be completed after the ActorSystem has been terminated
    * and termination hooks have been executed.
    */
-  def whenTerminated: Future[Terminated] = untyped.whenTerminated.map(t ⇒ Terminated(ActorRef(t.actor)))
+  def whenTerminated: Future[Terminated] =
+    untyped.whenTerminated.map(t ⇒ Terminated(ActorRef(t.actor)))
 
   /**
    * The deadLetter address is a destination that will accept (and discard)
@@ -119,21 +123,31 @@ abstract class ActorSystem[-T](_name: String) extends ActorRef[T] { this: ScalaA
 }
 
 object ActorSystem {
-  private class Impl[T](_name: String, _config: Config, _cl: ClassLoader, _ec: Option[ExecutionContext], _p: Props[T])
-    extends ActorSystem[T](_name) with ScalaActorRef[T] {
-    override private[akka] val untyped: ExtendedActorSystem = new ActorSystemImpl(_name, _config, _cl, _ec, Some(Props.untyped(_p))).start()
+  private class Impl[T](_name: String,
+                        _config: Config,
+                        _cl: ClassLoader,
+                        _ec: Option[ExecutionContext],
+                        _p: Props[T])
+      extends ActorSystem[T](_name) with ScalaActorRef[T] {
+    override private[akka] val untyped: ExtendedActorSystem =
+      new ActorSystemImpl(_name, _config, _cl, _ec, Some(Props.untyped(_p)))
+        .start()
   }
 
-  private class Wrapper(val untyped: ExtendedActorSystem) extends ActorSystem[Nothing](untyped.name) with ScalaActorRef[Nothing]
+  private class Wrapper(val untyped: ExtendedActorSystem)
+      extends ActorSystem[Nothing](untyped.name) with ScalaActorRef[Nothing]
 
-  def apply[T](name: String, guardianProps: Props[T],
-               config: Option[Config] = None,
-               classLoader: Option[ClassLoader] = None,
-               executionContext: Option[ExecutionContext] = None): ActorSystem[T] = {
-    val cl = classLoader.getOrElse(akka.actor.ActorSystem.findClassLoader())
+  def apply[T](
+      name: String,
+      guardianProps: Props[T],
+      config: Option[Config] = None,
+      classLoader: Option[ClassLoader] = None,
+      executionContext: Option[ExecutionContext] = None): ActorSystem[T] = {
+    val cl        = classLoader.getOrElse(akka.actor.ActorSystem.findClassLoader())
     val appConfig = config.getOrElse(ConfigFactory.load(cl))
     new Impl(name, appConfig, cl, executionContext, guardianProps)
   }
 
-  def apply(untyped: akka.actor.ActorSystem): ActorSystem[Nothing] = new Wrapper(untyped.asInstanceOf[ExtendedActorSystem])
+  def apply(untyped: akka.actor.ActorSystem): ActorSystem[Nothing] =
+    new Wrapper(untyped.asInstanceOf[ExtendedActorSystem])
 }

@@ -15,5 +15,4 @@ object TestSink {
    */
   def probe[T](system: ActorSystem): Sink[T, TestSubscriber.Probe[T]] =
     new Sink(scaladsl.TestSink.probe[T](system))
-
 }

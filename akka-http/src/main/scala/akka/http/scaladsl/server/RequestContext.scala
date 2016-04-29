@@ -4,12 +4,12 @@
 
 package akka.http.scaladsl.server
 
-import scala.concurrent.{ Future, ExecutionContextExecutor }
+import scala.concurrent.{Future, ExecutionContextExecutor}
 import akka.stream.Materializer
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.settings.{ RoutingSettings, ParserSettings }
+import akka.http.scaladsl.settings.{RoutingSettings, ParserSettings}
 
 /**
  * Immutable object encapsulating the context of an [[akka.http.scaladsl.model.HttpRequest]]
@@ -52,10 +52,10 @@ trait RequestContext {
    * Returns a copy of this context with the given fields updated.
    */
   def reconfigure(
-    executionContext: ExecutionContextExecutor = executionContext,
-    materializer: Materializer = materializer,
-    log: LoggingAdapter = log,
-    settings: RoutingSettings = settings): RequestContext
+      executionContext: ExecutionContextExecutor = executionContext,
+      materializer: Materializer = materializer,
+      log: LoggingAdapter = log,
+      settings: RoutingSettings = settings): RequestContext
 
   /**
    * Completes the request with the given ToResponseMarshallable.

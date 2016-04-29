@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster.ddata
 
 import scala.collection.immutable.TreeMap
@@ -129,14 +128,24 @@ class ORSetSpec extends WordSpec with Matchers {
 
     "be able to have its user set correctly merged with another ORSet with overlapping user sets" in {
       // set 1
-      val c1 = ORSet().add(node1, user1).add(node1, user2).add(node1, user3).remove(node1, user1).remove(node1, user3)
+      val c1 = ORSet()
+        .add(node1, user1)
+        .add(node1, user2)
+        .add(node1, user3)
+        .remove(node1, user1)
+        .remove(node1, user3)
 
       c1.elements should not contain (user1)
       c1.elements should contain(user2)
       c1.elements should not contain (user3)
 
       // set 2
-      val c2 = ORSet().add(node2, user1).add(node2, user2).add(node2, user3).add(node2, user4).remove(node2, user3)
+      val c2 = ORSet()
+        .add(node2, user1)
+        .add(node2, user2)
+        .add(node2, user3)
+        .add(node2, user4)
+        .remove(node2, user3)
 
       c2.elements should contain(user1)
       c2.elements should contain(user2)
@@ -223,60 +232,71 @@ class ORSetSpec extends WordSpec with Matchers {
       merged4.elements should not contain (user2)
       merged4.elements should contain(user3)
     }
-
   }
 
   "ORSet unit test" must {
     "verify subtractDots" in {
-      val dot = VersionVector(TreeMap(nodeA -> 3L, nodeB -> 2L, nodeD -> 14L, nodeG -> 22L))
-      val vvector = VersionVector(TreeMap(nodeA -> 4L, nodeB -> 1L, nodeC -> 1L, nodeD -> 14L, nodeE -> 5L, nodeF -> 2L))
+      val dot = VersionVector(
+          TreeMap(nodeA -> 3L, nodeB -> 2L, nodeD -> 14L, nodeG -> 22L))
+      val vvector = VersionVector(
+          TreeMap(nodeA -> 4L,
+                  nodeB -> 1L,
+                  nodeC -> 1L,
+                  nodeD -> 14L,
+                  nodeE -> 5L,
+                  nodeF -> 2L))
       val expected = VersionVector(TreeMap(nodeB -> 2L, nodeG -> 22L))
       ORSet.subtractDots(dot, vvector) should be(expected)
     }
 
     "verify mergeCommonKeys" in {
       val commonKeys: Set[String] = Set("K1", "K2")
-      val thisDot1 = VersionVector(TreeMap(nodeA -> 3L, nodeD -> 7L))
-      val thisDot2 = VersionVector(TreeMap(nodeB -> 5L, nodeC -> 2L))
-      val thisVvector = VersionVector(TreeMap(nodeA -> 3L, nodeB -> 5L, nodeC -> 2L, nodeD -> 7L))
-      val thisSet = new ORSet(
-        elementsMap = Map("K1" -> thisDot1, "K2" -> thisDot2),
-        vvector = thisVvector)
+      val thisDot1                = VersionVector(TreeMap(nodeA -> 3L, nodeD -> 7L))
+      val thisDot2                = VersionVector(TreeMap(nodeB -> 5L, nodeC -> 2L))
+      val thisVvector = VersionVector(
+          TreeMap(nodeA -> 3L, nodeB -> 5L, nodeC -> 2L, nodeD -> 7L))
+      val thisSet =
+        new ORSet(elementsMap = Map("K1" -> thisDot1, "K2" -> thisDot2),
+                  vvector = thisVvector)
       val thatDot1 = VersionVector(nodeA, 3L)
       val thatDot2 = VersionVector(nodeB, 6L)
-      val thatVvector = VersionVector(TreeMap(nodeA -> 3L, nodeB -> 6L, nodeC -> 1L, nodeD -> 8L))
-      val thatSet = new ORSet(
-        elementsMap = Map("K1" -> thatDot1, "K2" -> thatDot2),
-        vvector = thatVvector)
+      val thatVvector = VersionVector(
+          TreeMap(nodeA -> 3L, nodeB -> 6L, nodeC -> 1L, nodeD -> 8L))
+      val thatSet =
+        new ORSet(elementsMap = Map("K1" -> thatDot1, "K2" -> thatDot2),
+                  vvector = thatVvector)
 
-      val expectedDots = Map(
-        "K1" -> VersionVector(nodeA, 3L),
-        "K2" -> VersionVector(TreeMap(nodeB -> 6L, nodeC -> 2L)))
+      val expectedDots =
+        Map("K1" -> VersionVector(nodeA, 3L),
+            "K2" -> VersionVector(TreeMap(nodeB -> 6L, nodeC -> 2L)))
 
-      ORSet.mergeCommonKeys(commonKeys, thisSet, thatSet) should be(expectedDots)
+      ORSet.mergeCommonKeys(commonKeys, thisSet, thatSet) should be(
+          expectedDots)
     }
 
     "verify mergeDisjointKeys" in {
       val keys: Set[Any] = Set("K3", "K4", "K5")
-      val elements: Map[Any, VersionVector] = Map(
-        "K3" -> VersionVector(nodeA, 4L),
-        "K4" -> VersionVector(TreeMap(nodeA -> 3L, nodeD -> 8L)),
-        "K5" -> VersionVector(nodeA, 2L))
-      val vvector = VersionVector(TreeMap(nodeA -> 3L, nodeD -> 7L))
-      val acc: Map[Any, VersionVector] = Map("K1" -> VersionVector(nodeA, 3L))
-      val expectedDots = acc ++ Map(
-        "K3" -> VersionVector(nodeA, 4L),
-        "K4" -> VersionVector(nodeD, 8L)) // "a" -> 3 removed, optimized to include only those unseen
+      val elements: Map[Any, VersionVector] =
+        Map("K3" -> VersionVector(nodeA, 4L),
+            "K4" -> VersionVector(TreeMap(nodeA -> 3L, nodeD -> 8L)),
+            "K5" -> VersionVector(nodeA, 2L))
+      val vvector                      = VersionVector(TreeMap(nodeA -> 3L, nodeD -> 7L))
+      val acc: Map[Any, VersionVector] = Map("K1"                    -> VersionVector(nodeA, 3L))
+      val expectedDots =
+        acc ++ Map(
+            "K3" -> VersionVector(nodeA, 4L),
+            "K4" -> VersionVector(nodeD, 8L)) // "a" -> 3 removed, optimized to include only those unseen
 
-      ORSet.mergeDisjointKeys(keys, elements, vvector, acc) should be(expectedDots)
+      ORSet.mergeDisjointKeys(keys, elements, vvector, acc) should be(
+          expectedDots)
     }
 
     "verify disjoint merge" in {
       val a1 = ORSet().add(node1, "bar")
       val b1 = ORSet().add(node2, "baz")
-      val c = a1.merge(b1)
+      val c  = a1.merge(b1)
       val a2 = a1.remove(node1, "bar")
-      val d = a2.merge(c)
+      val d  = a2.merge(c)
       d.elements should be(Set("baz"))
     }
 
@@ -314,7 +334,7 @@ class ORSetSpec extends WordSpec with Matchers {
       val a = ORSet().add(node1, "Z")
       val b = ORSet().add(node2, "Z")
       // replicate node3
-      val c = a
+      val c  = a
       val a2 = a.remove(node1, "Z")
       // replicate b to node1, now node1 has node2's 'Z'
       val a3 = a2.merge(b)
@@ -334,15 +354,15 @@ class ORSetSpec extends WordSpec with Matchers {
     }
 
     "have unapply extractor" in {
-      val s1 = ORSet.empty.add(node1, "a").add(node2, "b")
-      val s2: ORSet[String] = s1
-      val ORSet(elements1) = s1 // `unapply[A](s: ORSet[A])` is used here
+      val s1                     = ORSet.empty.add(node1, "a").add(node2, "b")
+      val s2: ORSet[String]      = s1
+      val ORSet(elements1)       = s1 // `unapply[A](s: ORSet[A])` is used here
       val elements2: Set[String] = elements1
 
       Changed(ORSetKey[String]("key"))(s1) match {
         case c @ Changed(ORSetKey("key")) ⇒
-          val x: ORSet[String] = c.dataValue
-          val ORSet(elements3) = c.dataValue
+          val x: ORSet[String]       = c.dataValue
+          val ORSet(elements3)       = c.dataValue
           val elements4: Set[String] = elements3
           elements4 should be(Set("a", "b"))
       }
@@ -350,7 +370,8 @@ class ORSetSpec extends WordSpec with Matchers {
       val msg: Any = Changed(ORSetKey[String]("key"))(s1)
       msg match {
         case c @ Changed(ORSetKey("key")) ⇒
-          val ORSet(elements3) = c.dataValue // `unapply(a: ReplicatedData)` is used here
+          val ORSet(elements3) =
+            c.dataValue // `unapply(a: ReplicatedData)` is used here
           // if `unapply(a: ReplicatedData)` isn't defined the next line doesn't compile:
           //   type mismatch; found : scala.collection.immutable.Set[A] where type A required: Set[Any] Note: A <: Any,
           //   but trait Set is invariant in type A. You may wish to investigate a wildcard type such as _ <: Any. (SLS 3.2.10)
@@ -358,6 +379,5 @@ class ORSetSpec extends WordSpec with Matchers {
           elements4 should be(Set("a", "b"))
       }
     }
-
   }
 }

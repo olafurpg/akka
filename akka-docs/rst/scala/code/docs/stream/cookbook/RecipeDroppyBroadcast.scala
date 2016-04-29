@@ -1,6 +1,6 @@
 package docs.stream.cookbook
 
-import akka.stream.{ ClosedShape, OverflowStrategy }
+import akka.stream.{ClosedShape, OverflowStrategy}
 import akka.stream.scaladsl._
 import akka.stream.testkit._
 
@@ -11,20 +11,21 @@ class RecipeDroppyBroadcast extends RecipeSpec {
 
   "Recipe for a droppy broadcast" must {
     "work" in {
-      val pub = TestPublisher.probe[Int]()
+      val pub        = TestPublisher.probe[Int]()
       val myElements = Source.fromPublisher(pub)
 
-      val sub1 = TestSubscriber.manualProbe[Int]()
-      val sub2 = TestSubscriber.manualProbe[Int]()
-      val sub3 = TestSubscriber.probe[Int]()
+      val sub1       = TestSubscriber.manualProbe[Int]()
+      val sub2       = TestSubscriber.manualProbe[Int]()
+      val sub3       = TestSubscriber.probe[Int]()
       val futureSink = Sink.head[Seq[Int]]
-      val mySink1 = Sink.fromSubscriber(sub1)
-      val mySink2 = Sink.fromSubscriber(sub2)
-      val mySink3 = Sink.fromSubscriber(sub3)
+      val mySink1    = Sink.fromSubscriber(sub1)
+      val mySink2    = Sink.fromSubscriber(sub2)
+      val mySink3    = Sink.fromSubscriber(sub3)
 
       //#droppy-bcast
-      val graph = RunnableGraph.fromGraph(GraphDSL.create(mySink1, mySink2, mySink3)((_, _, _)) { implicit b =>
-        (sink1, sink2, sink3) =>
+      val graph = RunnableGraph.fromGraph(
+          GraphDSL.create(mySink1, mySink2, mySink3)((_, _, _)) {
+        implicit b => (sink1, sink2, sink3) =>
           import GraphDSL.Implicits._
 
           val bcast = b.add(Broadcast[Int](3))
@@ -57,8 +58,6 @@ class RecipeDroppyBroadcast extends RecipeSpec {
 
       sub1.expectComplete()
       sub2.expectComplete()
-
     }
   }
-
 }

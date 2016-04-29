@@ -32,7 +32,6 @@ object ConsistentHashingRouterDocSpec {
 
   final case class Entry(key: String, value: String)
   //#cache-actor
-
 }
 
 class ConsistentHashingRouterDocSpec extends AkkaSpec with ImplicitSender {
@@ -54,13 +53,14 @@ class ConsistentHashingRouterDocSpec extends AkkaSpec with ImplicitSender {
     }
 
     val cache: ActorRef =
-      context.actorOf(ConsistentHashingPool(10, hashMapping = hashMapping).
-        props(Props[Cache]), name = "cache")
+      context.actorOf(ConsistentHashingPool(10, hashMapping = hashMapping)
+                        .props(Props[Cache]),
+                      name = "cache")
 
-    cache ! ConsistentHashableEnvelope(
-      message = Entry("hello", "HELLO"), hashKey = "hello")
-    cache ! ConsistentHashableEnvelope(
-      message = Entry("hi", "HI"), hashKey = "hi")
+    cache ! ConsistentHashableEnvelope(message = Entry("hello", "HELLO"),
+                                       hashKey = "hello")
+    cache ! ConsistentHashableEnvelope(message = Entry("hi", "HI"),
+                                       hashKey = "hi")
 
     cache ! Get("hello")
     expectMsg(Some("HELLO"))
@@ -73,7 +73,5 @@ class ConsistentHashingRouterDocSpec extends AkkaSpec with ImplicitSender {
     expectMsg(None)
 
     //#consistent-hashing-router
-
   }
-
 }

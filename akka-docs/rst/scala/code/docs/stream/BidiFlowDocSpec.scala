@@ -34,17 +34,19 @@ object BidiFlowDocSpec {
   def fromBytes(bytes: ByteString): Message = {
     //#implementation-details-elided
     implicit val order = ByteOrder.LITTLE_ENDIAN
-    val it = bytes.iterator
+    val it             = bytes.iterator
     it.getByte match {
-      case 1     => Ping(it.getInt)
-      case 2     => Pong(it.getInt)
-      case other => throw new RuntimeException(s"parse error: expected 1|2 got $other")
+      case 1 => Ping(it.getInt)
+      case 2 => Pong(it.getInt)
+      case other =>
+        throw new RuntimeException(s"parse error: expected 1|2 got $other")
     }
     //#implementation-details-elided
   }
   //#codec-impl
 
-  val codecVerbose = BidiFlow.fromGraph(GraphDSL.create() { b =>
+  val codecVerbose = BidiFlow.fromGraph(
+      GraphDSL.create() { b =>
     // construct and add the top flow, going outbound
     val outbound = b.add(Flow[Message].map(toBytes))
     // construct and add the bottom flow, going inbound
@@ -68,11 +70,12 @@ object BidiFlowDocSpec {
 
     class FrameParser extends GraphStage[FlowShape[ByteString, ByteString]] {
 
-      val in = Inlet[ByteString]("FrameParser.in")
-      val out = Outlet[ByteString]("FrameParser.out")
+      val in             = Inlet[ByteString]("FrameParser.in")
+      val out            = Outlet[ByteString]("FrameParser.out")
       override val shape = FlowShape.of(in, out)
 
-      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
+      override def createLogic(inheritedAttributes: Attributes
+          ): GraphStageLogic = new GraphStageLogic(shape) {
 
         // this holds the received but not yet parsed bytes
         var stash = ByteString.empty
@@ -127,18 +130,21 @@ object BidiFlowDocSpec {
     }
 
     val outbound = b.add(Flow[ByteString].map(addLengthHeader))
-    val inbound = b.add(Flow[ByteString].via(new FrameParser))
+    val inbound  = b.add(Flow[ByteString].via(new FrameParser))
     BidiShape.fromFlows(outbound, inbound)
   })
   //#framing
 
-  val chopUp = BidiFlow.fromGraph(GraphDSL.create() { b =>
+  val chopUp = BidiFlow.fromGraph(
+      GraphDSL.create() { b =>
     val f = Flow[ByteString].mapConcat(_.map(ByteString(_)))
     BidiShape.fromFlows(b.add(f), b.add(f))
   })
 
-  val accumulate = BidiFlow.fromGraph(GraphDSL.create() { b =>
-    val f = Flow[ByteString].grouped(1000).map(_.fold(ByteString.empty)(_ ++ _))
+  val accumulate = BidiFlow.fromGraph(
+      GraphDSL.create() { b =>
+    val f =
+      Flow[ByteString].grouped(1000).map(_.fold(ByteString.empty)(_ ++ _))
     BidiShape.fromFlows(b.add(f), b.add(f))
   })
 }
@@ -167,26 +173,31 @@ class BidiFlowDocSpec extends AkkaSpec {
 
       // test it by plugging it into its own inverse and closing the right end
       val pingpong = Flow[Message].collect { case Ping(id) => Pong(id) }
-      val flow = stack.atop(stack.reversed).join(pingpong)
-      val result = Source((0 to 9).map(Ping)).via(flow).limit(20).runWith(Sink.seq)
+      val flow     = stack.atop(stack.reversed).join(pingpong)
+      val result =
+        Source((0 to 9).map(Ping)).via(flow).limit(20).runWith(Sink.seq)
       Await.result(result, 1.second) should ===((0 to 9).map(Pong))
       //#compose
     }
 
     "work when chopped up" in {
       val stack = codec.atop(framing)
-      val flow = stack.atop(chopUp).atop(stack.reversed).join(Flow[Message].map { case Ping(id) => Pong(id) })
+      val flow = stack
+        .atop(chopUp)
+        .atop(stack.reversed)
+        .join(Flow[Message].map { case Ping(id) => Pong(id) })
       val f = Source((0 to 9).map(Ping)).via(flow).limit(20).runWith(Sink.seq)
       Await.result(f, 1.second) should ===((0 to 9).map(Pong))
     }
 
     "work when accumulated" in {
       val stack = codec.atop(framing)
-      val flow = stack.atop(accumulate).atop(stack.reversed).join(Flow[Message].map { case Ping(id) => Pong(id) })
+      val flow = stack
+        .atop(accumulate)
+        .atop(stack.reversed)
+        .join(Flow[Message].map { case Ping(id) => Pong(id) })
       val f = Source((0 to 9).map(Ping)).via(flow).limit(20).runWith(Sink.seq)
       Await.result(f, 1.second) should ===((0 to 9).map(Pong))
     }
-
   }
-
 }

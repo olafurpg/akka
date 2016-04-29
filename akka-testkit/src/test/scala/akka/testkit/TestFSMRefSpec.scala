@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.testkit
 
 import language.postfixOps
@@ -60,7 +59,8 @@ class TestFSMRefSpec extends AkkaSpec {
 
     val guardian = system.asInstanceOf[ActorSystemImpl].guardian
 
-    val parent = system.actorOf(Props(new Actor { def receive = { case _ ⇒ } }))
+    val parent =
+      system.actorOf(Props(new Actor { def receive = { case _ ⇒ } }))
 
     class TestFSMActor extends Actor with FSM[Int, Null] {
       startWith(1, null)
@@ -68,7 +68,7 @@ class TestFSMRefSpec extends AkkaSpec {
         case x ⇒ stay
       }
       val supervisor = context.parent
-      val name = context.self.path.name
+      val name       = context.self.path.name
     }
 
     def fsmActorFactory = new TestFSMActor

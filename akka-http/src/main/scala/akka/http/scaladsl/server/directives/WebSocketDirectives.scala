@@ -7,7 +7,7 @@ package directives
 
 import scala.collection.immutable
 
-import akka.http.scaladsl.model.ws.{ UpgradeToWebSocket, Message }
+import akka.http.scaladsl.model.ws.{UpgradeToWebSocket, Message}
 import akka.stream.scaladsl.Flow
 
 /**
@@ -36,7 +36,8 @@ trait WebSocketDirectives {
    *
    * @group websocket
    */
-  def extractOfferedWsProtocols: Directive1[immutable.Seq[String]] = extractUpgradeToWebSocket.map(_.requestedProtocols)
+  def extractOfferedWsProtocols: Directive1[immutable.Seq[String]] =
+    extractUpgradeToWebSocket.map(_.requestedProtocols)
 
   /**
    * Handles WebSocket requests with the given handler and rejects other requests with an
@@ -53,7 +54,8 @@ trait WebSocketDirectives {
    *
    * @group websocket
    */
-  def handleWebSocketMessagesForProtocol(handler: Flow[Message, Message, Any], subprotocol: String): Route =
+  def handleWebSocketMessagesForProtocol(
+      handler: Flow[Message, Message, Any], subprotocol: String): Route =
     handleWebSocketMessagesForOptionalProtocol(handler, Some(subprotocol))
 
   /**
@@ -69,9 +71,12 @@ trait WebSocketDirectives {
    *
    * @group websocket
    */
-  def handleWebSocketMessagesForOptionalProtocol(handler: Flow[Message, Message, Any], subprotocol: Option[String]): Route =
+  def handleWebSocketMessagesForOptionalProtocol(
+      handler: Flow[Message, Message, Any],
+      subprotocol: Option[String]): Route =
     extractUpgradeToWebSocket { upgrade ⇒
-      if (subprotocol.forall(sub ⇒ upgrade.requestedProtocols.exists(_ equalsIgnoreCase sub)))
+      if (subprotocol.forall(
+              sub ⇒ upgrade.requestedProtocols.exists(_ equalsIgnoreCase sub)))
         complete(upgrade.handleMessages(handler, subprotocol))
       else
         reject(UnsupportedWebSocketSubprotocolRejection(subprotocol.get)) // None.forall == true

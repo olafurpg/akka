@@ -1,10 +1,9 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor
 
-import akka.actor.Deploy.{ NoDispatcherGiven, NoMailboxGiven }
+import akka.actor.Deploy.{NoDispatcherGiven, NoMailboxGiven}
 import akka.dispatch._
 import akka.routing._
 
@@ -24,7 +23,8 @@ object Props extends AbstractProps {
   /**
    * The defaultCreator, simply throws an UnsupportedOperationException when applied, which is used when creating a Props
    */
-  final val defaultCreator: () ⇒ Actor = () ⇒ throw new UnsupportedOperationException("No actor creator specified!")
+  final val defaultCreator: () ⇒ Actor = () ⇒
+    throw new UnsupportedOperationException("No actor creator specified!")
 
   /**
    * The defaultRoutedProps is NoRouter which is used when creating a Props
@@ -44,7 +44,8 @@ object Props extends AbstractProps {
   /**
    * The default Props instance, uses the settings from the Props object starting with default*.
    */
-  final val default = Props(defaultDeploy, classOf[CreatorFunctionConsumer], List(defaultCreator))
+  final val default = Props(
+      defaultDeploy, classOf[CreatorFunctionConsumer], List(defaultCreator))
 
   /**
    * INTERNAL API
@@ -59,7 +60,8 @@ object Props extends AbstractProps {
    * Scala API: Returns a Props that has default values except for "creator" which will be a function that creates an instance
    * of the supplied type using the default constructor.
    */
-  def apply[T <: Actor: ClassTag](): Props = apply(defaultDeploy, implicitly[ClassTag[T]].runtimeClass, List.empty)
+  def apply[T <: Actor : ClassTag](): Props =
+    apply(defaultDeploy, implicitly[ClassTag[T]].runtimeClass, List.empty)
 
   /**
    * Scala API: Returns a Props that has default values except for "creator" which will be a function that creates an instance
@@ -74,7 +76,7 @@ object Props extends AbstractProps {
    * Instead you must create a named class that mixin the trait,
    * e.g. `class MyActor extends Actor with Stash`.
    */
-  def apply[T <: Actor: ClassTag](creator: ⇒ T): Props =
+  def apply[T <: Actor : ClassTag](creator: ⇒ T): Props =
     mkProps(implicitly[ClassTag[T]].runtimeClass, () ⇒ creator)
 
   private def mkProps(classOfActor: Class[_], ctor: () ⇒ Actor): Props =
@@ -83,8 +85,8 @@ object Props extends AbstractProps {
   /**
    * Scala API: create a Props given a class and its constructor arguments.
    */
-  def apply(clazz: Class[_], args: Any*): Props = apply(defaultDeploy, clazz, args.toList)
-
+  def apply(clazz: Class[_], args: Any*): Props =
+    apply(defaultDeploy, clazz, args.toList)
 }
 
 /**
@@ -111,7 +113,8 @@ object Props extends AbstractProps {
  * }}}
  */
 @SerialVersionUID(2L)
-final case class Props(deploy: Deploy, clazz: Class[_], args: immutable.Seq[Any]) {
+final case class Props(
+    deploy: Deploy, clazz: Class[_], args: immutable.Seq[Any]) {
 
   Props.validate(clazz)
 
@@ -127,15 +130,13 @@ final case class Props(deploy: Deploy, clazz: Class[_], args: immutable.Seq[Any]
    * INTERNAL API
    */
   private[akka] def producer: IndirectActorProducer = {
-    if (_producer eq null)
-      _producer = IndirectActorProducer(clazz, args)
+    if (_producer eq null) _producer = IndirectActorProducer(clazz, args)
 
     _producer
   }
 
   private[this] def cachedActorClass: Class[_ <: Actor] = {
-    if (_cachedActorClass eq null)
-      _cachedActorClass = producer.actorClass
+    if (_cachedActorClass eq null) _cachedActorClass = producer.actorClass
 
     _cachedActorClass
   }
@@ -186,7 +187,8 @@ final case class Props(deploy: Deploy, clazz: Class[_], args: immutable.Seq[Any]
   /**
    * Returns a new Props with the specified router config set.
    */
-  def withRouter(r: RouterConfig): Props = copy(deploy = deploy.copy(routerConfig = r))
+  def withRouter(r: RouterConfig): Props =
+    copy(deploy = deploy.copy(routerConfig = r))
 
   /**
    * Returns a new Props with the specified deployment configuration.

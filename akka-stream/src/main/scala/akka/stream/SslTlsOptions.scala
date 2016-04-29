@@ -16,10 +16,12 @@ import scala.collection.immutable
  * actively initiates the exchange.
  */
 object TLSRole {
+
   /**
    * Java API: obtain the [[Client]] singleton value.
    */
   def client: TLSRole = Client
+
   /**
    * Java API: obtain the [[Server]] singleton value.
    */
@@ -78,18 +80,22 @@ sealed abstract class TLSClosing {
   def ignoreComplete: Boolean
 }
 object TLSClosing {
+
   /**
    * Java API: obtain the [[EagerClose]] singleton value.
    */
   def eagerClose: TLSClosing = EagerClose
+
   /**
    * Java API: obtain the [[IgnoreCancel]] singleton value.
    */
   def ignoreCancel: TLSClosing = IgnoreCancel
+
   /**
    * Java API: obtain the [[IgnoreComplete]] singleton value.
    */
   def ignoreComplete: TLSClosing = IgnoreComplete
+
   /**
    * Java API: obtain the [[IgnoreBoth]] singleton value.
    */
@@ -100,7 +106,7 @@ object TLSClosing {
  * see [[TLSClosing]]
  */
 sealed abstract class EagerClose extends TLSClosing {
-  override def ignoreCancel = false
+  override def ignoreCancel   = false
   override def ignoreComplete = false
 }
 case object EagerClose extends EagerClose
@@ -109,7 +115,7 @@ case object EagerClose extends EagerClose
  * see [[TLSClosing]]
  */
 sealed abstract class IgnoreCancel extends TLSClosing {
-  override def ignoreCancel = true
+  override def ignoreCancel   = true
   override def ignoreComplete = false
 }
 case object IgnoreCancel extends IgnoreCancel
@@ -118,7 +124,7 @@ case object IgnoreCancel extends IgnoreCancel
  * see [[TLSClosing]]
  */
 sealed abstract class IgnoreComplete extends TLSClosing {
-  override def ignoreCancel = false
+  override def ignoreCancel   = false
   override def ignoreComplete = true
 }
 case object IgnoreComplete extends IgnoreComplete
@@ -127,7 +133,7 @@ case object IgnoreComplete extends IgnoreComplete
  * see [[TLSClosing]]
  */
 sealed abstract class IgnoreBoth extends TLSClosing {
-  override def ignoreCancel = true
+  override def ignoreCancel   = true
   override def ignoreComplete = true
 }
 case object IgnoreBoth extends IgnoreBoth
@@ -162,7 +168,8 @@ object TLSProtocol {
    * The Java API for getting session information is given by the SSLSession object,
    * the Scala API adapters are offered below.
    */
-  final case class SessionBytes(session: SSLSession, bytes: ByteString) extends SslTlsInbound with scaladsl.ScalaSessionAPI
+  final case class SessionBytes(session: SSLSession, bytes: ByteString)
+      extends SslTlsInbound with scaladsl.ScalaSessionAPI
 
   /**
    * This is the supertype of all messages that the SslTls stage accepts on its
@@ -189,16 +196,18 @@ object TLSProtocol {
    * switches off client authentication.
    */
   case class NegotiateNewSession(
-    enabledCipherSuites: Option[immutable.Seq[String]],
-    enabledProtocols: Option[immutable.Seq[String]],
-    clientAuth: Option[TLSClientAuth],
-    sslParameters: Option[SSLParameters]) extends SslTlsOutbound {
+      enabledCipherSuites: Option[immutable.Seq[String]],
+      enabledProtocols: Option[immutable.Seq[String]],
+      clientAuth: Option[TLSClientAuth],
+      sslParameters: Option[SSLParameters])
+      extends SslTlsOutbound {
 
     /**
      * Java API: Make a copy of this message with the given `enabledCipherSuites`.
      */
     @varargs
-    def withCipherSuites(s: String*) = copy(enabledCipherSuites = Some(s.toList))
+    def withCipherSuites(s: String*) =
+      copy(enabledCipherSuites = Some(s.toList))
 
     /**
      * Java API: Make a copy of this message with the given `enabledProtocols`.
@@ -217,13 +226,14 @@ object TLSProtocol {
     def withParameters(p: SSLParameters) = copy(sslParameters = Some(p))
   }
 
-  object NegotiateNewSession extends NegotiateNewSession(None, None, None, None) {
+  object NegotiateNewSession
+      extends NegotiateNewSession(None, None, None, None) {
+
     /**
      * Java API: obtain the default value (which will leave the SSLEngine’s
      * settings unchanged).
      */
     def withDefaults: NegotiateNewSession = this
-
   }
 
   /**
@@ -231,7 +241,6 @@ object TLSProtocol {
    * peer.
    */
   final case class SendBytes(bytes: ByteString) extends SslTlsOutbound
-
 }
 
 /**

@@ -19,8 +19,8 @@ class GraphZipNSpec extends TwoStreamsSetup {
   override def fixture(b: GraphDSL.Builder[_]): Fixture = new Fixture(b) {
     val zipN = b.add(ZipN[Int](2))
 
-    override def left: Inlet[Int] = zipN.in(0)
-    override def right: Inlet[Int] = zipN.in(1)
+    override def left: Inlet[Int]                = zipN.in(0)
+    override def right: Inlet[Int]               = zipN.in(1)
     override def out: Outlet[immutable.Seq[Int]] = zipN.out
   }
 
@@ -29,16 +29,18 @@ class GraphZipNSpec extends TwoStreamsSetup {
     "work in the happy case" in assertAllStagesStopped {
       val probe = TestSubscriber.manualProbe[immutable.Seq[Int]]()
 
-      RunnableGraph.fromGraph(GraphDSL.create() { implicit b ⇒
-        val zipN = b.add(ZipN[Int](2))
+      RunnableGraph
+        .fromGraph(GraphDSL.create() { implicit b ⇒
+          val zipN = b.add(ZipN[Int](2))
 
-        Source(1 to 4) ~> zipN.in(0)
-        Source(2 to 5) ~> zipN.in(1)
+          Source(1 to 4) ~> zipN.in(0)
+          Source(2 to 5) ~> zipN.in(1)
 
-        zipN.out ~> Sink.fromSubscriber(probe)
+          zipN.out ~> Sink.fromSubscriber(probe)
 
-        ClosedShape
-      }).run()
+          ClosedShape
+        })
+        .run()
 
       val subscription = probe.expectSubscription()
 
@@ -55,20 +57,22 @@ class GraphZipNSpec extends TwoStreamsSetup {
     }
 
     "complete if one side is available but other already completed" in {
-      val upstream1 = TestPublisher.probe[Int]()
-      val upstream2 = TestPublisher.probe[Int]()
+      val upstream1  = TestPublisher.probe[Int]()
+      val upstream2  = TestPublisher.probe[Int]()
       val downstream = TestSubscriber.probe[immutable.Seq[Int]]()
 
-      RunnableGraph.fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) { implicit b ⇒
-        out ⇒
-          val zipN = b.add(ZipN[Int](2))
+      RunnableGraph
+        .fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) {
+          implicit b ⇒ out ⇒
+            val zipN = b.add(ZipN[Int](2))
 
-          Source.fromPublisher(upstream1) ~> zipN.in(0)
-          Source.fromPublisher(upstream2) ~> zipN.in(1)
-          zipN.out ~> out
+            Source.fromPublisher(upstream1) ~> zipN.in(0)
+            Source.fromPublisher(upstream2) ~> zipN.in(1)
+            zipN.out ~> out
 
-          ClosedShape
-      }).run()
+            ClosedShape
+        })
+        .run()
 
       upstream1.sendNext(1)
       upstream1.sendNext(2)
@@ -81,20 +85,22 @@ class GraphZipNSpec extends TwoStreamsSetup {
     }
 
     "complete even if no pending demand" in {
-      val upstream1 = TestPublisher.probe[Int]()
-      val upstream2 = TestPublisher.probe[Int]()
+      val upstream1  = TestPublisher.probe[Int]()
+      val upstream2  = TestPublisher.probe[Int]()
       val downstream = TestSubscriber.probe[immutable.Seq[Int]]()
 
-      RunnableGraph.fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) { implicit b ⇒
-        out ⇒
-          val zipN = b.add(ZipN[Int](2))
+      RunnableGraph
+        .fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) {
+          implicit b ⇒ out ⇒
+            val zipN = b.add(ZipN[Int](2))
 
-          Source.fromPublisher(upstream1) ~> zipN.in(0)
-          Source.fromPublisher(upstream2) ~> zipN.in(1)
-          zipN.out ~> out
+            Source.fromPublisher(upstream1) ~> zipN.in(0)
+            Source.fromPublisher(upstream2) ~> zipN.in(1)
+            zipN.out ~> out
 
-          ClosedShape
-      }).run()
+            ClosedShape
+        })
+        .run()
 
       downstream.request(1)
 
@@ -108,20 +114,22 @@ class GraphZipNSpec extends TwoStreamsSetup {
     }
 
     "complete if both sides complete before requested with elements pending" in {
-      val upstream1 = TestPublisher.probe[Int]()
-      val upstream2 = TestPublisher.probe[Int]()
+      val upstream1  = TestPublisher.probe[Int]()
+      val upstream2  = TestPublisher.probe[Int]()
       val downstream = TestSubscriber.probe[immutable.Seq[Int]]()
 
-      RunnableGraph.fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) { implicit b ⇒
-        out ⇒
-          val zipN = b.add(ZipN[Int](2))
+      RunnableGraph
+        .fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) {
+          implicit b ⇒ out ⇒
+            val zipN = b.add(ZipN[Int](2))
 
-          Source.fromPublisher(upstream1) ~> zipN.in(0)
-          Source.fromPublisher(upstream2) ~> zipN.in(1)
-          zipN.out ~> out
+            Source.fromPublisher(upstream1) ~> zipN.in(0)
+            Source.fromPublisher(upstream2) ~> zipN.in(1)
+            zipN.out ~> out
 
-          ClosedShape
-      }).run()
+            ClosedShape
+        })
+        .run()
 
       upstream1.sendNext(1)
       upstream2.sendNext(2)
@@ -134,20 +142,22 @@ class GraphZipNSpec extends TwoStreamsSetup {
     }
 
     "complete if one side complete before requested with elements pending" in {
-      val upstream1 = TestPublisher.probe[Int]()
-      val upstream2 = TestPublisher.probe[Int]()
+      val upstream1  = TestPublisher.probe[Int]()
+      val upstream2  = TestPublisher.probe[Int]()
       val downstream = TestSubscriber.probe[immutable.Seq[Int]]()
 
-      RunnableGraph.fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) { implicit b ⇒
-        out ⇒
-          val zipN = b.add(ZipN[Int](2))
+      RunnableGraph
+        .fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) {
+          implicit b ⇒ out ⇒
+            val zipN = b.add(ZipN[Int](2))
 
-          Source.fromPublisher(upstream1) ~> zipN.in(0)
-          Source.fromPublisher(upstream2) ~> zipN.in(1)
-          zipN.out ~> out
+            Source.fromPublisher(upstream1) ~> zipN.in(0)
+            Source.fromPublisher(upstream2) ~> zipN.in(1)
+            zipN.out ~> out
 
-          ClosedShape
-      }).run()
+            ClosedShape
+        })
+        .run()
 
       upstream1.sendNext(1)
       upstream1.sendNext(2)
@@ -161,20 +171,22 @@ class GraphZipNSpec extends TwoStreamsSetup {
     }
 
     "complete if one side complete before requested with elements pending 2" in {
-      val upstream1 = TestPublisher.probe[Int]()
-      val upstream2 = TestPublisher.probe[Int]()
+      val upstream1  = TestPublisher.probe[Int]()
+      val upstream2  = TestPublisher.probe[Int]()
       val downstream = TestSubscriber.probe[immutable.Seq[Int]]()
 
-      RunnableGraph.fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) { implicit b ⇒
-        out ⇒
-          val zipN = b.add(ZipN[Int](2))
+      RunnableGraph
+        .fromGraph(GraphDSL.create(Sink.fromSubscriber(downstream)) {
+          implicit b ⇒ out ⇒
+            val zipN = b.add(ZipN[Int](2))
 
-          Source.fromPublisher(upstream1) ~> zipN.in(0)
-          Source.fromPublisher(upstream2) ~> zipN.in(1)
-          zipN.out ~> out
+            Source.fromPublisher(upstream1) ~> zipN.in(0)
+            Source.fromPublisher(upstream2) ~> zipN.in(1)
+            zipN.out ~> out
 
-          ClosedShape
-      }).run()
+            ClosedShape
+        })
+        .run()
 
       downstream.ensureSubscription()
 
@@ -199,10 +211,12 @@ class GraphZipNSpec extends TwoStreamsSetup {
     }
 
     "work with one delayed completed and one nonempty publisher" in assertAllStagesStopped {
-      val subscriber1 = setup(soonToCompletePublisher, nonemptyPublisher(1 to 4))
+      val subscriber1 =
+        setup(soonToCompletePublisher, nonemptyPublisher(1 to 4))
       subscriber1.expectSubscriptionAndComplete()
 
-      val subscriber2 = setup(nonemptyPublisher(1 to 4), soonToCompletePublisher)
+      val subscriber2 =
+        setup(nonemptyPublisher(1 to 4), soonToCompletePublisher)
       subscriber2.expectSubscriptionAndComplete()
     }
 
@@ -218,10 +232,8 @@ class GraphZipNSpec extends TwoStreamsSetup {
       val subscriber1 = setup(soonToFailPublisher, nonemptyPublisher(1 to 4))
       subscriber1.expectSubscriptionAndError(TestException)
 
-      val subscriber2 = setup(nonemptyPublisher(1 to 4), soonToFailPublisher)
+      val subscriber2   = setup(nonemptyPublisher(1 to 4), soonToFailPublisher)
       val subscription2 = subscriber2.expectSubscriptionAndError(TestException)
     }
-
   }
-
 }

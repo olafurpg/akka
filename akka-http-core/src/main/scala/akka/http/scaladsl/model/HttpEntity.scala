@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.http.scaladsl.model
 
 import java.util.OptionalLong
@@ -10,8 +9,8 @@ import akka.http.impl.model.JavaInitialization
 
 import language.implicitConversions
 import java.io.File
-import java.nio.file.{ Path, Files }
-import java.lang.{ Iterable ⇒ JIterable}
+import java.nio.file.{Path, Files}
+import java.lang.{Iterable ⇒ JIterable}
 import scala.util.control.NonFatal
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -20,10 +19,10 @@ import akka.util.ByteString
 import akka.stream.scaladsl._
 import akka.stream.stage._
 import akka.stream._
-import akka.{ NotUsed, stream }
-import akka.http.scaladsl.model.ContentType.{ NonBinary, Binary }
+import akka.{NotUsed, stream}
+import akka.http.scaladsl.model.ContentType.{NonBinary, Binary}
 import akka.http.scaladsl.util.FastFuture
-import akka.http.javadsl.{ model ⇒ jm }
+import akka.http.javadsl.{model ⇒ jm}
 import akka.http.impl.util.StreamUtils
 import akka.http.impl.util.JavaMapping.Implicits._
 
@@ -36,7 +35,9 @@ import java.util.concurrent.CompletionStage
  */
 sealed trait HttpEntity extends jm.HttpEntity {
   import language.implicitConversions
-  private implicit def completionStageCovariant[T, U >: T](in: CompletionStage[T]): CompletionStage[U] = in.asInstanceOf[CompletionStage[U]]
+  private implicit def completionStageCovariant[T, U >: T](
+      in: CompletionStage[T]): CompletionStage[U] =
+    in.asInstanceOf[CompletionStage[U]]
 
   /**
    * Determines whether this entity is known to be empty.
@@ -67,7 +68,8 @@ sealed trait HttpEntity extends jm.HttpEntity {
    * Collects all possible parts and returns a potentially future Strict entity for easier processing.
    * The Future is failed with an TimeoutException if the stream isn't completed after the given timeout.
    */
-  def toStrict(timeout: FiniteDuration)(implicit fm: Materializer): Future[HttpEntity.Strict] =
+  def toStrict(timeout: FiniteDuration)(
+      implicit fm: Materializer): Future[HttpEntity.Strict] =
     dataBytes
       .via(new akka.http.impl.util.ToStrict(timeout, contentType))
       .runWith(Sink.head)
@@ -80,7 +82,8 @@ sealed trait HttpEntity extends jm.HttpEntity {
    * This method may only throw an exception if the `transformer` function throws an exception while creating the transformer.
    * Any other errors are reported through the new entity data stream.
    */
-  def transformDataBytes(transformer: Flow[ByteString, ByteString, Any]): HttpEntity
+  def transformDataBytes(
+      transformer: Flow[ByteString, ByteString, Any]): HttpEntity
 
   /**
    * Creates a copy of this HttpEntity with the `contentType` overridden with the given one.
@@ -131,19 +134,23 @@ sealed trait HttpEntity extends jm.HttpEntity {
 
   /** Java API */
   override def getDataBytes: stream.javadsl.Source[ByteString, AnyRef] =
-    stream.javadsl.Source.fromGraph(dataBytes.asInstanceOf[Source[ByteString, AnyRef]])
+    stream.javadsl.Source
+      .fromGraph(dataBytes.asInstanceOf[Source[ByteString, AnyRef]])
 
   /** Java API */
-  override def getContentLengthOption: OptionalLong = contentLengthOption.asPrimitive
+  override def getContentLengthOption: OptionalLong =
+    contentLengthOption.asPrimitive
 
   // default implementations, should be overridden
-  override def isCloseDelimited: Boolean = false
+  override def isCloseDelimited: Boolean   = false
   override def isIndefiniteLength: Boolean = false
-  override def isDefault: Boolean = false
-  override def isChunked: Boolean = false
+  override def isDefault: Boolean          = false
+  override def isChunked: Boolean          = false
 
   /** Java API */
-  override def toStrict(timeoutMillis: Long, materializer: Materializer): CompletionStage[jm.HttpEntity.Strict] =
+  override def toStrict(
+      timeoutMillis: Long,
+      materializer: Materializer): CompletionStage[jm.HttpEntity.Strict] =
     toStrict(timeoutMillis.millis)(materializer).toJava
 }
 
@@ -160,7 +167,8 @@ sealed trait BodyPartEntity extends HttpEntity with jm.BodyPartEntity {
  * Note that all entities that can be used for requests can also be used for responses.
  * (But not the other way around, since [[HttpEntity.CloseDelimited]] can only be used for responses!)
  */
-sealed trait RequestEntity extends HttpEntity with jm.RequestEntity with ResponseEntity {
+sealed trait RequestEntity
+    extends HttpEntity with jm.RequestEntity with ResponseEntity {
   def withContentType(contentType: ContentType): RequestEntity
 
   /**
@@ -173,7 +181,8 @@ sealed trait RequestEntity extends HttpEntity with jm.RequestEntity with Respons
    */
   def withoutSizeLimit: RequestEntity
 
-  def transformDataBytes(transformer: Flow[ByteString, ByteString, Any]): RequestEntity
+  def transformDataBytes(
+      transformer: Flow[ByteString, ByteString, Any]): RequestEntity
 }
 
 /**
@@ -194,10 +203,12 @@ sealed trait ResponseEntity extends HttpEntity with jm.ResponseEntity {
    */
   def withoutSizeLimit: ResponseEntity
 
-  def transformDataBytes(transformer: Flow[ByteString, ByteString, Any]): ResponseEntity
+  def transformDataBytes(
+      transformer: Flow[ByteString, ByteString, Any]): ResponseEntity
 }
 /* An entity that can be used for requests, responses, and body parts */
-sealed trait UniversalEntity extends jm.UniversalEntity with MessageEntity with BodyPartEntity {
+sealed trait UniversalEntity
+    extends jm.UniversalEntity with MessageEntity with BodyPartEntity {
   def withContentType(contentType: ContentType): UniversalEntity
 
   /**
@@ -217,23 +228,38 @@ sealed trait UniversalEntity extends jm.UniversalEntity with MessageEntity with 
    * Transforms this' entities data bytes with a transformer that will produce exactly the number of bytes given as
    * `newContentLength`.
    */
-  def transformDataBytes(newContentLength: Long, transformer: Flow[ByteString, ByteString, Any]): UniversalEntity
+  def transformDataBytes(
+      newContentLength: Long,
+      transformer: Flow[ByteString, ByteString, Any]): UniversalEntity
 }
 
 object HttpEntity {
-  implicit def apply(string: String): HttpEntity.Strict = apply(ContentTypes.`text/plain(UTF-8)`, string)
-  implicit def apply(bytes: Array[Byte]): HttpEntity.Strict = apply(ContentTypes.`application/octet-stream`, bytes)
-  implicit def apply(data: ByteString): HttpEntity.Strict = apply(ContentTypes.`application/octet-stream`, data)
-  def apply(contentType: ContentType.NonBinary, string: String): HttpEntity.Strict =
-    if (string.isEmpty) empty(contentType) else apply(contentType, ByteString(string.getBytes(contentType.charset.nioCharset)))
+  implicit def apply(string: String): HttpEntity.Strict =
+    apply(ContentTypes.`text/plain(UTF-8)`, string)
+  implicit def apply(bytes: Array[Byte]): HttpEntity.Strict =
+    apply(ContentTypes.`application/octet-stream`, bytes)
+  implicit def apply(data: ByteString): HttpEntity.Strict =
+    apply(ContentTypes.`application/octet-stream`, data)
+  def apply(
+      contentType: ContentType.NonBinary, string: String): HttpEntity.Strict =
+    if (string.isEmpty) empty(contentType)
+    else
+      apply(contentType,
+            ByteString(string.getBytes(contentType.charset.nioCharset)))
   def apply(contentType: ContentType, bytes: Array[Byte]): HttpEntity.Strict =
-    if (bytes.length == 0) empty(contentType) else apply(contentType, ByteString(bytes))
+    if (bytes.length == 0) empty(contentType)
+    else apply(contentType, ByteString(bytes))
   def apply(contentType: ContentType, data: ByteString): HttpEntity.Strict =
-    if (data.isEmpty) empty(contentType) else HttpEntity.Strict(contentType, data)
+    if (data.isEmpty) empty(contentType)
+    else HttpEntity.Strict(contentType, data)
 
-  def apply(contentType: ContentType, contentLength: Long, data: Source[ByteString, Any]): UniversalEntity =
-    if (contentLength == 0) empty(contentType) else HttpEntity.Default(contentType, contentLength, data)
-  def apply(contentType: ContentType, data: Source[ByteString, Any]): HttpEntity.Chunked =
+  def apply(contentType: ContentType,
+            contentLength: Long,
+            data: Source[ByteString, Any]): UniversalEntity =
+    if (contentLength == 0) empty(contentType)
+    else HttpEntity.Default(contentType, contentLength, data)
+  def apply(contentType: ContentType,
+            data: Source[ByteString, Any]): HttpEntity.Chunked =
     HttpEntity.Chunked.fromData(contentType, data)
 
   /**
@@ -244,7 +270,9 @@ object HttpEntity {
    * If the given `chunkSize` is -1 the default chunk size is used.
    */
   @deprecated("Use `fromPath` instead", "2.4.5")
-  def apply(contentType: ContentType, file: File, chunkSize: Int = -1): UniversalEntity =
+  def apply(contentType: ContentType,
+            file: File,
+            chunkSize: Int = -1): UniversalEntity =
     fromPath(contentType, file.toPath, chunkSize)
 
   /**
@@ -254,22 +282,27 @@ object HttpEntity {
    *
    * If the given `chunkSize` is -1 the default chunk size is used.
    */
-  def fromPath(contentType: ContentType, file: Path, chunkSize: Int = -1): UniversalEntity = {
+  def fromPath(contentType: ContentType,
+               file: Path,
+               chunkSize: Int = -1): UniversalEntity = {
     val fileLength = Files.size(file)
     if (fileLength > 0)
-      HttpEntity.Default(contentType, fileLength,
-        if (chunkSize > 0) FileIO.fromPath(file, chunkSize) else FileIO.fromPath(file))
+      HttpEntity.Default(contentType,
+                         fileLength,
+                         if (chunkSize > 0) FileIO.fromPath(file, chunkSize)
+                         else FileIO.fromPath(file))
     else empty(contentType)
   }
 
-  val Empty: HttpEntity.Strict = HttpEntity.Strict(ContentTypes.NoContentType, data = ByteString.empty)
+  val Empty: HttpEntity.Strict =
+    HttpEntity.Strict(ContentTypes.NoContentType, data = ByteString.empty)
 
   def empty(contentType: ContentType): HttpEntity.Strict =
     if (contentType == Empty.contentType) Empty
     else HttpEntity.Strict(contentType, data = ByteString.empty)
 
   JavaInitialization.initializeStaticFieldWith(
-    Empty, classOf[jm.HttpEntity].getField("EMPTY"))
+      Empty, classOf[jm.HttpEntity].getField("EMPTY"))
 
   // TODO: re-establish serializability
   // TODO: equal/hashcode ?
@@ -278,7 +311,7 @@ object HttpEntity {
    * The model for the entity of a "regular" unchunked HTTP message with known, fixed data.
    */
   final case class Strict(contentType: ContentType, data: ByteString)
-    extends jm.HttpEntity.Strict with UniversalEntity {
+      extends jm.HttpEntity.Strict with UniversalEntity {
 
     override def contentLength: Long = data.length
 
@@ -289,18 +322,28 @@ object HttpEntity {
     override def toStrict(timeout: FiniteDuration)(implicit fm: Materializer) =
       FastFuture.successful(this)
 
-    override def transformDataBytes(transformer: Flow[ByteString, ByteString, Any]): MessageEntity =
-      HttpEntity.Chunked.fromData(contentType, Source.single(data).via(transformer))
+    override def transformDataBytes(
+        transformer: Flow[ByteString, ByteString, Any]): MessageEntity =
+      HttpEntity.Chunked.fromData(
+          contentType, Source.single(data).via(transformer))
 
-    override def transformDataBytes(newContentLength: Long, transformer: Flow[ByteString, ByteString, Any]): UniversalEntity =
-      HttpEntity.Default(contentType, newContentLength, Source.single(data) via transformer)
+    override def transformDataBytes(
+        newContentLength: Long,
+        transformer: Flow[ByteString, ByteString, Any]): UniversalEntity =
+      HttpEntity.Default(
+          contentType, newContentLength, Source.single(data) via transformer)
 
     override def withContentType(contentType: ContentType): HttpEntity.Strict =
-      if (contentType == this.contentType) this else copy(contentType = contentType)
+      if (contentType == this.contentType) this
+      else copy(contentType = contentType)
 
     override def withSizeLimit(maxBytes: Long): UniversalEntity =
       if (data.length <= maxBytes || isKnownEmpty) this
-      else HttpEntity.Default(contentType, data.length, limitableByteSource(Source.single(data))) withSizeLimit maxBytes
+      else
+        HttpEntity.Default(
+            contentType,
+            data.length,
+            limitableByteSource(Source.single(data))) withSizeLimit maxBytes
 
     override def withoutSizeLimit: UniversalEntity =
       withSizeLimit(SizeLimit.Disabled)
@@ -315,10 +358,10 @@ object HttpEntity {
           try {
             val maxBytes = 4096
             if (data.length > maxBytes) {
-              val truncatedString = data.take(maxBytes).decodeString(nb.charset.value).dropRight(1)
+              val truncatedString =
+                data.take(maxBytes).decodeString(nb.charset.value).dropRight(1)
               s"$truncatedString ... (${data.length} bytes total)"
-            } else
-              data.decodeString(nb.charset.value)
+            } else data.decodeString(nb.charset.value)
           } catch {
             case NonFatal(e) ⇒
               data.toString()
@@ -338,24 +381,31 @@ object HttpEntity {
   final case class Default(contentType: ContentType,
                            contentLength: Long,
                            data: Source[ByteString, Any])
-    extends jm.HttpEntity.Default with UniversalEntity {
-    require(contentLength > 0, "contentLength must be positive (use `HttpEntity.empty(contentType)` for empty entities)")
-    def isKnownEmpty = false
+      extends jm.HttpEntity.Default with UniversalEntity {
+    require(
+        contentLength > 0,
+        "contentLength must be positive (use `HttpEntity.empty(contentType)` for empty entities)")
+    def isKnownEmpty                = false
     override def isDefault: Boolean = true
 
     def dataBytes: Source[ByteString, Any] = data
 
-    override def transformDataBytes(transformer: Flow[ByteString, ByteString, Any]): HttpEntity.Chunked =
+    override def transformDataBytes(
+        transformer: Flow[ByteString, ByteString, Any]): HttpEntity.Chunked =
       HttpEntity.Chunked.fromData(contentType, data via transformer)
 
-    override def transformDataBytes(newContentLength: Long, transformer: Flow[ByteString, ByteString, Any]): UniversalEntity =
+    override def transformDataBytes(
+        newContentLength: Long,
+        transformer: Flow[ByteString, ByteString, Any]): UniversalEntity =
       HttpEntity.Default(contentType, newContentLength, data via transformer)
 
     def withContentType(contentType: ContentType): HttpEntity.Default =
-      if (contentType == this.contentType) this else copy(contentType = contentType)
+      if (contentType == this.contentType) this
+      else copy(contentType = contentType)
 
     override def withSizeLimit(maxBytes: Long): HttpEntity.Default =
-      copy(data = data withAttributes Attributes(SizeLimit(maxBytes, Some(contentLength))))
+      copy(data = data withAttributes Attributes(
+                SizeLimit(maxBytes, Some(contentLength))))
 
     override def withoutSizeLimit: HttpEntity.Default =
       withSizeLimit(SizeLimit.Disabled)
@@ -375,8 +425,8 @@ object HttpEntity {
     type Self <: HttpEntity.WithoutKnownLength
     def contentType: ContentType
     def data: Source[ByteString, Any]
-    override def contentLengthOption: Option[Long] = None
-    override def isKnownEmpty = data eq Source.empty
+    override def contentLengthOption: Option[Long]  = None
+    override def isKnownEmpty                       = data eq Source.empty
     override def dataBytes: Source[ByteString, Any] = data
 
     override def withSizeLimit(maxBytes: Long): Self =
@@ -385,7 +435,8 @@ object HttpEntity {
     override def withoutSizeLimit: Self =
       withData(data withAttributes Attributes(SizeLimit(SizeLimit.Disabled)))
 
-    override def transformDataBytes(transformer: Flow[ByteString, ByteString, Any]): Self =
+    override def transformDataBytes(
+        transformer: Flow[ByteString, ByteString, Any]): Self =
       withData(data via transformer)
 
     def withData(data: Source[ByteString, Any]): Self
@@ -396,15 +447,21 @@ object HttpEntity {
    * The content-length of such responses is unknown at the time the response headers have been received.
    * Note that this type of HttpEntity can only be used for HttpResponses.
    */
-  final case class CloseDelimited(contentType: ContentType, data: Source[ByteString, Any])
-    extends jm.HttpEntity.CloseDelimited with ResponseEntity with HttpEntity.WithoutKnownLength {
+  final case class CloseDelimited(
+      contentType: ContentType, data: Source[ByteString, Any])
+      extends jm.HttpEntity.CloseDelimited with ResponseEntity
+      with HttpEntity.WithoutKnownLength {
     type Self = HttpEntity.CloseDelimited
 
     override def isCloseDelimited: Boolean = true
-    override def withContentType(contentType: ContentType): HttpEntity.CloseDelimited =
-      if (contentType == this.contentType) this else copy(contentType = contentType)
+    override def withContentType(
+        contentType: ContentType): HttpEntity.CloseDelimited =
+      if (contentType == this.contentType) this
+      else copy(contentType = contentType)
 
-    override def withData(data: Source[ByteString, Any]): HttpEntity.CloseDelimited = copy(data = data)
+    override def withData(
+        data: Source[ByteString, Any]): HttpEntity.CloseDelimited =
+      copy(data = data)
 
     override def productPrefix = "HttpEntity.CloseDelimited"
   }
@@ -413,15 +470,21 @@ object HttpEntity {
    * The model for the entity of a BodyPart with an indefinite length.
    * Note that this type of HttpEntity can only be used for BodyParts.
    */
-  final case class IndefiniteLength(contentType: ContentType, data: Source[ByteString, Any])
-    extends jm.HttpEntity.IndefiniteLength with BodyPartEntity with HttpEntity.WithoutKnownLength {
+  final case class IndefiniteLength(
+      contentType: ContentType, data: Source[ByteString, Any])
+      extends jm.HttpEntity.IndefiniteLength with BodyPartEntity
+      with HttpEntity.WithoutKnownLength {
     type Self = HttpEntity.IndefiniteLength
 
     override def isIndefiniteLength: Boolean = true
-    override def withContentType(contentType: ContentType): HttpEntity.IndefiniteLength =
-      if (contentType == this.contentType) this else copy(contentType = contentType)
+    override def withContentType(
+        contentType: ContentType): HttpEntity.IndefiniteLength =
+      if (contentType == this.contentType) this
+      else copy(contentType = contentType)
 
-    override def withData(data: Source[ByteString, Any]): HttpEntity.IndefiniteLength = copy(data = data)
+    override def withData(
+        data: Source[ByteString, Any]): HttpEntity.IndefiniteLength =
+      copy(data = data)
 
     override def productPrefix = "HttpEntity.IndefiniteLength"
   }
@@ -429,15 +492,17 @@ object HttpEntity {
   /**
    * The model for the entity of a chunked HTTP message (with `Transfer-Encoding: chunked`).
    */
-  final case class Chunked(contentType: ContentType, chunks: Source[ChunkStreamPart, Any])
-    extends jm.HttpEntity.Chunked with MessageEntity {
+  final case class Chunked(
+      contentType: ContentType, chunks: Source[ChunkStreamPart, Any])
+      extends jm.HttpEntity.Chunked with MessageEntity {
 
-    override def isKnownEmpty = chunks eq Source.empty
+    override def isKnownEmpty                      = chunks eq Source.empty
     override def contentLengthOption: Option[Long] = None
 
     override def isChunked: Boolean = true
 
-    override def dataBytes: Source[ByteString, Any] = chunks.map(_.data).filter(_.nonEmpty)
+    override def dataBytes: Source[ByteString, Any] =
+      chunks.map(_.data).filter(_.nonEmpty)
 
     override def withSizeLimit(maxBytes: Long): HttpEntity.Chunked =
       copy(chunks = chunks withAttributes Attributes(SizeLimit(maxBytes)))
@@ -445,33 +510,39 @@ object HttpEntity {
     override def withoutSizeLimit: HttpEntity.Chunked =
       withSizeLimit(SizeLimit.Disabled)
 
-    override def transformDataBytes(transformer: Flow[ByteString, ByteString, Any]): HttpEntity.Chunked = {
+    override def transformDataBytes(
+        transformer: Flow[ByteString, ByteString, Any]): HttpEntity.Chunked = {
       val newData =
         chunks.map {
           case Chunk(data, "")    ⇒ data
           case LastChunk("", Nil) ⇒ ByteString.empty
           case _ ⇒
-            throw new IllegalArgumentException("Chunked.transformDataBytes not allowed for chunks with metadata")
+            throw new IllegalArgumentException(
+                "Chunked.transformDataBytes not allowed for chunks with metadata")
         } via transformer
 
       HttpEntity.Chunked.fromData(contentType, newData)
     }
 
     def withContentType(contentType: ContentType): HttpEntity.Chunked =
-      if (contentType == this.contentType) this else copy(contentType = contentType)
+      if (contentType == this.contentType) this
+      else copy(contentType = contentType)
 
     override def productPrefix = "HttpEntity.Chunked"
 
     /** Java API */
     def getChunks: stream.javadsl.Source[jm.HttpEntity.ChunkStreamPart, AnyRef] =
-      stream.javadsl.Source.fromGraph(chunks.asInstanceOf[Source[jm.HttpEntity.ChunkStreamPart, AnyRef]])
+      stream.javadsl.Source.fromGraph(
+          chunks.asInstanceOf[Source[jm.HttpEntity.ChunkStreamPart, AnyRef]])
   }
   object Chunked {
+
     /**
      * Returns a `Chunked` entity where one Chunk is produced for every non-empty ByteString produced by the given
      * `Source`.
      */
-    def fromData(contentType: ContentType, chunks: Source[ByteString, Any]): HttpEntity.Chunked =
+    def fromData(contentType: ContentType,
+                 chunks: Source[ByteString, Any]): HttpEntity.Chunked =
       HttpEntity.Chunked(contentType, chunks.collect[ChunkStreamPart] {
         case b: ByteString if b.nonEmpty ⇒ Chunk(b)
       })
@@ -487,23 +558,25 @@ object HttpEntity {
     def isLastChunk: Boolean
   }
   object ChunkStreamPart {
-    implicit def apply(string: String): ChunkStreamPart = Chunk(string)
+    implicit def apply(string: String): ChunkStreamPart     = Chunk(string)
     implicit def apply(bytes: Array[Byte]): ChunkStreamPart = Chunk(bytes)
-    implicit def apply(bytes: ByteString): ChunkStreamPart = Chunk(bytes)
+    implicit def apply(bytes: ByteString): ChunkStreamPart  = Chunk(bytes)
   }
 
   /**
    * An intermediate entity chunk guaranteed to carry non-empty data.
    */
-  final case class Chunk(data: ByteString, extension: String = "") extends HttpEntity.ChunkStreamPart {
+  final case class Chunk(data: ByteString, extension: String = "")
+      extends HttpEntity.ChunkStreamPart {
     require(data.nonEmpty, "An HttpEntity.Chunk must have non-empty data")
     def isLastChunk = false
 
     /** Java API */
-    def getTrailerHeaders: JIterable[jm.HttpHeader] = java.util.Collections.emptyList[jm.HttpHeader]
+    def getTrailerHeaders: JIterable[jm.HttpHeader] =
+      java.util.Collections.emptyList[jm.HttpHeader]
   }
   object Chunk {
-    def apply(string: String): Chunk = apply(ByteString(string))
+    def apply(string: String): Chunk     = apply(ByteString(string))
     def apply(bytes: Array[Byte]): Chunk = apply(ByteString(bytes))
   }
 
@@ -512,8 +585,10 @@ object HttpEntity {
    * If you don't need extensions or trailer headers you can save an allocation
    * by directly using the `LastChunk` companion object.
    */
-  case class LastChunk(extension: String = "", trailer: immutable.Seq[HttpHeader] = Nil) extends HttpEntity.ChunkStreamPart {
-    def data = ByteString.empty
+  case class LastChunk(
+      extension: String = "", trailer: immutable.Seq[HttpHeader] = Nil)
+      extends HttpEntity.ChunkStreamPart {
+    def data        = ByteString.empty
     def isLastChunk = true
 
     /** Java API */
@@ -525,29 +600,32 @@ object HttpEntity {
    * Turns the given source into one that respects the `withSizeLimit` calls when used as a parameter
    * to entity constructors.
    */
-  def limitableByteSource[Mat](source: Source[ByteString, Mat]): Source[ByteString, Mat] =
+  def limitableByteSource[Mat](
+      source: Source[ByteString, Mat]): Source[ByteString, Mat] =
     limitable(source, sizeOfByteString)
 
   /**
    * Turns the given source into one that respects the `withSizeLimit` calls when used as a parameter
    * to entity constructors.
    */
-  def limitableChunkSource[Mat](source: Source[ChunkStreamPart, Mat]): Source[ChunkStreamPart, Mat] =
+  def limitableChunkSource[Mat](
+      source: Source[ChunkStreamPart, Mat]): Source[ChunkStreamPart, Mat] =
     limitable(source, sizeOfChunkStreamPart)
 
   /**
    * INTERNAL API
    */
-  private val sizeOfByteString: ByteString ⇒ Int = _.size
+  private val sizeOfByteString: ByteString ⇒ Int           = _.size
   private val sizeOfChunkStreamPart: ChunkStreamPart ⇒ Int = _.data.size
 
   /**
    * INTERNAL API
    */
-  private def limitable[Out, Mat](source: Source[Out, Mat], sizeOf: Out ⇒ Int): Source[Out, Mat] =
+  private def limitable[Out, Mat](
+      source: Source[Out, Mat], sizeOf: Out ⇒ Int): Source[Out, Mat] =
     source.via(Flow[Out].transform { () ⇒
       new PushStage[Out, Out] {
-        var maxBytes = -1L
+        var maxBytes  = -1L
         var bytesLeft = Long.MaxValue
 
         override def preStart(ctx: LifecycleContext) =
@@ -555,7 +633,8 @@ object HttpEntity {
             case Some(limit: SizeLimit) if limit.isDisabled ⇒
             // "no limit"
             case Some(SizeLimit(bytes, cl @ Some(contentLength))) ⇒
-              if (contentLength > bytes) throw EntityStreamSizeException(bytes, cl)
+              if (contentLength > bytes)
+                throw EntityStreamSizeException(bytes, cl)
             // else we still count but never throw an error
             case Some(SizeLimit(bytes, None)) ⇒
               maxBytes = bytes
@@ -574,7 +653,9 @@ object HttpEntity {
   /**
    * INTERNAL API
    */
-  private final case class SizeLimit(maxBytes: Long, contentLength: Option[Long] = None) extends Attributes.Attribute {
+  private final case class SizeLimit(
+      maxBytes: Long, contentLength: Option[Long] = None)
+      extends Attributes.Attribute {
     def isDisabled = maxBytes < 0
   }
   private object SizeLimit {
@@ -584,20 +665,20 @@ object HttpEntity {
   /**
    * INTERNAL API
    */
-  private[http] def captureTermination[T <: HttpEntity](entity: T): (T, Future[Unit]) =
-    entity match {
-      case x: HttpEntity.Strict ⇒ x.asInstanceOf[T] -> FastFuture.successful(())
-      case x: HttpEntity.Default ⇒
-        val (newData, whenCompleted) = StreamUtils.captureTermination(x.data)
-        x.copy(data = newData).asInstanceOf[T] -> whenCompleted
-      case x: HttpEntity.Chunked ⇒
-        val (newChunks, whenCompleted) = StreamUtils.captureTermination(x.chunks)
-        x.copy(chunks = newChunks).asInstanceOf[T] -> whenCompleted
-      case x: HttpEntity.CloseDelimited ⇒
-        val (newData, whenCompleted) = StreamUtils.captureTermination(x.data)
-        x.copy(data = newData).asInstanceOf[T] -> whenCompleted
-      case x: HttpEntity.IndefiniteLength ⇒
-        val (newData, whenCompleted) = StreamUtils.captureTermination(x.data)
-        x.copy(data = newData).asInstanceOf[T] -> whenCompleted
-    }
+  private[http] def captureTermination[T <: HttpEntity](
+      entity: T): (T, Future[Unit]) = entity match {
+    case x: HttpEntity.Strict ⇒ x.asInstanceOf[T] -> FastFuture.successful(())
+    case x: HttpEntity.Default ⇒
+      val (newData, whenCompleted) = StreamUtils.captureTermination(x.data)
+      x.copy(data = newData).asInstanceOf[T] -> whenCompleted
+    case x: HttpEntity.Chunked ⇒
+      val (newChunks, whenCompleted) = StreamUtils.captureTermination(x.chunks)
+      x.copy(chunks = newChunks).asInstanceOf[T] -> whenCompleted
+    case x: HttpEntity.CloseDelimited ⇒
+      val (newData, whenCompleted) = StreamUtils.captureTermination(x.data)
+      x.copy(data = newData).asInstanceOf[T] -> whenCompleted
+    case x: HttpEntity.IndefiniteLength ⇒
+      val (newData, whenCompleted) = StreamUtils.captureTermination(x.data)
+      x.copy(data = newData).asInstanceOf[T] -> whenCompleted
+  }
 }

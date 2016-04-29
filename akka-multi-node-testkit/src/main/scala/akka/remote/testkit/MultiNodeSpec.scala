@@ -4,20 +4,20 @@
 package akka.remote.testkit
 
 import language.implicitConversions
-import java.net.{ InetAddress, InetSocketAddress }
-import com.typesafe.config.{ ConfigObject, ConfigFactory, Config }
-import scala.concurrent.{ Await, Awaitable }
+import java.net.{InetAddress, InetSocketAddress}
+import com.typesafe.config.{ConfigObject, ConfigFactory, Config}
+import scala.concurrent.{Await, Awaitable}
 import scala.util.control.NonFatal
 import scala.collection.immutable
 import akka.actor._
 import akka.util.Timeout
-import akka.remote.testconductor.{ TestConductorExt, TestConductor, RoleName }
+import akka.remote.testconductor.{TestConductorExt, TestConductor, RoleName}
 import akka.testkit._
 import akka.testkit.TestEvent._
 import scala.concurrent.duration._
 import akka.remote.testconductor.RoleName
 import akka.actor.RootActorPath
-import akka.event.{ Logging, LoggingAdapter }
+import akka.event.{Logging, LoggingAdapter}
 
 /**
  * Configure the role names and participants of the test, including configuration settings.
@@ -25,11 +25,11 @@ import akka.event.{ Logging, LoggingAdapter }
 abstract class MultiNodeConfig {
 
   private var _commonConf: Option[Config] = None
-  private var _nodeConf = Map[RoleName, Config]()
-  private var _roles = Vector[RoleName]()
-  private var _deployments = Map[RoleName, immutable.Seq[String]]()
-  private var _allDeploy = Vector[String]()
-  private var _testTransport = false
+  private var _nodeConf                   = Map[RoleName, Config]()
+  private var _roles                      = Vector[RoleName]()
+  private var _deployments                = Map[RoleName, immutable.Seq[String]]()
+  private var _allDeploy                  = Vector[String]()
+  private var _testTransport              = false
 
   /**
    * Register a common base config for all test participants, if so desired.
@@ -62,8 +62,7 @@ abstract class MultiNodeConfig {
         }
         akka.remote.log-remote-lifecycle-events = on
         """)
-    else
-      ConfigFactory.empty
+    else ConfigFactory.empty
 
   /**
    * Construct a RoleName and return it, to be used as an identifier in the
@@ -71,14 +70,16 @@ abstract class MultiNodeConfig {
    * filled.
    */
   def role(name: String): RoleName = {
-    if (_roles exists (_.name == name)) throw new IllegalArgumentException("non-unique role name " + name)
+    if (_roles exists (_.name == name))
+      throw new IllegalArgumentException("non-unique role name " + name)
     val r = RoleName(name)
     _roles :+= r
     r
   }
 
   def deployOn(role: RoleName, deployment: String): Unit =
-    _deployments += role -> ((_deployments get role getOrElse Vector()) :+ deployment)
+    _deployments += role ->
+    ((_deployments get role getOrElse Vector()) :+ deployment)
 
   def deployOnAll(deployment: String): Unit = _allDeploy :+= deployment
 
@@ -90,26 +91,28 @@ abstract class MultiNodeConfig {
   def testTransport(on: Boolean): Unit = _testTransport = on
 
   private[testkit] lazy val myself: RoleName = {
-    require(_roles.size > MultiNodeSpec.selfIndex, "not enough roles declared for this test")
+    require(_roles.size > MultiNodeSpec.selfIndex,
+            "not enough roles declared for this test")
     _roles(MultiNodeSpec.selfIndex)
   }
 
   private[testkit] def config: Config = {
     val transportConfig =
-      if (_testTransport) ConfigFactory.parseString(
-        """
+      if (_testTransport)
+        ConfigFactory.parseString("""
            akka.remote.netty.tcp.applied-adapters = [trttl, gremlin]
         """)
       else ConfigFactory.empty
 
-    val configs = (_nodeConf get myself).toList ::: _commonConf.toList ::: transportConfig :: MultiNodeSpec.nodeConfig :: MultiNodeSpec.baseConfig :: Nil
+    val configs =
+      (_nodeConf get myself).toList ::: _commonConf.toList ::: transportConfig :: MultiNodeSpec.nodeConfig :: MultiNodeSpec.baseConfig :: Nil
     configs reduceLeft (_ withFallback _)
   }
 
-  private[testkit] def deployments(node: RoleName): immutable.Seq[String] = (_deployments get node getOrElse Nil) ++ _allDeploy
+  private[testkit] def deployments(node: RoleName): immutable.Seq[String] =
+    (_deployments get node getOrElse Nil) ++ _allDeploy
 
   private[testkit] def roles: immutable.Seq[RoleName] = _roles
-
 }
 
 object MultiNodeSpec {
@@ -121,8 +124,10 @@ object MultiNodeSpec {
    * -Dmultinode.max-nodes=4
    * }}}
    */
-  val maxNodes: Int = Option(Integer.getInteger("multinode.max-nodes")) getOrElse
-    (throw new IllegalStateException("need system property multinode.max-nodes to be set"))
+  val maxNodes: Int =
+    Option(Integer.getInteger("multinode.max-nodes")) getOrElse
+    (throw new IllegalStateException(
+            "need system property multinode.max-nodes to be set"))
 
   require(maxNodes > 0, "multinode.max-nodes must be greater than 0")
 
@@ -138,7 +143,9 @@ object MultiNodeSpec {
    * is defined as system property "multinode.host".
    */
   val selfName: String = Option(System.getProperty("multinode.host")) match {
-    case None       ⇒ throw new IllegalStateException("need system property multinode.host to be set")
+    case None ⇒
+      throw new IllegalStateException(
+          "need system property multinode.host to be set")
     case Some("")   ⇒ InetAddress.getLocalHost.getHostAddress
     case Some(host) ⇒ host
   }
@@ -154,7 +161,8 @@ object MultiNodeSpec {
    */
   val selfPort: Int = Integer.getInteger("multinode.port", 0)
 
-  require(selfPort >= 0 && selfPort < 65535, "multinode.port is out of bounds: " + selfPort)
+  require(selfPort >= 0 && selfPort < 65535,
+          "multinode.port is out of bounds: " + selfPort)
 
   /**
    * Name (or IP address; must be resolvable using InetAddress.getByName)
@@ -164,8 +172,10 @@ object MultiNodeSpec {
    * -Dmultinode.server-host=server.example.com
    * }}}
    */
-  val serverName: String = Option(System.getProperty("multinode.server-host")) getOrElse
-    (throw new IllegalStateException("need system property multinode.server-host to be set"))
+  val serverName: String =
+    Option(System.getProperty("multinode.server-host")) getOrElse
+    (throw new IllegalStateException(
+            "need system property multinode.server-host to be set"))
 
   require(serverName != "", "multinode.server-host must not be empty")
 
@@ -178,7 +188,8 @@ object MultiNodeSpec {
    */
   val serverPort: Int = Integer.getInteger("multinode.server-port", 4711)
 
-  require(serverPort > 0 && serverPort < 65535, "multinode.server-port is out of bounds: " + serverPort)
+  require(serverPort > 0 && serverPort < 65535,
+          "multinode.server-port is out of bounds: " + serverPort)
 
   /**
    * Index of this node in the roles sequence. The TestConductor
@@ -189,17 +200,21 @@ object MultiNodeSpec {
    * -Dmultinode.index=0
    * }}}
    */
-  val selfIndex = Option(Integer.getInteger("multinode.index")) getOrElse
-    (throw new IllegalStateException("need system property multinode.index to be set"))
+  val selfIndex =
+    Option(Integer.getInteger("multinode.index")) getOrElse
+    (throw new IllegalStateException(
+            "need system property multinode.index to be set"))
 
-  require(selfIndex >= 0 && selfIndex < maxNodes, "multinode.index is out of bounds: " + selfIndex)
+  require(selfIndex >= 0 && selfIndex < maxNodes,
+          "multinode.index is out of bounds: " + selfIndex)
 
-  private[testkit] val nodeConfig = mapToConfig(Map(
-    "akka.actor.provider" -> "akka.remote.RemoteActorRefProvider",
-    "akka.remote.netty.tcp.hostname" -> selfName,
-    "akka.remote.netty.tcp.port" -> selfPort))
+  private[testkit] val nodeConfig = mapToConfig(
+      Map("akka.actor.provider"            -> "akka.remote.RemoteActorRefProvider",
+          "akka.remote.netty.tcp.hostname" -> selfName,
+          "akka.remote.netty.tcp.port"     -> selfPort))
 
-  private[testkit] val baseConfig: Config = ConfigFactory.parseString("""
+  private[testkit] val baseConfig: Config =
+    ConfigFactory.parseString("""
       akka {
         loggers = ["akka.testkit.TestEventListener"]
         loglevel = "WARNING"
@@ -223,7 +238,9 @@ object MultiNodeSpec {
   }
 
   private def getCallerName(clazz: Class[_]): String = {
-    val s = Thread.currentThread.getStackTrace map (_.getClassName) drop 1 dropWhile (_ matches ".*MultiNodeSpec.?$")
+    val s =
+      Thread.currentThread.getStackTrace map (_.getClassName) drop 1 dropWhile
+      (_ matches ".*MultiNodeSpec.?$")
     val reduced = s.lastIndexWhere(_ == clazz.getName) match {
       case -1 ⇒ s
       case z  ⇒ s drop (z + 1)
@@ -240,14 +257,20 @@ object MultiNodeSpec {
  * `AskTimeoutException: sending to terminated ref breaks promises`. Using lazy
  * val is fine.
  */
-abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles: immutable.Seq[RoleName], deployments: RoleName ⇒ Seq[String])
-  extends TestKit(_system) with MultiNodeSpecCallbacks {
+abstract class MultiNodeSpec(val myself: RoleName,
+                             _system: ActorSystem,
+                             _roles: immutable.Seq[RoleName],
+                             deployments: RoleName ⇒ Seq[String])
+    extends TestKit(_system) with MultiNodeSpecCallbacks {
 
   import MultiNodeSpec._
 
   def this(config: MultiNodeConfig) =
-    this(config.myself, ActorSystem(MultiNodeSpec.getCallerName(classOf[MultiNodeSpec]), ConfigFactory.load(config.config)),
-      config.roles, config.deployments)
+    this(config.myself,
+         ActorSystem(MultiNodeSpec.getCallerName(classOf[MultiNodeSpec]),
+                     ConfigFactory.load(config.config)),
+         config.roles,
+         config.deployments)
 
   val log: LoggingAdapter = Logging(system, this.getClass)
 
@@ -257,7 +280,9 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
    */
   implicit def awaitHelper[T](w: Awaitable[T]) = new AwaitHelper(w)
   class AwaitHelper[T](w: Awaitable[T]) {
-    def await: T = Await.result(w, remainingOr(testConductor.Settings.QueryTimeout.duration))
+    def await: T =
+      Await.result(
+          w, remainingOr(testConductor.Settings.QueryTimeout.duration))
   }
 
   final override def multiNodeSpecBeforeAll {
@@ -288,8 +313,8 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
   def verifySystemShutdown: Boolean = false
 
   /*
-  * Test Class Interface
-  */
+   * Test Class Interface
+   */
 
   /**
    * Override this method to do something when the whole test is starting up.
@@ -316,7 +341,9 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
    * }}}
    */
   def initialParticipants: Int
-  require(initialParticipants > 0, "initialParticipants must be a 'def' or early initializer, and it must be greater zero")
+  require(
+      initialParticipants > 0,
+      "initialParticipants must be a 'def' or early initializer, and it must be greater zero")
   require(initialParticipants <= maxNodes, "not enough nodes to run this test")
 
   /**
@@ -347,8 +374,9 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
    */
   def enterBarrier(name: String*): Unit =
     testConductor.enter(
-      Timeout.durationToTimeout(remainingOr(testConductor.Settings.BarrierTimeout.duration)),
-      name.to[immutable.Seq])
+        Timeout.durationToTimeout(
+            remainingOr(testConductor.Settings.BarrierTimeout.duration)),
+        name.to[immutable.Seq])
 
   /**
    * Query the controller for the transport address of the given node (by role name) and
@@ -358,15 +386,17 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
    * val serviceA = system.actorSelection(node("master") / "user" / "serviceA")
    * }}}
    */
-  def node(role: RoleName): ActorPath = RootActorPath(testConductor.getAddressFor(role).await)
+  def node(role: RoleName): ActorPath =
+    RootActorPath(testConductor.getAddressFor(role).await)
 
-  def muteDeadLetters(messageClasses: Class[_]*)(sys: ActorSystem = system): Unit =
-    if (!sys.log.isDebugEnabled) {
-      def mute(clazz: Class[_]): Unit =
-        sys.eventStream.publish(Mute(DeadLettersFilter(clazz)(occurrences = Int.MaxValue)))
-      if (messageClasses.isEmpty) mute(classOf[AnyRef])
-      else messageClasses foreach mute
-    }
+  def muteDeadLetters(messageClasses: Class[_]*)(
+      sys: ActorSystem = system): Unit = if (!sys.log.isDebugEnabled) {
+    def mute(clazz: Class[_]): Unit =
+      sys.eventStream.publish(
+          Mute(DeadLettersFilter(clazz)(occurrences = Int.MaxValue)))
+    if (messageClasses.isEmpty) mute(classOf[AnyRef])
+    else messageClasses foreach mute
+  }
 
   /*
    * Implementation (i.e. wait for start etc.)
@@ -377,11 +407,12 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
   protected def attachConductor(tc: TestConductorExt): Unit = {
     val timeout = tc.Settings.BarrierTimeout.duration
     val startFuture =
-      if (selfIndex == 0) tc.startController(initialParticipants, myself, controllerAddr)
+      if (selfIndex == 0)
+        tc.startController(initialParticipants, myself, controllerAddr)
       else tc.startClient(myself, controllerAddr)
-    try Await.result(startFuture, timeout)
-    catch {
-      case NonFatal(x) ⇒ throw new RuntimeException("failure while attaching new conductor", x)
+    try Await.result(startFuture, timeout) catch {
+      case NonFatal(x) ⇒
+        throw new RuntimeException("failure while attaching new conductor", x)
     }
     testConductor = tc
   }
@@ -404,14 +435,13 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
           base.indexOf(tag) match {
             case -1 ⇒ base
             case start ⇒
-              val replaceWith = try
-                r.addr
-              catch {
+              val replaceWith = try r.addr catch {
                 case NonFatal(e) ⇒
                   // might happen if all test cases are ignored (excluded) and
                   // controller node is finished/exited before r.addr is run
                   // on the other nodes
-                  val unresolved = "akka://unresolved-replacement-" + r.role.name
+                  val unresolved =
+                    "akka://unresolved-replacement-" + r.role.name
                   log.warning(unresolved + " due to: " + e.getMessage)
                   unresolved
               }
@@ -420,15 +450,19 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
       }
       import scala.collection.JavaConverters._
       ConfigFactory.parseString(deployString).root.asScala foreach {
-        case (key, value: ConfigObject) ⇒ deployer.parseConfig(key, value.toConfig) foreach deployer.deploy
-        case (key, x)                   ⇒ throw new IllegalArgumentException(s"key $key must map to deployment section, not simple value $x")
+        case (key, value: ConfigObject) ⇒
+          deployer.parseConfig(key, value.toConfig) foreach deployer.deploy
+        case (key, x) ⇒
+          throw new IllegalArgumentException(
+              s"key $key must map to deployment section, not simple value $x")
       }
     }
   }
 
   injectDeployments(system, myself)
 
-  protected val myAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
+  protected val myAddress =
+    system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
 
   // useful to see which jvm is running which role, used by LogRoleReplace utility
   log.info("Role [{}] started with address [{}]", myself.name, myAddress)
@@ -445,7 +479,9 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
    * system.
    */
   protected def startNewSystem(): ActorSystem = {
-    val config = ConfigFactory.parseString(s"akka.remote.netty.tcp{port=${myAddress.port.get}\nhostname=${myAddress.host.get}}")
+    val config = ConfigFactory
+      .parseString(
+          s"akka.remote.netty.tcp{port=${myAddress.port.get}\nhostname=${myAddress.host.get}}")
       .withFallback(system.settings.config)
     val sys = ActorSystem(system.name, config)
     injectDeployments(sys, myself)
@@ -469,6 +505,7 @@ abstract class MultiNodeSpec(val myself: RoleName, _system: ActorSystem, _roles:
  * }}}
  */
 trait MultiNodeSpecCallbacks {
+
   /**
    * Call this before the start of the test run. NOT before every test case.
    */

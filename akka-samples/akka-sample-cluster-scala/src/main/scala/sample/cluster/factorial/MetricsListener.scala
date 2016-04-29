@@ -14,11 +14,11 @@ import akka.cluster.metrics.ClusterMetricsExtension
 
 class MetricsListener extends Actor with ActorLogging {
   val selfAddress = Cluster(context.system).selfAddress
-  val extension = ClusterMetricsExtension(context.system)
+  val extension   = ClusterMetricsExtension(context.system)
 
   // Subscribe unto ClusterMetricsEvent events.
   override def preStart(): Unit = extension.subscribe(self)
-  
+
   // Unsubscribe from ClusterMetricsEvent events.
   override def postStop(): Unit = extension.unsubscribe(self)
 
@@ -38,7 +38,12 @@ class MetricsListener extends Actor with ActorLogging {
   }
 
   def logCpu(nodeMetrics: NodeMetrics): Unit = nodeMetrics match {
-    case Cpu(address, timestamp, Some(systemLoadAverage), cpuCombined, cpuStolen, processors) =>
+    case Cpu(address,
+             timestamp,
+             Some(systemLoadAverage),
+             cpuCombined,
+             cpuStolen,
+             processors) =>
       log.info("Load: {} ({} processors)", systemLoadAverage, processors)
     case _ => // No cpu info.
   }

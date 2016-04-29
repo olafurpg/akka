@@ -1,21 +1,20 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.camel
 
-import akka.actor.{ Props, NoSerializationVerificationNeeded, ActorRef, Actor }
-import internal.CamelSupervisor.{ CamelProducerObjects, Register }
+import akka.actor.{Props, NoSerializationVerificationNeeded, ActorRef, Actor}
+import internal.CamelSupervisor.{CamelProducerObjects, Register}
 import internal.CamelExchangeAdapter
 import akka.actor.Status.Failure
-import org.apache.camel.{ Endpoint, ExchangePattern, AsyncCallback }
+import org.apache.camel.{Endpoint, ExchangePattern, AsyncCallback}
 import org.apache.camel.processor.SendProcessor
 
 /**
  * Support trait for producing messages to Camel endpoints.
  */
 trait ProducerSupport extends Actor with CamelSupport {
-  private[this] var messages = Vector.empty[(ActorRef, Any)]
+  private[this] var messages                        = Vector.empty[(ActorRef, Any)]
   private[this] var producerChild: Option[ActorRef] = None
 
   override def preStart() {
@@ -23,12 +22,15 @@ trait ProducerSupport extends Actor with CamelSupport {
     register()
   }
 
-  private[this] def register() { camel.supervisor ! Register(self, endpointUri) }
+  private[this] def register() {
+    camel.supervisor ! Register(self, endpointUri)
+  }
 
   /**
    * CamelMessage headers to copy by default from request message to response-message.
    */
-  private val headersToCopyDefault: Set[String] = Set(CamelMessage.MessageExchangeId)
+  private val headersToCopyDefault: Set[String] = Set(
+      CamelMessage.MessageExchangeId)
 
   /**
    * If set to false (default), this producer expects a response message from the Camel endpoint.
@@ -59,12 +61,11 @@ trait ProducerSupport extends Actor with CamelSupport {
   protected def produce: Receive = {
     case CamelProducerObjects(endpoint, processor) ⇒
       if (producerChild.isEmpty) {
-        producerChild = Some(context.actorOf(Props(new ProducerChild(endpoint, processor))))
+        producerChild = Some(
+            context.actorOf(Props(new ProducerChild(endpoint, processor))))
         messages = {
-          for (
-            child ← producerChild;
-            (snd, msg) ← messages
-          ) child.tell(transformOutgoingMessage(msg), snd)
+          for (child ← producerChild;
+          (snd, msg) ← messages) child.tell(transformOutgoingMessage(msg), snd)
           Vector.empty
         }
       }
@@ -102,14 +103,21 @@ trait ProducerSupport extends Actor with CamelSupport {
    * done. This method may be overridden by subtraits or subclasses (e.g. to forward responses to another
    * actor).
    */
+  protected def routeResponse(msg: Any): Unit =
+    if (!oneway) sender() ! transformResponse(msg)
 
-  protected def routeResponse(msg: Any): Unit = if (!oneway) sender() ! transformResponse(msg)
-
-  private class ProducerChild(endpoint: Endpoint, processor: SendProcessor) extends Actor {
+  private class ProducerChild(endpoint: Endpoint, processor: SendProcessor)
+      extends Actor {
     def receive = {
-      case msg @ (_: FailureResult | _: MessageResult) ⇒ context.parent forward msg
-      case msg                                         ⇒ produce(endpoint, processor, msg, if (oneway) ExchangePattern.InOnly else ExchangePattern.InOut)
+      case msg @ (_: FailureResult | _: MessageResult) ⇒
+        context.parent forward msg
+      case msg ⇒
+        produce(endpoint,
+                processor,
+                msg,
+                if (oneway) ExchangePattern.InOnly else ExchangePattern.InOut)
     }
+
     /**
      * Initiates a message exchange of given <code>pattern</code> with the endpoint specified by
      * <code>endpointUri</code>. The in-message of the initiated exchange is the canonical form
@@ -125,28 +133,37 @@ trait ProducerSupport extends Actor with CamelSupport {
      * @param msg message to produce
      * @param pattern exchange pattern
      */
-    protected def produce(endpoint: Endpoint, processor: SendProcessor, msg: Any, pattern: ExchangePattern): Unit = {
+    protected def produce(endpoint: Endpoint,
+                          processor: SendProcessor,
+                          msg: Any,
+                          pattern: ExchangePattern): Unit = {
       // Need copies of sender reference here since the callback could be done
       // later by another thread.
-      val producer = self
+      val producer       = self
       val originalSender = sender()
-      val xchg = new CamelExchangeAdapter(endpoint.createExchange(pattern))
-      val cmsg = CamelMessage.canonicalize(msg)
+      val xchg           = new CamelExchangeAdapter(endpoint.createExchange(pattern))
+      val cmsg           = CamelMessage.canonicalize(msg)
       xchg.setRequest(cmsg)
 
       processor.process(xchg.exchange, new AsyncCallback {
         // Ignoring doneSync, sending back async uniformly.
-        def done(doneSync: Boolean): Unit = producer.tell(
-          if (xchg.exchange.isFailed) xchg.toFailureResult(cmsg.headers(headersToCopy))
-          else MessageResult(xchg.toResponseMessage(cmsg.headers(headersToCopy))), originalSender)
+        def done(doneSync: Boolean): Unit =
+          producer.tell(if (xchg.exchange.isFailed)
+                          xchg.toFailureResult(cmsg.headers(headersToCopy))
+                        else
+                          MessageResult(xchg.toResponseMessage(
+                                  cmsg.headers(headersToCopy))),
+                        originalSender)
       })
     }
   }
 }
+
 /**
  * Mixed in by Actor implementations to produce messages to Camel endpoints.
  */
-trait Producer extends ProducerSupport { this: Actor ⇒
+trait Producer extends ProducerSupport {
+  this: Actor ⇒
 
   /**
    * Implementation of Actor.receive. Any messages received by this actor
@@ -158,19 +175,22 @@ trait Producer extends ProducerSupport { this: Actor ⇒
 /**
  * INTERNAL API
  */
-private final case class MessageResult(message: CamelMessage) extends NoSerializationVerificationNeeded
+private final case class MessageResult(message: CamelMessage)
+    extends NoSerializationVerificationNeeded
 
 /**
  * INTERNAL API
  */
-private final case class FailureResult(cause: Throwable, headers: Map[String, Any] = Map.empty) extends NoSerializationVerificationNeeded
+private final case class FailureResult(
+    cause: Throwable, headers: Map[String, Any] = Map.empty)
+    extends NoSerializationVerificationNeeded
 
 /**
  * A one-way producer.
  *
  *
  */
-trait Oneway extends Producer { this: Actor ⇒
+trait Oneway extends Producer {
+  this: Actor ⇒
   override def oneway: Boolean = true
 }
-

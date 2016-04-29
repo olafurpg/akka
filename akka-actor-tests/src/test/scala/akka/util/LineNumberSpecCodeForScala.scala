@@ -11,9 +11,10 @@ object LineNumberSpecCodeForScala {
 
   val oneline = (s: String) ⇒ println(s)
 
-  val twoline = (s: String) ⇒ {
-    println(s)
-    Integer.parseInt(s)
+  val twoline = (s: String) ⇒
+    {
+      println(s)
+      Integer.parseInt(s)
   }
 
   val partial: PartialFunction[String, Unit] = {

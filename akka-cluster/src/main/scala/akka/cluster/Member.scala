@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster
 
 import akka.actor.Address
@@ -14,11 +13,12 @@ import MemberStatus._
  * and roles.
  */
 @SerialVersionUID(1L)
-class Member private[cluster] (
-  val uniqueAddress: UniqueAddress,
-  private[cluster] val upNumber: Int, // INTERNAL API
-  val status: MemberStatus,
-  val roles: Set[String]) extends Serializable {
+class Member private[cluster](
+    val uniqueAddress: UniqueAddress,
+    private[cluster] val upNumber: Int, // INTERNAL API
+    val status: MemberStatus,
+    val roles: Set[String])
+    extends Serializable {
 
   def address: Address = uniqueAddress.address
 
@@ -46,15 +46,14 @@ class Member private[cluster] (
   def isOlderThan(other: Member): Boolean =
     if (upNumber == other.upNumber)
       Member.addressOrdering.compare(address, other.address) < 0
-    else
-      upNumber < other.upNumber
+    else upNumber < other.upNumber
 
   def copy(status: MemberStatus): Member = {
     val oldStatus = this.status
     if (status == oldStatus) this
     else {
       require(allowedTransitions(oldStatus)(status),
-        s"Invalid member status transition [ ${this} -> ${status}]")
+              s"Invalid member status transition [ ${this} -> ${status}]")
       new Member(uniqueAddress, upNumber, status, roles)
     }
   }
@@ -75,44 +74,49 @@ object Member {
    * INTERNAL API
    * Create a new member with status Joining.
    */
-  private[cluster] def apply(uniqueAddress: UniqueAddress, roles: Set[String]): Member =
+  private[cluster] def apply(
+      uniqueAddress: UniqueAddress, roles: Set[String]): Member =
     new Member(uniqueAddress, Int.MaxValue, Joining, roles)
 
   /**
    * INTERNAL API
    */
-  private[cluster] def removed(node: UniqueAddress): Member = new Member(node, Int.MaxValue, Removed, Set.empty)
+  private[cluster] def removed(node: UniqueAddress): Member =
+    new Member(node, Int.MaxValue, Removed, Set.empty)
 
   /**
    * `Address` ordering type class, sorts addresses by host and port.
    */
-  implicit val addressOrdering: Ordering[Address] = Ordering.fromLessThan[Address] { (a, b) ⇒
-    // cluster node identifier is the host and port of the address; protocol and system is assumed to be the same
-    if (a eq b) false
-    else if (a.host != b.host) a.host.getOrElse("").compareTo(b.host.getOrElse("")) < 0
-    else if (a.port != b.port) a.port.getOrElse(0) < b.port.getOrElse(0)
-    else false
-  }
+  implicit val addressOrdering: Ordering[Address] =
+    Ordering.fromLessThan[Address] { (a, b) ⇒
+      // cluster node identifier is the host and port of the address; protocol and system is assumed to be the same
+      if (a eq b) false
+      else if (a.host != b.host)
+        a.host.getOrElse("").compareTo(b.host.getOrElse("")) < 0
+      else if (a.port != b.port) a.port.getOrElse(0) < b.port.getOrElse(0)
+      else false
+    }
 
   /**
    * INTERNAL API
    * Orders the members by their address except that members with status
    * Joining, Exiting and Down are ordered last (in that order).
    */
-  private[cluster] val leaderStatusOrdering: Ordering[Member] = Ordering.fromLessThan[Member] { (a, b) ⇒
-    (a.status, b.status) match {
-      case (as, bs) if as == bs ⇒ ordering.compare(a, b) <= 0
-      case (Down, _)            ⇒ false
-      case (_, Down)            ⇒ true
-      case (Exiting, _)         ⇒ false
-      case (_, Exiting)         ⇒ true
-      case (Joining, _)         ⇒ false
-      case (_, Joining)         ⇒ true
-      case (WeaklyUp, _)        ⇒ false
-      case (_, WeaklyUp)        ⇒ true
-      case _                    ⇒ ordering.compare(a, b) <= 0
+  private[cluster] val leaderStatusOrdering: Ordering[Member] =
+    Ordering.fromLessThan[Member] { (a, b) ⇒
+      (a.status, b.status) match {
+        case (as, bs) if as == bs ⇒ ordering.compare(a, b) <= 0
+        case (Down, _)            ⇒ false
+        case (_, Down)            ⇒ true
+        case (Exiting, _)         ⇒ false
+        case (_, Exiting)         ⇒ true
+        case (Joining, _)         ⇒ false
+        case (_, Joining)         ⇒ true
+        case (WeaklyUp, _)        ⇒ false
+        case (_, WeaklyUp)        ⇒ true
+        case _                    ⇒ ordering.compare(a, b) <= 0
+      }
     }
-  }
 
   /**
    * `Member` ordering type class, sorts members by host and port.
@@ -126,8 +130,8 @@ object Member {
   /**
    * Sort members by age, i.e. using [[Member#isOlderThan]].
    */
-  val ageOrdering: Ordering[Member] = Ordering.fromLessThan[Member] {
-    (a, b) ⇒ a.isOlderThan(b)
+  val ageOrdering: Ordering[Member] = Ordering.fromLessThan[Member] { (a, b) ⇒
+    a.isOlderThan(b)
   }
 
   def pickHighestPriority(a: Set[Member], b: Set[Member]): Set[Member] = {
@@ -139,7 +143,8 @@ object Member {
         if (members.size == 2) acc + members.reduceLeft(highestPriorityOf)
         else {
           val m = members.head
-          if (Gossip.removeUnreachableWithMemberStatus(m.status)) acc // removed
+          if (Gossip.removeUnreachableWithMemberStatus(m.status))
+            acc // removed
           else acc + m
         }
     }
@@ -152,23 +157,23 @@ object Member {
     if (m1.status == m2.status)
       // preserve the oldest in case of different upNumber
       if (m1.isOlderThan(m2)) m1 else m2
-    else (m1.status, m2.status) match {
-      case (Removed, _)  ⇒ m1
-      case (_, Removed)  ⇒ m2
-      case (Down, _)     ⇒ m1
-      case (_, Down)     ⇒ m2
-      case (Exiting, _)  ⇒ m1
-      case (_, Exiting)  ⇒ m2
-      case (Leaving, _)  ⇒ m1
-      case (_, Leaving)  ⇒ m2
-      case (Joining, _)  ⇒ m2
-      case (_, Joining)  ⇒ m1
-      case (WeaklyUp, _) ⇒ m2
-      case (_, WeaklyUp) ⇒ m1
-      case (Up, Up)      ⇒ m1
-    }
+    else
+      (m1.status, m2.status) match {
+        case (Removed, _)  ⇒ m1
+        case (_, Removed)  ⇒ m2
+        case (Down, _)     ⇒ m1
+        case (_, Down)     ⇒ m2
+        case (Exiting, _)  ⇒ m1
+        case (_, Exiting)  ⇒ m2
+        case (Leaving, _)  ⇒ m1
+        case (_, Leaving)  ⇒ m2
+        case (Joining, _)  ⇒ m2
+        case (_, Joining)  ⇒ m1
+        case (WeaklyUp, _) ⇒ m2
+        case (_, WeaklyUp) ⇒ m1
+        case (Up, Up)      ⇒ m1
+      }
   }
-
 }
 
 /**
@@ -179,17 +184,25 @@ object Member {
 sealed abstract class MemberStatus
 
 object MemberStatus {
-  @SerialVersionUID(1L) case object Joining extends MemberStatus
+  @SerialVersionUID(1L)
+  case object Joining extends MemberStatus
+
   /**
    * WeaklyUp is an EXPERIMENTAL feature and is subject to change until
    * it has received more real world testing.
    */
-  @SerialVersionUID(1L) case object WeaklyUp extends MemberStatus
-  @SerialVersionUID(1L) case object Up extends MemberStatus
-  @SerialVersionUID(1L) case object Leaving extends MemberStatus
-  @SerialVersionUID(1L) case object Exiting extends MemberStatus
-  @SerialVersionUID(1L) case object Down extends MemberStatus
-  @SerialVersionUID(1L) case object Removed extends MemberStatus
+  @SerialVersionUID(1L)
+  case object WeaklyUp extends MemberStatus
+  @SerialVersionUID(1L)
+  case object Up extends MemberStatus
+  @SerialVersionUID(1L)
+  case object Leaving extends MemberStatus
+  @SerialVersionUID(1L)
+  case object Exiting extends MemberStatus
+  @SerialVersionUID(1L)
+  case object Down extends MemberStatus
+  @SerialVersionUID(1L)
+  case object Removed extends MemberStatus
 
   /**
    * Java API: retrieve the “joining” status singleton
@@ -232,14 +245,13 @@ object MemberStatus {
    * INTERNAL API
    */
   private[cluster] val allowedTransitions: Map[MemberStatus, Set[MemberStatus]] =
-    Map(
-      Joining -> Set(WeaklyUp, Up, Down, Removed),
-      WeaklyUp -> Set(Up, Down, Removed),
-      Up -> Set(Leaving, Down, Removed),
-      Leaving -> Set(Exiting, Down, Removed),
-      Down -> Set(Removed),
-      Exiting -> Set(Removed, Down),
-      Removed -> Set.empty[MemberStatus])
+    Map(Joining  -> Set(WeaklyUp, Up, Down, Removed),
+        WeaklyUp -> Set(Up, Down, Removed),
+        Up       -> Set(Leaving, Down, Removed),
+        Leaving  -> Set(Exiting, Down, Removed),
+        Down     -> Set(Removed),
+        Exiting  -> Set(Removed, Down),
+        Removed  -> Set.empty[MemberStatus])
 }
 
 /**
@@ -248,12 +260,14 @@ object MemberStatus {
  * incarnations of a member with same hostname and port.
  */
 @SerialVersionUID(1L)
-final case class UniqueAddress(address: Address, uid: Int) extends Ordered[UniqueAddress] {
+final case class UniqueAddress(address: Address, uid: Int)
+    extends Ordered[UniqueAddress] {
   override def hashCode = uid
 
   def compare(that: UniqueAddress): Int = {
     val result = Member.addressOrdering.compare(this.address, that.address)
-    if (result == 0) if (this.uid < that.uid) -1 else if (this.uid == that.uid) 0 else 1
+    if (result == 0)
+      if (this.uid < that.uid) -1 else if (this.uid == that.uid) 0 else 1
     else result
   }
 }

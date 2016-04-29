@@ -5,11 +5,11 @@ package akka.http.scaladsl.server.directives
 
 import java.io.File
 
-import akka.http.scaladsl.server.{ MissingFormFieldRejection, Directive1 }
-import akka.http.scaladsl.model.{ ContentType, Multipart }
+import akka.http.scaladsl.server.{MissingFormFieldRejection, Directive1}
+import akka.http.scaladsl.model.{ContentType, Multipart}
 import akka.util.ByteString
 import scala.concurrent.Future
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 import akka.stream.scaladsl._
 
 /**
@@ -38,9 +38,9 @@ trait FileUploadDirectives {
 
       fileUpload(fieldName).flatMap {
         case (fileInfo, bytes) ⇒
-
           val destination = File.createTempFile("akka-http-upload", ".tmp")
-          val uploadedF: Future[(FileInfo, File)] = bytes.runWith(FileIO.toFile(destination))
+          val uploadedF: Future[(FileInfo, File)] = bytes
+            .runWith(FileIO.toFile(destination))
             .map(_ ⇒ (fileInfo, destination))
 
           onComplete[(FileInfo, File)](uploadedF).flatMap {
@@ -51,7 +51,6 @@ trait FileUploadDirectives {
             case Failure(ex) ⇒
               destination.delete()
               failWith(ex)
-
           }
       }
     }
@@ -64,22 +63,27 @@ trait FileUploadDirectives {
    *
    * @group fileupload
    */
-  def fileUpload(fieldName: String): Directive1[(FileInfo, Source[ByteString, Any])] =
+  def fileUpload(
+      fieldName: String): Directive1[(FileInfo, Source[ByteString, Any])] =
     entity(as[Multipart.FormData]).flatMap { formData ⇒
       extractRequestContext.flatMap { ctx ⇒
         implicit val mat = ctx.materializer
-        implicit val ec = ctx.executionContext
+        implicit val ec  = ctx.executionContext
 
-        val onePartSource: Source[(FileInfo, Source[ByteString, Any]), Any] = formData.parts
-          .filter(part ⇒ part.filename.isDefined && part.name == fieldName)
-          .map(part ⇒ (FileInfo(part.name, part.filename.get, part.entity.contentType), part.entity.dataBytes))
-          .take(1)
+        val onePartSource: Source[(FileInfo, Source[ByteString, Any]), Any] =
+          formData.parts
+            .filter(part ⇒ part.filename.isDefined && part.name == fieldName)
+            .map(part ⇒
+                  (FileInfo(
+                       part.name, part.filename.get, part.entity.contentType),
+                   part.entity.dataBytes))
+            .take(1)
 
-        val onePartF = onePartSource.runWith(Sink.headOption[(FileInfo, Source[ByteString, Any])])
+        val onePartF = onePartSource.runWith(
+            Sink.headOption[(FileInfo, Source[ByteString, Any])])
 
         onSuccess(onePartF)
       }
-
     }.flatMap {
       case Some(tuple) ⇒ provide(tuple)
       case None        ⇒ reject(MissingFormFieldRejection(fieldName))
@@ -95,4 +99,5 @@ object FileUploadDirectives extends FileUploadDirectives
  * @param fileName User specified name of the uploaded file
  * @param contentType Content type of the file
  */
-final case class FileInfo(fieldName: String, fileName: String, contentType: ContentType)
+final case class FileInfo(
+    fieldName: String, fileName: String, contentType: ContentType)

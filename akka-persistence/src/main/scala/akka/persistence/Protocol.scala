@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.persistence
 
 import akka.actor.NoSerializationVerificationNeeded
@@ -26,5 +25,4 @@ private[persistence] object Protocol {
    * One notable exception to this is the shared journal used for testing.
    */
   trait Message extends NoSerializationVerificationNeeded
-
 }

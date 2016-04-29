@@ -23,8 +23,8 @@ class ReceptionistSpec extends TypedSpec {
 
     def `must register a service`(): Unit = {
       val ctx = new EffectfulActorContext("register", Props(behavior), system)
-      val a = Inbox.sync[ServiceA]("a")
-      val r = Inbox.sync[Registered[_]]("r")
+      val a   = Inbox.sync[ServiceA]("a")
+      val r   = Inbox.sync[Registered[_]]("r")
       ctx.run(Register(ServiceKeyA, a.ref)(r.ref))
       ctx.getAllEffects() should be(Effect.Watched(a.ref) :: Nil)
       r.receiveMsg() should be(Registered(ServiceKeyA, a.ref))
@@ -36,7 +36,8 @@ class ReceptionistSpec extends TypedSpec {
     }
 
     def `must register two services`(): Unit = {
-      val ctx = new EffectfulActorContext("registertwo", Props(behavior), system)
+      val ctx = new EffectfulActorContext(
+          "registertwo", Props(behavior), system)
       val a = Inbox.sync[ServiceA]("a")
       val r = Inbox.sync[Registered[_]]("r")
       ctx.run(Register(ServiceKeyA, a.ref)(r.ref))
@@ -53,9 +54,10 @@ class ReceptionistSpec extends TypedSpec {
     }
 
     def `must register two services with the same key`(): Unit = {
-      val ctx = new EffectfulActorContext("registertwosame", Props(behavior), system)
+      val ctx = new EffectfulActorContext(
+          "registertwosame", Props(behavior), system)
       val a1 = Inbox.sync[ServiceA]("a1")
-      val r = Inbox.sync[Registered[_]]("r")
+      val r  = Inbox.sync[Registered[_]]("r")
       ctx.run(Register(ServiceKeyA, a1.ref)(r.ref))
       r.receiveMsg() should be(Registered(ServiceKeyA, a1.ref))
       val a2 = Inbox.sync[ServiceA]("a2")
@@ -65,12 +67,14 @@ class ReceptionistSpec extends TypedSpec {
       ctx.run(Find(ServiceKeyA)(q.ref))
       q.receiveMsg() should be(Listing(ServiceKeyA, Set(a1.ref, a2.ref)))
       ctx.run(Find(ServiceKeyB)(q.ref))
-      q.receiveMsg() should be(Listing(ServiceKeyB, Set.empty[ActorRef[ServiceB]]))
+      q.receiveMsg() should be(
+          Listing(ServiceKeyB, Set.empty[ActorRef[ServiceB]]))
       assertEmpty(a1, a2, r, q)
     }
 
     def `must unregister services when they terminate`(): Unit = {
-      val ctx = new EffectfulActorContext("registertwosame", Props(behavior), system)
+      val ctx = new EffectfulActorContext(
+          "registertwosame", Props(behavior), system)
       val r = Inbox.sync[Registered[_]]("r")
       val a = Inbox.sync[ServiceA]("a")
       ctx.run(Register(ServiceKeyA, a.ref)(r.ref))
@@ -85,7 +89,8 @@ class ReceptionistSpec extends TypedSpec {
       val c = Inbox.sync[Any]("c")
       ctx.run(Register(ServiceKeyA, c.ref)(r.ref))
       ctx.run(Register(ServiceKeyB, c.ref)(r.ref))
-      ctx.getAllEffects() should be(Seq(Effect.Watched(c.ref), Effect.Watched(c.ref)))
+      ctx.getAllEffects() should be(
+          Seq(Effect.Watched(c.ref), Effect.Watched(c.ref)))
       r.receiveMsg() should be(Registered(ServiceKeyA, c.ref))
       r.receiveMsg() should be(Registered(ServiceKeyB, c.ref))
 
@@ -103,28 +108,31 @@ class ReceptionistSpec extends TypedSpec {
       assertEmpty(a, b, c, r, q)
     }
 
-    def `must work with ask`(): Unit = sync(runTest("Receptionist") {
-      StepWise[Registered[ServiceA]] { (ctx, startWith) ⇒
-        val self = ctx.self
-        import system.executionContext
-        startWith.withKeepTraces(true) {
-          val r = ctx.spawnAnonymous(Props(behavior))
-          val s = ctx.spawnAnonymous(propsA)
-          val f = r ? Register(ServiceKeyA, s)
-          r ! Register(ServiceKeyA, s)(self)
-          (f, s)
-        }.expectMessage(1.second) {
-          case (msg, (f, s)) ⇒
-            msg should be(Registered(ServiceKeyA, s))
-            f foreach (self ! _)
-            s
-        }.expectMessage(1.second) {
-          case (msg, s) ⇒
-            msg should be(Registered(ServiceKeyA, s))
+    def `must work with ask`(): Unit =
+      sync(runTest("Receptionist") {
+        StepWise[Registered[ServiceA]] {
+          (ctx, startWith) ⇒
+            val self = ctx.self
+            import system.executionContext
+            startWith
+              .withKeepTraces(true) {
+                val r = ctx.spawnAnonymous(Props(behavior))
+                val s = ctx.spawnAnonymous(propsA)
+                val f = r ? Register(ServiceKeyA, s)
+                r ! Register(ServiceKeyA, s)(self)
+                (f, s)
+              }
+              .expectMessage(1.second) {
+                case (msg, (f, s)) ⇒
+                  msg should be(Registered(ServiceKeyA, s))
+                  f foreach (self ! _)
+                  s
+              }
+              .expectMessage(1.second) {
+                case (msg, s) ⇒
+                  msg should be(Registered(ServiceKeyA, s))
+              }
         }
-      }
-    })
-
+      })
   }
-
 }

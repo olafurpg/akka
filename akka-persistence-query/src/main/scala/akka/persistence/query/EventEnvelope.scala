@@ -8,7 +8,4 @@ package akka.persistence.query
  * [[akka.persistence.query.scaladsl.EventsByTagQuery]] query, or similar queries.
  */
 final case class EventEnvelope(
-  offset: Long,
-  persistenceId: String,
-  sequenceNr: Long,
-  event: Any)
+    offset: Long, persistenceId: String, sequenceNr: Long, event: Any)

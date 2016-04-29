@@ -7,18 +7,18 @@ package akka.cluster
 // TODO remove metrics
 
 import scala.concurrent.duration._
-import akka.testkit.{ LongRunningTest, AkkaSpec }
+import akka.testkit.{LongRunningTest, AkkaSpec}
 import java.util.concurrent.ThreadLocalRandom
 
-class EWMASpec extends AkkaSpec(MetricsEnabledSpec.config) with MetricsCollectorFactory {
+class EWMASpec
+    extends AkkaSpec(MetricsEnabledSpec.config) with MetricsCollectorFactory {
 
   val collector = createMetricsCollector
 
   "DataStream" must {
 
     "calcualate same ewma for constant values" in {
-      val ds = EWMA(value = 100.0, alpha = 0.18) :+
-        100.0 :+ 100.0 :+ 100.0
+      val ds = EWMA(value = 100.0, alpha = 0.18) :+ 100.0 :+ 100.0 :+ 100.0
       ds.value should ===(100.0 +- 0.001)
     }
 
@@ -53,11 +53,12 @@ class EWMASpec extends AkkaSpec(MetricsEnabledSpec.config) with MetricsCollector
       // according to http://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average
       val expectedAlpha = 0.1
       // alpha = 2.0 / (1 + N)
-      val n = 19
-      val halfLife = n.toDouble / 2.8854
-      val collectInterval = 1.second
+      val n                = 19
+      val halfLife         = n.toDouble / 2.8854
+      val collectInterval  = 1.second
       val halfLifeDuration = (halfLife * 1000).millis
-      EWMA.alpha(halfLifeDuration, collectInterval) should ===(expectedAlpha +- 0.001)
+      EWMA.alpha(halfLifeDuration, collectInterval) should ===(
+          expectedAlpha +- 0.001)
     }
 
     "calculate sane alpha from short half-life" in {
@@ -76,11 +77,12 @@ class EWMASpec extends AkkaSpec(MetricsEnabledSpec.config) with MetricsCollector
 
     "calculate the ewma for multiple, variable, data streams" taggedAs LongRunningTest in {
       var streamingDataSet = Map.empty[String, Metric]
-      var usedMemory = Array.empty[Byte]
+      var usedMemory       = Array.empty[Byte]
       (1 to 50) foreach { _ ⇒
         // wait a while between each message to give the metrics a chance to change
         Thread.sleep(100)
-        usedMemory = usedMemory ++ Array.fill(1024)(ThreadLocalRandom.current.nextInt(127).toByte)
+        usedMemory = usedMemory ++ Array.fill(1024)(
+            ThreadLocalRandom.current.nextInt(127).toByte)
         val changes = collector.sample.metrics.flatMap { latest ⇒
           streamingDataSet.get(latest.name) match {
             case None ⇒ Some(latest)

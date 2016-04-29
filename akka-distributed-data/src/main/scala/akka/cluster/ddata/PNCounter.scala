@@ -11,6 +11,7 @@ import java.math.BigInteger
 object PNCounter {
   val empty: PNCounter = new PNCounter(GCounter.empty, GCounter.empty)
   def apply(): PNCounter = empty
+
   /**
    * Java API
    */
@@ -37,9 +38,10 @@ object PNCounter {
  * This class is immutable, i.e. "modifying" methods return a new instance.
  */
 @SerialVersionUID(1L)
-final class PNCounter private[akka] (
-  private[akka] val increments: GCounter, private[akka] val decrements: GCounter)
-  extends ReplicatedData with ReplicatedDataSerialization with RemovedNodePruning {
+final class PNCounter private[akka](private[akka] val increments: GCounter,
+                                    private[akka] val decrements: GCounter)
+    extends ReplicatedData with ReplicatedDataSerialization
+    with RemovedNodePruning {
 
   type T = PNCounter
 
@@ -57,7 +59,8 @@ final class PNCounter private[akka] (
    * Increment the counter with the delta specified.
    * If the delta is negative then it will decrement instead of increment.
    */
-  def +(delta: Long)(implicit node: Cluster): PNCounter = increment(node, delta)
+  def +(delta: Long)(implicit node: Cluster): PNCounter =
+    increment(node, delta)
 
   /**
    * Increment the counter with the delta specified.
@@ -70,7 +73,8 @@ final class PNCounter private[akka] (
    * Decrement the counter with the delta specified.
    * If the delta is negative then it will increment instead of decrement.
    */
-  def -(delta: Long)(implicit node: Cluster): PNCounter = decrement(node, delta)
+  def -(delta: Long)(implicit node: Cluster): PNCounter =
+    decrement(node, delta)
 
   /**
    * Decrement the counter with the delta specified.
@@ -79,10 +83,14 @@ final class PNCounter private[akka] (
   def decrement(node: Cluster, delta: Long = 1): PNCounter =
     decrement(node.selfUniqueAddress, delta)
 
-  private[akka] def increment(key: UniqueAddress, delta: Long): PNCounter = change(key, delta)
-  private[akka] def increment(key: UniqueAddress): PNCounter = increment(key, 1)
-  private[akka] def decrement(key: UniqueAddress, delta: Long): PNCounter = change(key, -delta)
-  private[akka] def decrement(key: UniqueAddress): PNCounter = decrement(key, 1)
+  private[akka] def increment(key: UniqueAddress, delta: Long): PNCounter =
+    change(key, delta)
+  private[akka] def increment(key: UniqueAddress): PNCounter =
+    increment(key, 1)
+  private[akka] def decrement(key: UniqueAddress, delta: Long): PNCounter =
+    change(key, -delta)
+  private[akka] def decrement(key: UniqueAddress): PNCounter =
+    decrement(key, 1)
 
   private[akka] def change(key: UniqueAddress, delta: Long): PNCounter =
     if (delta > 0) copy(increments = increments.increment(key, delta))
@@ -91,20 +99,23 @@ final class PNCounter private[akka] (
 
   override def merge(that: PNCounter): PNCounter =
     copy(increments = that.increments.merge(this.increments),
-      decrements = that.decrements.merge(this.decrements))
+         decrements = that.decrements.merge(this.decrements))
 
   override def needPruningFrom(removedNode: UniqueAddress): Boolean =
-    increments.needPruningFrom(removedNode) || decrements.needPruningFrom(removedNode)
+    increments.needPruningFrom(removedNode) ||
+    decrements.needPruningFrom(removedNode)
 
-  override def prune(removedNode: UniqueAddress, collapseInto: UniqueAddress): PNCounter =
+  override def prune(
+      removedNode: UniqueAddress, collapseInto: UniqueAddress): PNCounter =
     copy(increments = increments.prune(removedNode, collapseInto),
-      decrements = decrements.prune(removedNode, collapseInto))
+         decrements = decrements.prune(removedNode, collapseInto))
 
   override def pruningCleanup(removedNode: UniqueAddress): PNCounter =
     copy(increments = increments.pruningCleanup(removedNode),
-      decrements = decrements.pruningCleanup(removedNode))
+         decrements = decrements.pruningCleanup(removedNode))
 
-  private def copy(increments: GCounter = this.increments, decrements: GCounter = this.decrements): PNCounter =
+  private def copy(increments: GCounter = this.increments,
+                   decrements: GCounter = this.decrements): PNCounter =
     new PNCounter(increments, decrements)
 
   // this class cannot be a `case class` because we need different `unapply`
@@ -123,7 +134,6 @@ final class PNCounter private[akka] (
     result = HashCode.hash(result, decrements)
     result
   }
-
 }
 
 object PNCounterKey {
@@ -131,4 +141,5 @@ object PNCounterKey {
 }
 
 @SerialVersionUID(1L)
-final case class PNCounterKey(_id: String) extends Key[PNCounter](_id) with ReplicatedDataSerialization
+final case class PNCounterKey(_id: String)
+    extends Key[PNCounter](_id) with ReplicatedDataSerialization

@@ -4,8 +4,8 @@
 
 package akka.http.javadsl.model.ws
 
-import java.lang.{ Iterable ⇒ JIterable }
-import akka.http.scaladsl.{ model ⇒ sm }
+import java.lang.{Iterable ⇒ JIterable}
+import akka.http.scaladsl.{model ⇒ sm}
 import akka.http.javadsl.model._
 
 import akka.stream._
@@ -15,6 +15,7 @@ import akka.stream._
  * create a WebSocket handshake response and handle the WebSocket message stream with the given handler.
  */
 trait UpgradeToWebSocket extends sm.HttpHeader {
+
   /**
    * Returns the sequence of protocols the client accepts.
    *
@@ -26,20 +27,25 @@ trait UpgradeToWebSocket extends sm.HttpHeader {
    * Returns a response that can be used to answer a WebSocket handshake request. The connection will afterwards
    * use the given handlerFlow to handle WebSocket messages from the client.
    */
-  def handleMessagesWith(handlerFlow: Graph[FlowShape[Message, Message], _ <: Any]): HttpResponse
+  def handleMessagesWith(
+      handlerFlow: Graph[FlowShape[Message, Message], _ <: Any]): HttpResponse
 
   /**
    * Returns a response that can be used to answer a WebSocket handshake request. The connection will afterwards
    * use the given handlerFlow to handle WebSocket messages from the client. The given subprotocol must be one
    * of the ones offered by the client.
    */
-  def handleMessagesWith(handlerFlow: Graph[FlowShape[Message, Message], _ <: Any], subprotocol: String): HttpResponse
+  def handleMessagesWith(
+      handlerFlow: Graph[FlowShape[Message, Message], _ <: Any],
+      subprotocol: String): HttpResponse
 
   /**
    * Returns a response that can be used to answer a WebSocket handshake request. The connection will afterwards
    * use the given inSink to handle WebSocket messages from the client and the given outSource to send messages to the client.
    */
-  def handleMessagesWith(inSink: Graph[SinkShape[Message], _ <: Any], outSource: Graph[SourceShape[Message], _ <: Any]): HttpResponse
+  def handleMessagesWith(
+      inSink: Graph[SinkShape[Message], _ <: Any],
+      outSource: Graph[SourceShape[Message], _ <: Any]): HttpResponse
 
   /**
    * Returns a response that can be used to answer a WebSocket handshake request. The connection will afterwards
@@ -47,5 +53,7 @@ trait UpgradeToWebSocket extends sm.HttpHeader {
    *
    * The given subprotocol must be one of the ones offered by the client.
    */
-  def handleMessagesWith(inSink: Graph[SinkShape[Message], _ <: Any], outSource: Graph[SourceShape[Message], _ <: Any], subprotocol: String): HttpResponse
+  def handleMessagesWith(inSink: Graph[SinkShape[Message], _ <: Any],
+                         outSource: Graph[SourceShape[Message], _ <: Any],
+                         subprotocol: String): HttpResponse
 }

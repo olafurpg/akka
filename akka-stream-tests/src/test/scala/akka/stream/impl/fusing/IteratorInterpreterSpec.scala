@@ -6,7 +6,7 @@ package akka.stream.impl.fusing
 import akka.testkit.AkkaSpec
 import akka.util.ByteString
 import akka.stream.stage._
-import akka.stream.{ Attributes, Supervision }
+import akka.stream.{Attributes, Supervision}
 import akka.stream.impl.fusing.GraphStages.SimpleLinearGraphStage
 
 class IteratorInterpreterSpec extends AkkaSpec with GraphInterpreterSpecKit {
@@ -15,15 +15,17 @@ class IteratorInterpreterSpec extends AkkaSpec with GraphInterpreterSpecKit {
   "IteratorInterpreter" must {
 
     "work in the happy case" in {
-      val itr = new IteratorInterpreter[Int, Int]((1 to 10).iterator, Seq(
-        Map((x: Int) ⇒ x + 1, stoppingDecider).toGS)).iterator
+      val itr = new IteratorInterpreter[Int, Int](
+          (1 to 10).iterator,
+          Seq(Map((x: Int) ⇒ x + 1, stoppingDecider).toGS)).iterator
 
       itr.toSeq should be(2 to 11)
     }
 
     "hasNext should not affect elements" in {
-      val itr = new IteratorInterpreter[Int, Int]((1 to 10).iterator, Seq(
-        Map((x: Int) ⇒ x, stoppingDecider).toGS)).iterator
+      val itr = new IteratorInterpreter[Int, Int](
+          (1 to 10).iterator,
+          Seq(Map((x: Int) ⇒ x, stoppingDecider).toGS)).iterator
 
       itr.hasNext should be(true)
       itr.hasNext should be(true)
@@ -35,22 +37,27 @@ class IteratorInterpreterSpec extends AkkaSpec with GraphInterpreterSpecKit {
     }
 
     "work with ops that need extra pull for complete" in {
-      val itr = new IteratorInterpreter[Int, Int]((1 to 10).iterator, Seq(NaiveTake(1))).iterator
+      val itr = new IteratorInterpreter[Int, Int]((1 to 10).iterator,
+                                                  Seq(NaiveTake(1))).iterator
 
       itr.toSeq should be(Seq(1))
     }
 
     "throw exceptions on empty iterator" in {
-      val itr = new IteratorInterpreter[Int, Int](List(1).iterator, Seq(
-        Map((x: Int) ⇒ x, stoppingDecider).toGS)).iterator
+      val itr = new IteratorInterpreter[Int, Int](
+          List(1).iterator,
+          Seq(Map((x: Int) ⇒ x, stoppingDecider).toGS)).iterator
 
       itr.next() should be(1)
       a[NoSuchElementException] should be thrownBy { itr.next() }
     }
 
     "throw exceptions when op in chain throws" in {
-      val itr = new IteratorInterpreter[Int, Int](List(1, 2, 3).iterator, Seq(
-        Map((n: Int) ⇒ if (n == 2) throw new ArithmeticException() else n, stoppingDecider).toGS)).iterator
+      val itr = new IteratorInterpreter[Int, Int](
+          List(1, 2, 3).iterator,
+          Seq(Map((n: Int) ⇒
+                    if (n == 2) throw new ArithmeticException() else n,
+                  stoppingDecider).toGS)).iterator
 
       itr.next() should be(1)
       itr.hasNext should be(true)
@@ -59,8 +66,9 @@ class IteratorInterpreterSpec extends AkkaSpec with GraphInterpreterSpecKit {
     }
 
     "work with an empty iterator" in {
-      val itr = new IteratorInterpreter[Int, Int](Iterator.empty, Seq(
-        Map((x: Int) ⇒ x + 1, stoppingDecider).toGS)).iterator
+      val itr = new IteratorInterpreter[Int, Int](
+          Iterator.empty,
+          Seq(Map((x: Int) ⇒ x + 1, stoppingDecider).toGS)).iterator
 
       itr.hasNext should be(false)
       a[NoSuchElementException] should be thrownBy { itr.next() }
@@ -70,8 +78,8 @@ class IteratorInterpreterSpec extends AkkaSpec with GraphInterpreterSpecKit {
       val testBytes = (1 to 10).map(ByteString(_))
 
       def newItr(threshold: Int) =
-        new IteratorInterpreter[ByteString, ByteString](testBytes.iterator, Seq(
-          ByteStringBatcher(threshold))).iterator
+        new IteratorInterpreter[ByteString, ByteString](
+            testBytes.iterator, Seq(ByteStringBatcher(threshold))).iterator
 
       val itr1 = newItr(20)
       itr1.next() should be(ByteString(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
@@ -89,13 +97,11 @@ class IteratorInterpreterSpec extends AkkaSpec with GraphInterpreterSpecKit {
       }
       itr3.hasNext should be(false)
 
-      val itr4 =
-        new IteratorInterpreter[ByteString, ByteString](Iterator.empty, Seq(
-          ByteStringBatcher(10))).iterator
+      val itr4 = new IteratorInterpreter[ByteString, ByteString](
+          Iterator.empty, Seq(ByteStringBatcher(10))).iterator
 
       itr4.hasNext should be(false)
     }
-
   }
 
   // This op needs an extra pull round to finish
@@ -121,12 +127,13 @@ class IteratorInterpreterSpec extends AkkaSpec with GraphInterpreterSpecKit {
     override def toString = "NaiveTake"
   }
 
-  case class ByteStringBatcher(threshold: Int, compact: Boolean = true) extends SimpleLinearGraphStage[ByteString] {
+  case class ByteStringBatcher(threshold: Int, compact: Boolean = true)
+      extends SimpleLinearGraphStage[ByteString] {
     require(threshold > 0, "Threshold must be positive")
 
     override def createLogic(attributes: Attributes): GraphStageLogic =
       new GraphStageLogic(shape) with InHandler with OutHandler {
-        private var buf: ByteString = ByteString.empty
+        private var buf: ByteString      = ByteString.empty
         private var passthrough: Boolean = false
 
         override def onPush(): Unit = {

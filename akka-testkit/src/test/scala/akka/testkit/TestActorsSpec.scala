@@ -5,12 +5,12 @@ package akka.testkit
 
 class TestActorsSpec extends AkkaSpec with ImplicitSender {
 
-  import TestActors.{ echoActorProps, forwardActorProps }
+  import TestActors.{echoActorProps, forwardActorProps}
 
   "A EchoActor" must {
     "send back messages unchanged" in {
       val message = "hello world"
-      val echo = system.actorOf(echoActorProps)
+      val echo    = system.actorOf(echoActorProps)
 
       echo ! message
 

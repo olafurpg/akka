@@ -13,14 +13,14 @@ import scala.concurrent.duration._
 import akka.actor.Address
 
 object JoinSeedNodeMultiJvmSpec extends MultiNodeConfig {
-  val seed1 = role("seed1")
-  val seed2 = role("seed2")
-  val seed3 = role("seed3")
+  val seed1     = role("seed1")
+  val seed2     = role("seed2")
+  val seed3     = role("seed3")
   val ordinary1 = role("ordinary1")
   val ordinary2 = role("ordinary2")
 
-  commonConfig(debugConfig(on = false).
-    withFallback(MultiNodeClusterSpec.clusterConfig))
+  commonConfig(
+      debugConfig(on = false).withFallback(MultiNodeClusterSpec.clusterConfig))
 }
 
 class JoinSeedNodeMultiJvmNode1 extends JoinSeedNodeSpec
@@ -30,8 +30,7 @@ class JoinSeedNodeMultiJvmNode4 extends JoinSeedNodeSpec
 class JoinSeedNodeMultiJvmNode5 extends JoinSeedNodeSpec
 
 abstract class JoinSeedNodeSpec
-  extends MultiNodeSpec(JoinSeedNodeMultiJvmSpec)
-  with MultiNodeClusterSpec {
+    extends MultiNodeSpec(JoinSeedNodeMultiJvmSpec) with MultiNodeClusterSpec {
 
   import JoinSeedNodeMultiJvmSpec._
 

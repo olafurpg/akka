@@ -16,20 +16,23 @@ trait LoggerMessageQueueSemantics
 /**
  * INTERNAL API
  */
-private[akka] class LoggerMailboxType(settings: ActorSystem.Settings, config: Config) extends MailboxType
-  with ProducesMessageQueue[LoggerMailbox] {
+private[akka] class LoggerMailboxType(
+    settings: ActorSystem.Settings, config: Config)
+    extends MailboxType with ProducesMessageQueue[LoggerMailbox] {
 
-  override def create(owner: Option[ActorRef], system: Option[ActorSystem]) = (owner, system) match {
-    case (Some(o), Some(s)) ⇒ new LoggerMailbox(o, s)
-    case _                  ⇒ throw new IllegalArgumentException("no mailbox owner or system given")
-  }
+  override def create(owner: Option[ActorRef], system: Option[ActorSystem]) =
+    (owner, system) match {
+      case (Some(o), Some(s)) ⇒ new LoggerMailbox(o, s)
+      case _ ⇒
+        throw new IllegalArgumentException("no mailbox owner or system given")
+    }
 }
 
 /**
  * INTERNAL API
  */
 private[akka] class LoggerMailbox(owner: ActorRef, system: ActorSystem)
-  extends UnboundedMailbox.MessageQueue with LoggerMessageQueueSemantics {
+    extends UnboundedMailbox.MessageQueue with LoggerMessageQueueSemantics {
 
   override def cleanUp(owner: ActorRef, deadLetters: MessageQueue): Unit = {
     if (hasMessages) {

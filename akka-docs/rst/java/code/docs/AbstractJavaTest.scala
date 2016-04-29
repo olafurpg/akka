@@ -8,6 +8,4 @@ import org.scalatest.junit.JUnitSuite
 /**
  * Base class for all runnable example tests written in Java
  */
-abstract class AbstractJavaTest extends JUnitSuite {
-
-}
+abstract class AbstractJavaTest extends JUnitSuite {}

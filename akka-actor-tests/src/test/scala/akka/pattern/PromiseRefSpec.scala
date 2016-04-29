@@ -4,7 +4,7 @@
 package akka.pattern
 
 import akka.actor._
-import akka.testkit.{ AkkaSpec, TestProbe, ImplicitSender }
+import akka.testkit.{AkkaSpec, TestProbe, ImplicitSender}
 import org.scalatest.concurrent.ScalaFutures
 
 import scala.concurrent.Promise

@@ -8,7 +8,7 @@ import java.util.Optional
 
 import akka.http.javadsl.model.HttpResponse
 import akka.http.scaladsl
-import akka.http.scaladsl.model.ws.{ InvalidUpgradeResponse, ValidUpgrade }
+import akka.http.scaladsl.model.ws.{InvalidUpgradeResponse, ValidUpgrade}
 
 /**
  * Represents an upgrade response for a WebSocket upgrade request. Can either be valid, in which
@@ -37,23 +37,25 @@ trait WebSocketUpgradeResponse {
 
 object WebSocketUpgradeResponse {
   import akka.http.impl.util.JavaMapping.Implicits._
-  def adapt(scalaResponse: scaladsl.model.ws.WebSocketUpgradeResponse): WebSocketUpgradeResponse =
-    scalaResponse match {
-      case ValidUpgrade(resp, chosen) ⇒
-        new WebSocketUpgradeResponse {
-          def isValid: Boolean = true
-          def response: HttpResponse = resp
-          def chosenSubprotocol: Optional[String] = chosen.asJava
-          def invalidationReason: String =
-            throw new UnsupportedOperationException("invalidationReason must not be called for valid response")
-        }
-      case InvalidUpgradeResponse(resp, cause) ⇒
-        new WebSocketUpgradeResponse {
-          def isValid: Boolean = false
-          def response: HttpResponse = resp
-          def chosenSubprotocol: Optional[String] = throw new UnsupportedOperationException("chosenSubprotocol must not be called for valid response")
-          def invalidationReason: String = cause
-        }
-    }
-
+  def adapt(scalaResponse: scaladsl.model.ws.WebSocketUpgradeResponse
+      ): WebSocketUpgradeResponse = scalaResponse match {
+    case ValidUpgrade(resp, chosen) ⇒
+      new WebSocketUpgradeResponse {
+        def isValid: Boolean                    = true
+        def response: HttpResponse              = resp
+        def chosenSubprotocol: Optional[String] = chosen.asJava
+        def invalidationReason: String =
+          throw new UnsupportedOperationException(
+              "invalidationReason must not be called for valid response")
+      }
+    case InvalidUpgradeResponse(resp, cause) ⇒
+      new WebSocketUpgradeResponse {
+        def isValid: Boolean       = false
+        def response: HttpResponse = resp
+        def chosenSubprotocol: Optional[String] =
+          throw new UnsupportedOperationException(
+              "chosenSubprotocol must not be called for valid response")
+        def invalidationReason: String = cause
+      }
+  }
 }

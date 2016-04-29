@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.persistence
 
 import akka.actor._
@@ -29,7 +28,9 @@ trait Snapshotter extends Actor {
    * Instructs the snapshot store to load the specified snapshot and send it via an [[SnapshotOffer]]
    * to the running [[PersistentActor]].
    */
-  def loadSnapshot(persistenceId: String, criteria: SnapshotSelectionCriteria, toSequenceNr: Long) =
+  def loadSnapshot(persistenceId: String,
+                   criteria: SnapshotSelectionCriteria,
+                   toSequenceNr: Long) =
     snapshotStore ! LoadSnapshot(persistenceId, criteria, toSequenceNr)
 
   /**
@@ -39,7 +40,8 @@ trait Snapshotter extends Actor {
    * via an [[SaveSnapshotSuccess]] or [[SaveSnapshotFailure]] message.
    */
   def saveSnapshot(snapshot: Any): Unit = {
-    snapshotStore ! SaveSnapshot(SnapshotMetadata(snapshotterId, snapshotSequenceNr), snapshot)
+    snapshotStore ! SaveSnapshot(
+        SnapshotMetadata(snapshotterId, snapshotSequenceNr), snapshot)
   }
 
   /**
@@ -61,5 +63,4 @@ trait Snapshotter extends Actor {
   def deleteSnapshots(criteria: SnapshotSelectionCriteria): Unit = {
     snapshotStore ! DeleteSnapshots(snapshotterId, criteria)
   }
-
 }

@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster.metrics
 
 import com.typesafe.config.Config
@@ -12,10 +11,12 @@ import akka.util.Helpers.ConfigOps
  * Default [[ClusterMetricsSupervisor]] strategy:
  * A configurable [[akka.actor.OneForOneStrategy]] with restart-on-throwable decider.
  */
-class ClusterMetricsStrategy(config: Config) extends OneForOneStrategy(
-  maxNrOfRetries = config.getInt("maxNrOfRetries"),
-  withinTimeRange = config.getMillisDuration("withinTimeRange"),
-  loggingEnabled = config.getBoolean("loggingEnabled"))(ClusterMetricsStrategy.metricsDecider)
+class ClusterMetricsStrategy(config: Config)
+    extends OneForOneStrategy(
+        maxNrOfRetries = config.getInt("maxNrOfRetries"),
+        withinTimeRange = config.getMillisDuration("withinTimeRange"),
+        loggingEnabled = config.getBoolean("loggingEnabled"))(
+        ClusterMetricsStrategy.metricsDecider)
 
 /**
  * Provide custom metrics strategy resources.
@@ -33,5 +34,4 @@ object ClusterMetricsStrategy {
     case _: DeathPactException           ⇒ Stop
     case _: Throwable                    ⇒ Restart
   }
-
 }

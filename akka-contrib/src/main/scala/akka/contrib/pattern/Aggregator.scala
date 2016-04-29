@@ -14,7 +14,7 @@ trait Aggregator {
 
   private var processing = false
   private val expectList = WorkList.empty[Actor.Receive]
-  private val addBuffer = WorkList.empty[Actor.Receive]
+  private val addBuffer  = WorkList.empty[Actor.Receive]
 
   /**
    * Adds the partial function to the receive set, to be removed on first match.
@@ -91,7 +91,7 @@ object WorkList {
    */
   class Entry[T](val ref: Option[T], val permanent: Boolean) {
     var next: Entry[T] = null
-    var isDeleted = false
+    var isDeleted      = false
   }
 }
 

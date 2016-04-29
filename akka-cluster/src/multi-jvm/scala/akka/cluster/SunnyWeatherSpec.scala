@@ -15,11 +15,11 @@ import akka.actor.Props
 import akka.actor.Actor
 
 object SunnyWeatherMultiJvmSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
   val fourth = role("fourth")
-  val fifth = role("fifth")
+  val fifth  = role("fifth")
 
   // Note that this test uses default configuration,
   // not MultiNodeClusterSpec.clusterConfig
@@ -39,8 +39,7 @@ class SunnyWeatherMultiJvmNode4 extends SunnyWeatherSpec
 class SunnyWeatherMultiJvmNode5 extends SunnyWeatherSpec
 
 abstract class SunnyWeatherSpec
-  extends MultiNodeSpec(SunnyWeatherMultiJvmSpec)
-  with MultiNodeClusterSpec {
+    extends MultiNodeSpec(SunnyWeatherMultiJvmSpec) with MultiNodeClusterSpec {
 
   import SunnyWeatherMultiJvmSpec._
   import ClusterEvent._

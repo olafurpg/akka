@@ -3,7 +3,7 @@
  */
 package akka.io
 
-import java.nio.channels.{ DatagramChannel }
+import java.nio.channels.{DatagramChannel}
 import java.net.DatagramSocket
 import java.net.ServerSocket
 import java.net.Socket
@@ -45,6 +45,7 @@ object Inet {
   abstract class AbstractSocketOption extends SocketOption
 
   trait SocketOptionV2 extends SocketOption {
+
     /**
      * Action to be taken for this option after connect returned (i.e. on
      * the slave socket for servers).
@@ -62,7 +63,6 @@ object Inet {
      * the slave socket for servers).
      */
     def afterConnect(s: DatagramSocket): Unit = ()
-
   }
 
   /**
@@ -99,9 +99,12 @@ object Inet {
      */
     final case class ReceiveBufferSize(size: Int) extends SocketOption {
       require(size > 0, "ReceiveBufferSize must be > 0")
-      override def beforeServerSocketBind(s: ServerSocket): Unit = s.setReceiveBufferSize(size)
-      override def beforeDatagramBind(s: DatagramSocket): Unit = s.setReceiveBufferSize(size)
-      override def beforeConnect(s: Socket): Unit = s.setReceiveBufferSize(size)
+      override def beforeServerSocketBind(s: ServerSocket): Unit =
+        s.setReceiveBufferSize(size)
+      override def beforeDatagramBind(s: DatagramSocket): Unit =
+        s.setReceiveBufferSize(size)
+      override def beforeConnect(s: Socket): Unit =
+        s.setReceiveBufferSize(size)
     }
 
     // server socket options
@@ -112,8 +115,10 @@ object Inet {
      * For more information see [[java.net.Socket#setReuseAddress]]
      */
     final case class ReuseAddress(on: Boolean) extends SocketOption {
-      override def beforeServerSocketBind(s: ServerSocket): Unit = s.setReuseAddress(on)
-      override def beforeDatagramBind(s: DatagramSocket): Unit = s.setReuseAddress(on)
+      override def beforeServerSocketBind(s: ServerSocket): Unit =
+        s.setReuseAddress(on)
+      override def beforeDatagramBind(s: DatagramSocket): Unit =
+        s.setReuseAddress(on)
       override def beforeConnect(s: Socket): Unit = s.setReuseAddress(on)
     }
 
@@ -135,13 +140,14 @@ object Inet {
      * For more information see [[java.net.Socket#setTrafficClass]]
      */
     final case class TrafficClass(tc: Int) extends SocketOption {
-      require(0 <= tc && tc <= 255, "TrafficClass needs to be in the interval [0, 255]")
+      require(0 <= tc && tc <= 255,
+              "TrafficClass needs to be in the interval [0, 255]")
       override def afterConnect(s: Socket): Unit = s.setTrafficClass(tc)
     }
-
   }
 
   trait SoForwarders {
+
     /**
      * [[akka.io.Inet.SocketOption]] to set the SO_RCVBUF option
      *
@@ -175,6 +181,7 @@ object Inet {
 
   trait SoJavaFactories {
     import SO._
+
     /**
      * [[akka.io.Inet.SocketOption]] to set the SO_RCVBUF option
      *
@@ -205,5 +212,4 @@ object Inet {
      */
     def trafficClass(tc: Int) = TrafficClass(tc)
   }
-
 }

@@ -5,9 +5,9 @@ package docs.stream
 
 //#imports
 
-import akka.{ Done, NotUsed }
+import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
-import akka.stream.{ ClosedShape, ActorMaterializer, OverflowStrategy }
+import akka.stream.{ClosedShape, ActorMaterializer, OverflowStrategy}
 import akka.stream.scaladsl._
 
 import scala.concurrent.Await
@@ -25,7 +25,10 @@ object TwitterStreamQuickstartDocSpec {
 
   final case class Tweet(author: Author, timestamp: Long, body: String) {
     def hashtags: Set[Hashtag] =
-      body.split(" ").collect { case t if t.startsWith("#") => Hashtag(t) }.toSet
+      body
+        .split(" ")
+        .collect { case t if t.startsWith("#") => Hashtag(t) }
+        .toSet
   }
 
   val akka = Hashtag("#akka")
@@ -36,18 +39,35 @@ object TwitterStreamQuickstartDocSpec {
   val tweets: Source[Tweet, NotUsed]
   //#tweet-source
   // format: ON
-  = Source(
-    Tweet(Author("rolandkuhn"), System.currentTimeMillis, "#akka rocks!") ::
-      Tweet(Author("patriknw"), System.currentTimeMillis, "#akka !") ::
-      Tweet(Author("bantonsson"), System.currentTimeMillis, "#akka !") ::
-      Tweet(Author("drewhk"), System.currentTimeMillis, "#akka !") ::
-      Tweet(Author("ktosopl"), System.currentTimeMillis, "#akka on the rocks!") ::
-      Tweet(Author("mmartynas"), System.currentTimeMillis, "wow #akka !") ::
-      Tweet(Author("akkateam"), System.currentTimeMillis, "#akka rocks!") ::
-      Tweet(Author("bananaman"), System.currentTimeMillis, "#bananas rock!") ::
-      Tweet(Author("appleman"), System.currentTimeMillis, "#apples rock!") ::
-      Tweet(Author("drama"), System.currentTimeMillis, "we compared #apples to #oranges!") ::
-      Nil)
+  =
+    Source(Tweet(
+            Author("rolandkuhn"),
+            System.currentTimeMillis,
+            "#akka rocks!") :: Tweet(
+            Author("patriknw"),
+            System.currentTimeMillis,
+            "#akka !") :: Tweet(Author("bantonsson"),
+                                System.currentTimeMillis,
+                                "#akka !") :: Tweet(
+            Author("drewhk"),
+            System.currentTimeMillis,
+            "#akka !") :: Tweet(
+            Author("ktosopl"),
+            System.currentTimeMillis,
+            "#akka on the rocks!") :: Tweet(Author("mmartynas"),
+                                            System.currentTimeMillis,
+                                            "wow #akka !") :: Tweet(
+            Author("akkateam"),
+            System.currentTimeMillis,
+            "#akka rocks!") :: Tweet(
+            Author("bananaman"),
+            System.currentTimeMillis,
+            "#bananas rock!") :: Tweet(Author("appleman"),
+                                       System.currentTimeMillis,
+                                       "#apples rock!") :: Tweet(
+            Author("drama"),
+            System.currentTimeMillis,
+            "we compared #apples to #oranges!") :: Nil)
 }
 
 class TwitterStreamQuickstartDocSpec extends AkkaSpec {
@@ -61,7 +81,7 @@ class TwitterStreamQuickstartDocSpec extends AkkaSpec {
   trait Example1 {
     //#first-sample
     //#materializer-setup
-    implicit val system = ActorSystem("reactive-tweets")
+    implicit val system       = ActorSystem("reactive-tweets")
     implicit val materializer = ActorMaterializer()
     //#materializer-setup
     //#first-sample
@@ -74,16 +94,15 @@ class TwitterStreamQuickstartDocSpec extends AkkaSpec {
 
     //#authors-filter-map
     val authors: Source[Author, NotUsed] =
-      tweets
-        .filter(_.hashtags.contains(akka))
-        .map(_.author)
+      tweets.filter(_.hashtags.contains(akka)).map(_.author)
     //#first-sample
     //#authors-filter-map
 
     trait Example3 {
       //#authors-collect
-      val authors: Source[Author, NotUsed] =
-        tweets.collect { case t if t.hashtags.contains(akka) => t.author }
+      val authors: Source[Author, NotUsed] = tweets.collect {
+        case t if t.hashtags.contains(akka) => t.author
+      }
       //#authors-collect
     }
 
@@ -101,19 +120,20 @@ class TwitterStreamQuickstartDocSpec extends AkkaSpec {
 
   "mapConcat hashtags" in {
     //#hashtags-mapConcat
-    val hashtags: Source[Hashtag, NotUsed] = tweets.mapConcat(_.hashtags.toList)
+    val hashtags: Source[Hashtag, NotUsed] =
+      tweets.mapConcat(_.hashtags.toList)
     //#hashtags-mapConcat
   }
 
   trait HiddenDefinitions {
     //#graph-dsl-broadcast
-    val writeAuthors: Sink[Author, Unit] = ???
+    val writeAuthors: Sink[Author, Unit]   = ???
     val writeHashtags: Sink[Hashtag, Unit] = ???
     //#graph-dsl-broadcast
   }
 
   "simple broadcast" in {
-    val writeAuthors: Sink[Author, Future[Done]] = Sink.ignore
+    val writeAuthors: Sink[Author, Future[Done]]   = Sink.ignore
     val writeHashtags: Sink[Hashtag, Future[Done]] = Sink.ignore
 
     // format: OFF
@@ -152,9 +172,10 @@ class TwitterStreamQuickstartDocSpec extends AkkaSpec {
 
       //#backpressure-by-readline
       val completion: Future[Done] =
-        Source(1 to 10)
-          .map(i => { println(s"map => $i"); i })
-          .runForeach { i => readLine(s"Element = $i; continue reading? [press enter]\n") }
+        Source(1 to 10).map(i => { println(s"map => $i"); i }).runForeach {
+          i =>
+            readLine(s"Element = $i; continue reading? [press enter]\n")
+        }
 
       Await.ready(completion, 1.minute)
       //#backpressure-by-readline
@@ -168,9 +189,7 @@ class TwitterStreamQuickstartDocSpec extends AkkaSpec {
     val sumSink: Sink[Int, Future[Int]] = Sink.fold[Int, Int](0)(_ + _)
 
     val counterGraph: RunnableGraph[Future[Int]] =
-      tweets
-        .via(count)
-        .toMat(sumSink)(Keep.right)
+      tweets.via(count).toMat(sumSink)(Keep.right)
 
     val sum: Future[Int] = counterGraph.run()
 
@@ -185,7 +204,8 @@ class TwitterStreamQuickstartDocSpec extends AkkaSpec {
   }
 
   "materialize multiple times" in {
-    val tweetsInMinuteFromNow = tweets // not really in second, just acting as if
+    val tweetsInMinuteFromNow =
+      tweets // not really in second, just acting as if
 
     //#tweets-runnable-flow-materialized-twice
     val sumSink = Sink.fold[Int, Int](0)(_ + _)
@@ -204,7 +224,8 @@ class TwitterStreamQuickstartDocSpec extends AkkaSpec {
 
     val sum: Future[Int] = counterRunnableGraph.run()
 
-    sum.map { c => println(s"Total tweets processed: $c") }
+    sum.map { c =>
+      println(s"Total tweets processed: $c")
+    }
   }
-
 }

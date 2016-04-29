@@ -4,13 +4,13 @@
 package akka.stream.javadsl
 
 import java.util.Optional
-import akka.{ Done, NotUsed }
-import akka.actor.{ ActorRef, Props }
+import akka.{Done, NotUsed}
+import akka.actor.{ActorRef, Props}
 import akka.dispatch.ExecutionContexts
 import akka.japi.function
 import akka.stream.impl.StreamLayout
-import akka.stream.{ javadsl, scaladsl, _ }
-import org.reactivestreams.{ Publisher, Subscriber }
+import akka.stream.{javadsl, scaladsl, _}
+import org.reactivestreams.{Publisher, Subscriber}
 import scala.compat.java8.OptionConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
@@ -20,6 +20,7 @@ import akka.stream.impl.SinkQueueAdapter
 
 /** Java API */
 object Sink {
+
   /**
    * A `Sink` that will invoke the given function for every received element, giving it its previous
    * output (or the given `zero` value) and the element as input.
@@ -27,7 +28,9 @@ object Sink {
    * function evaluation when the input stream ends, or completed with `Failure`
    * if there is a failure is signaled in the stream.
    */
-  def fold[U, In](zero: U, f: function.Function2[U, In, U]): javadsl.Sink[In, CompletionStage[U]] =
+  def fold[U, In](
+      zero: U,
+      f: function.Function2[U, In, U]): javadsl.Sink[In, CompletionStage[U]] =
     new Sink(scaladsl.Sink.fold[U, In](zero)(f.apply).toCompletionStage())
 
   /**
@@ -42,7 +45,8 @@ object Sink {
    * which is semantically in-line with that Scala's standard library collections
    * do in such situations.
    */
-  def reduce[In](f: function.Function2[In, In, In]): Sink[In, CompletionStage[In]] =
+  def reduce[In](
+      f: function.Function2[In, In, In]): Sink[In, CompletionStage[In]] =
     new Sink(scaladsl.Sink.reduce[In](f.apply).toCompletionStage())
 
   /**
@@ -54,8 +58,7 @@ object Sink {
   /**
    * A `Sink` that immediately cancels its upstream after materialization.
    */
-  def cancelled[T](): Sink[T, NotUsed] =
-    new Sink(scaladsl.Sink.cancelled)
+  def cancelled[T](): Sink[T, NotUsed] = new Sink(scaladsl.Sink.cancelled)
 
   /**
    * A `Sink` that will consume the stream and discard the elements.
@@ -97,15 +100,19 @@ object Sink {
    * [[akka.stream.Supervision.Resume]] or [[akka.stream.Supervision.Restart]] the
    * element is dropped and the stream continues.
    */
-  def foreachParallel[T](parallel: Int)(f: function.Procedure[T])(ec: ExecutionContext): Sink[T, CompletionStage[Done]] =
-    new Sink(scaladsl.Sink.foreachParallel(parallel)(f.apply)(ec).toCompletionStage())
+  def foreachParallel[T](parallel: Int)(f: function.Procedure[T])(
+      ec: ExecutionContext): Sink[T, CompletionStage[Done]] =
+    new Sink(scaladsl.Sink
+          .foreachParallel(parallel)(f.apply)(ec)
+          .toCompletionStage())
 
   /**
    * A `Sink` that when the flow is completed, either through a failure or normal
    * completion, apply the provided function with [[scala.util.Success]]
    * or [[scala.util.Failure]].
    */
-  def onComplete[In](callback: function.Procedure[Try[Done]]): Sink[In, NotUsed] =
+  def onComplete[In](
+      callback: function.Procedure[Try[Done]]): Sink[In, NotUsed] =
     new Sink(scaladsl.Sink.onComplete[In](x ⇒ callback.apply(x)))
 
   /**
@@ -126,8 +133,11 @@ object Sink {
    * See also [[head]].
    */
   def headOption[In](): Sink[In, CompletionStage[Optional[In]]] =
-    new Sink(scaladsl.Sink.headOption[In].mapMaterializedValue(
-      _.map(_.asJava)(ExecutionContexts.sameThreadExecutionContext).toJava))
+    new Sink(
+        scaladsl.Sink
+          .headOption[In]
+          .mapMaterializedValue(_.map(_.asJava)(
+                  ExecutionContexts.sameThreadExecutionContext).toJava))
 
   /**
    * A `Sink` that materializes into a `CompletionStage` of the last value received.
@@ -147,8 +157,11 @@ object Sink {
    * See also [[head]].
    */
   def lastOption[In](): Sink[In, CompletionStage[Optional[In]]] =
-    new Sink(scaladsl.Sink.lastOption[In].mapMaterializedValue(
-      _.map(_.asJava)(ExecutionContexts.sameThreadExecutionContext).toJava))
+    new Sink(
+        scaladsl.Sink
+          .lastOption[In]
+          .mapMaterializedValue(_.map(_.asJava)(
+                  ExecutionContexts.sameThreadExecutionContext).toJava))
 
   /**
    * A `Sink` that keeps on collecting incoming elements until upstream terminates.
@@ -162,7 +175,14 @@ object Sink {
    */
   def seq[In]: Sink[In, CompletionStage[java.util.List[In]]] = {
     import scala.collection.JavaConverters._
-    new Sink(scaladsl.Sink.seq[In].mapMaterializedValue(fut ⇒ fut.map(sq ⇒ sq.asJava)(ExecutionContexts.sameThreadExecutionContext).toJava))
+    new Sink(
+        scaladsl.Sink
+          .seq[In]
+          .mapMaterializedValue(fut ⇒
+                fut
+                  .map(sq ⇒ sq.asJava)(
+                      ExecutionContexts.sameThreadExecutionContext)
+                  .toJava))
   }
 
   /**
@@ -197,9 +217,18 @@ object Sink {
    * When the stream is completed with failure - result of `onFailureMessage(throwable)`
    * message will be sent to the destination actor.
    */
-  def actorRefWithAck[In](ref: ActorRef, onInitMessage: Any, ackMessage: Any, onCompleteMessage: Any,
-                          onFailureMessage: function.Function[Throwable, Any]): Sink[In, NotUsed] =
-    new Sink(scaladsl.Sink.actorRefWithAck[In](ref, onInitMessage, ackMessage, onCompleteMessage, onFailureMessage.apply))
+  def actorRefWithAck[In](
+      ref: ActorRef,
+      onInitMessage: Any,
+      ackMessage: Any,
+      onCompleteMessage: Any,
+      onFailureMessage: function.Function[Throwable, Any]): Sink[In, NotUsed] =
+    new Sink(
+        scaladsl.Sink.actorRefWithAck[In](ref,
+                                          onInitMessage,
+                                          ackMessage,
+                                          onCompleteMessage,
+                                          onFailureMessage.apply))
 
   /**
    * Creates a `Sink` that is materialized to an [[akka.actor.ActorRef]] which points to an Actor
@@ -213,19 +242,26 @@ object Sink {
    * A graph with the shape of a sink logically is a sink, this method makes
    * it so also in type.
    */
-  def fromGraph[T, M](g: Graph[SinkShape[T], M]): Sink[T, M] =
-    g match {
-      case s: Sink[T, M] ⇒ s
-      case other         ⇒ new Sink(scaladsl.Sink.fromGraph(other))
-    }
+  def fromGraph[T, M](g: Graph[SinkShape[T], M]): Sink[T, M] = g match {
+    case s: Sink [T, M] ⇒ s
+    case other          ⇒ new Sink(scaladsl.Sink.fromGraph(other))
+  }
 
   /**
    * Combine several sinks with fan-out strategy like `Broadcast` or `Balance` and returns `Sink`.
    */
-  def combine[T, U](output1: Sink[U, _], output2: Sink[U, _], rest: java.util.List[Sink[U, _]], strategy: function.Function[java.lang.Integer, Graph[UniformFanOutShape[T, U], NotUsed]]): Sink[T, NotUsed] = {
+  def combine[T, U](
+      output1: Sink[U, _],
+      output2: Sink[U, _],
+      rest: java.util.List[Sink[U, _]],
+      strategy: function.Function[
+          java.lang.Integer, Graph[UniformFanOutShape[T, U], NotUsed]]
+  ): Sink[T, NotUsed] = {
     import scala.collection.JavaConverters._
     val seq = if (rest != null) rest.asScala.map(_.asScala) else Seq()
-    new Sink(scaladsl.Sink.combine(output1.asScala, output2.asScala, seq: _*)(num ⇒ strategy.apply(num)))
+    new Sink(
+        scaladsl.Sink.combine(output1.asScala, output2.asScala, seq: _*)(
+            num ⇒ strategy.apply(num)))
   }
 
   /**
@@ -246,7 +282,8 @@ object Sink {
    * @see [[akka.stream.SinkQueue]]
    */
   def queue[T](): Sink[T, SinkQueue[T]] =
-    new Sink(scaladsl.Sink.queue[T]().mapMaterializedValue(new SinkQueueAdapter(_)))
+    new Sink(
+        scaladsl.Sink.queue[T]().mapMaterializedValue(new SinkQueueAdapter(_)))
 }
 
 /**
@@ -255,9 +292,10 @@ object Sink {
  * A `Sink` is a set of stream processing steps that has one open input and an attached output.
  * Can be used as a `Subscriber`
  */
-final class Sink[-In, +Mat](delegate: scaladsl.Sink[In, Mat]) extends Graph[SinkShape[In], Mat] {
+final class Sink[-In, +Mat](delegate: scaladsl.Sink[In, Mat])
+    extends Graph[SinkShape[In], Mat] {
 
-  override def shape: SinkShape[In] = delegate.shape
+  override def shape: SinkShape[In]               = delegate.shape
   private[stream] def module: StreamLayout.Module = delegate.module
 
   override def toString: String = delegate.toString
@@ -268,7 +306,8 @@ final class Sink[-In, +Mat](delegate: scaladsl.Sink[In, Mat]) extends Graph[Sink
   /**
    * Connect this `Sink` to a `Source` and run it.
    */
-  def runWith[M](source: Graph[SourceShape[In], M], materializer: Materializer): M =
+  def runWith[M](
+      source: Graph[SourceShape[In], M], materializer: Materializer): M =
     asScala.runWith(source)(materializer)
 
   /**
@@ -285,7 +324,8 @@ final class Sink[-In, +Mat](delegate: scaladsl.Sink[In, Mat]) extends Graph[Sink
   /**
    * Transform only the materialized value of this Sink, leaving all other properties as they were.
    */
-  def mapMaterializedValue[Mat2](f: function.Function[Mat, Mat2]): Sink[In, Mat2] =
+  def mapMaterializedValue[Mat2](
+      f: function.Function[Mat, Mat2]): Sink[In, Mat2] =
     new Sink(delegate.mapMaterializedValue(f.apply _))
 
   /**
@@ -316,7 +356,5 @@ final class Sink[-In, +Mat](delegate: scaladsl.Sink[In, Mat]) extends Graph[Sink
   /**
    * Put an asynchronous boundary around this `Sink`
    */
-  override def async: javadsl.Sink[In, Mat] =
-    new Sink(delegate.async)
-
+  override def async: javadsl.Sink[In, Mat] = new Sink(delegate.async)
 }

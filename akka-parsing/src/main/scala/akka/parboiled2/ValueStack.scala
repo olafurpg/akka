@@ -25,10 +25,11 @@ import akka.shapeless._
  * should allow you a safer and easier way to interact with the stack.
  * However, in some cases, when you know what you are doing, direct access can be helpful.
  */
-class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends Iterable[Any] {
+class ValueStack private[parboiled2](initialSize: Int, maxSize: Int)
+    extends Iterable[Any] {
 
   private[this] var buffer = new Array[Any](initialSize)
-  private[this] var _size = 0
+  private[this] var _size  = 0
 
   private[parboiled2] def size_=(newSize: Int): Unit = _size = newSize
 
@@ -63,13 +64,12 @@ class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends It
    * Puts the given HList of values onto the stack.
    * Throws a `ValueStackOverflowException` if the stack has no more space available.
    */
-  @tailrec final def pushAll(hlist: HList): Unit =
-    hlist match {
-      case akka.shapeless.::(head, tail) ⇒
-        push(head)
-        pushAll(tail)
-      case HNil ⇒
-    }
+  @tailrec final def pushAll(hlist: HList): Unit = hlist match {
+    case akka.shapeless.::(head, tail) ⇒
+      push(head)
+      pushAll(tail)
+    case HNil ⇒
+  }
 
   /**
    * Inserts the given value into the stack `down` elements below the current
@@ -78,19 +78,18 @@ class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends It
    * Throws a `ValueStackUnderflowException` if `down > size`.
    * Throws an `IllegalArgumentException` is `down` is negative.
    */
-  def insert(down: Int, value: Any): Unit =
-    math.signum(down) match {
-      case -1 ⇒ throw new IllegalArgumentException("`down` must not be negative")
-      case 0  ⇒ push(value)
-      case 1 ⇒
-        if (down > _size) throw new ValueStackUnderflowException
-        val newSize = _size + 1
-        ensureSize(newSize)
-        val targetIx = _size - down
-        System.arraycopy(buffer, targetIx, buffer, targetIx + 1, down)
-        buffer(targetIx) = value
-        _size = newSize
-    }
+  def insert(down: Int, value: Any): Unit = math.signum(down) match {
+    case -1 ⇒ throw new IllegalArgumentException("`down` must not be negative")
+    case 0  ⇒ push(value)
+    case 1 ⇒
+      if (down > _size) throw new ValueStackUnderflowException
+      val newSize = _size + 1
+      ensureSize(newSize)
+      val targetIx = _size - down
+      System.arraycopy(buffer, targetIx, buffer, targetIx + 1, down)
+      buffer(targetIx) = value
+      _size = newSize
+  }
 
   /**
    * Removes the top element from the stack and returns it.
@@ -109,19 +108,18 @@ class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends It
    * Throws a `ValueStackUnderflowException` if `down >= size`.
    * Throws an `IllegalArgumentException` is `down` is negative.
    */
-  def pullOut(down: Int): Any =
-    math.signum(down) match {
-      case -1 ⇒ throw new IllegalArgumentException("`down` must not be negative")
-      case 0  ⇒ pop()
-      case 1 ⇒
-        if (down >= _size) throw new ValueStackUnderflowException
-        val newSize = _size - 1
-        val targetIx = newSize - down
-        val result = buffer(targetIx)
-        System.arraycopy(buffer, targetIx + 1, buffer, targetIx, down)
-        _size = newSize
-        result
-    }
+  def pullOut(down: Int): Any = math.signum(down) match {
+    case -1 ⇒ throw new IllegalArgumentException("`down` must not be negative")
+    case 0  ⇒ pop()
+    case 1 ⇒
+      if (down >= _size) throw new ValueStackUnderflowException
+      val newSize  = _size - 1
+      val targetIx = newSize - down
+      val result   = buffer(targetIx)
+      System.arraycopy(buffer, targetIx + 1, buffer, targetIx, down)
+      _size = newSize
+      result
+  }
 
   /**
    * Returns the top element without removing it.
@@ -137,14 +135,13 @@ class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends It
    * Throws a `ValueStackUnderflowException` if `down >= size`.
    * Throws an `IllegalArgumentException` is `down` is negative.
    */
-  def peek(down: Int): Any =
-    math.signum(down) match {
-      case -1 ⇒ throw new IllegalArgumentException("`down` must not be negative")
-      case 0  ⇒ peek
-      case 1 ⇒
-        if (down >= _size) throw new ValueStackUnderflowException
-        else buffer(_size - down - 1)
-    }
+  def peek(down: Int): Any = math.signum(down) match {
+    case -1 ⇒ throw new IllegalArgumentException("`down` must not be negative")
+    case 0  ⇒ peek
+    case 1 ⇒
+      if (down >= _size) throw new ValueStackUnderflowException
+      else buffer(_size - down - 1)
+  }
 
   /**
    * Replaces the element `down` elements below the current top element with the given one.
@@ -222,7 +219,8 @@ class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends It
    * Throws an `IllegalArgumentException` if `start < 0 || start > end`.
    * Throws a `ValueStackUnderflowException` if `end > size`.
    */
-  @tailrec final def toHList[L <: HList](start: Int = 0, end: Int = _size, prependTo: HList = HNil): L = {
+  @tailrec final def toHList[L <: HList](
+      start: Int = 0, end: Int = _size, prependTo: HList = HNil): L = {
     require(0 <= start && start <= end, "`start` must be >= 0 and <= `end`")
     if (start == end) prependTo.asInstanceOf[L]
     else toHList[L](start, end - 1, buffer(end - 1) :: prependTo)
@@ -244,7 +242,8 @@ class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends It
   private def ensureSize(requiredSize: Int): Unit =
     if (buffer.length < requiredSize)
       if (requiredSize <= maxSize) {
-        val newSize = math.min(math.max(buffer.length * 2, requiredSize), maxSize)
+        val newSize =
+          math.min(math.max(buffer.length * 2, requiredSize), maxSize)
         val newBuffer = new Array[Any](newSize)
         System.arraycopy(buffer, 0, newBuffer, 0, _size)
         buffer = newBuffer

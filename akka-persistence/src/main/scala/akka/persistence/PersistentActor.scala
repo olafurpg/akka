@@ -3,18 +3,20 @@
  */
 package akka.persistence
 
-import java.lang.{ Iterable ⇒ JIterable }
+import java.lang.{Iterable ⇒ JIterable}
 import akka.actor._
 import akka.japi.Procedure
 import akka.japi.Util
 import com.typesafe.config.Config
 
 abstract class RecoveryCompleted
+
 /**
  * Sent to a [[PersistentActor]] when the journal replay has been finished.
  */
 @SerialVersionUID(1L)
 case object RecoveryCompleted extends RecoveryCompleted {
+
   /**
    * Java API: get the singleton instance
    */
@@ -51,9 +53,9 @@ final case class DeleteMessagesFailure(cause: Throwable, toSequenceNr: Long)
  */
 @SerialVersionUID(1L)
 final case class Recovery(
-  fromSnapshot: SnapshotSelectionCriteria = SnapshotSelectionCriteria.Latest,
-  toSequenceNr: Long = Long.MaxValue,
-  replayMax: Long = Long.MaxValue)
+    fromSnapshot: SnapshotSelectionCriteria = SnapshotSelectionCriteria.Latest,
+    toSequenceNr: Long = Long.MaxValue,
+    replayMax: Long = Long.MaxValue)
 
 object Recovery {
 
@@ -67,8 +69,7 @@ object Recovery {
    * Java API
    * @see [[Recovery]]
    */
-  def create(toSequenceNr: Long) =
-    Recovery(toSequenceNr = toSequenceNr)
+  def create(toSequenceNr: Long) = Recovery(toSequenceNr = toSequenceNr)
 
   /**
    * Java API
@@ -88,8 +89,9 @@ object Recovery {
    * Java API
    * @see [[Recovery]]
    */
-  def create(fromSnapshot: SnapshotSelectionCriteria, toSequenceNr: Long, replayMax: Long) =
-    Recovery(fromSnapshot, toSequenceNr, replayMax)
+  def create(fromSnapshot: SnapshotSelectionCriteria,
+             toSequenceNr: Long,
+             replayMax: Long) = Recovery(fromSnapshot, toSequenceNr, replayMax)
 
   /**
    * Convenience method for skipping recovery in [[PersistentActor]].
@@ -108,6 +110,7 @@ sealed trait StashOverflowStrategy
  * Discard the message to [[akka.actor.DeadLetter]].
  */
 case object DiscardToDeadLetterStrategy extends StashOverflowStrategy {
+
   /**
    * Java API: get the singleton instance
    */
@@ -121,6 +124,7 @@ case object DiscardToDeadLetterStrategy extends StashOverflowStrategy {
  * to replay.
  */
 case object ThrowOverflowExceptionStrategy extends StashOverflowStrategy {
+
   /**
    * Java API: get the singleton instance
    */
@@ -142,7 +146,8 @@ trait StashOverflowStrategyConfigurator {
   def create(config: Config): StashOverflowStrategy
 }
 
-final class ThrowExceptionConfigurator extends StashOverflowStrategyConfigurator {
+final class ThrowExceptionConfigurator
+    extends StashOverflowStrategyConfigurator {
   override def create(config: Config) = ThrowOverflowExceptionStrategy
 }
 
@@ -160,7 +165,8 @@ trait PersistentActor extends Eventsourced with PersistenceIdentity {
 /**
  * Java API: an persistent actor - can be used to implement command or event sourcing.
  */
-abstract class UntypedPersistentActor extends UntypedActor with Eventsourced with PersistenceIdentity {
+abstract class UntypedPersistentActor
+    extends UntypedActor with Eventsourced with PersistenceIdentity {
 
   final def onReceive(message: Any) = onReceiveCommand(message)
 
@@ -239,7 +245,7 @@ abstract class UntypedPersistentActor extends UntypedActor with Eventsourced wit
    * @param handler handler for each persisted `event`
    */
   def persistAsync[A](event: A)(handler: Procedure[A]): Unit =
-    super[Eventsourced].persistAsync(event)(event ⇒ handler(event))
+    super [Eventsourced].persistAsync(event)(event ⇒ handler(event))
 
   /**
    * JAVA API: asynchronously persists `events` in specified order. This is equivalent to calling
@@ -250,7 +256,8 @@ abstract class UntypedPersistentActor extends UntypedActor with Eventsourced wit
    * @param handler handler for each persisted `events`
    */
   def persistAllAsync[A](events: JIterable[A], handler: Procedure[A]): Unit =
-    super[Eventsourced].persistAllAsync(Util.immutableSeq(events))(event ⇒ handler(event))
+    super [Eventsourced].persistAllAsync(Util.immutableSeq(events))(
+        event ⇒ handler(event))
 
   /**
    * Defer the handler execution until all pending handlers have been executed.
@@ -270,7 +277,7 @@ abstract class UntypedPersistentActor extends UntypedActor with Eventsourced wit
    * @param handler handler for the given `event`
    */
   def deferAsync[A](event: A)(handler: Procedure[A]): Unit =
-    super[Eventsourced].deferAsync(event)(event ⇒ handler(event))
+    super [Eventsourced].deferAsync(event)(event ⇒ handler(event))
 
   /**
    * Java API: recovery handler that receives persisted events during recovery. If a state snapshot
@@ -301,7 +308,8 @@ abstract class UntypedPersistentActor extends UntypedActor with Eventsourced wit
 /**
  * Java API: an persistent actor - can be used to implement command or event sourcing.
  */
-abstract class AbstractPersistentActor extends AbstractActor with PersistentActor with Eventsourced {
+abstract class AbstractPersistentActor
+    extends AbstractActor with PersistentActor with Eventsourced {
 
   /**
    * Java API: asynchronously persists `event`. On successful persistence, `handler` is called with the
@@ -402,7 +410,5 @@ abstract class AbstractPersistentActor extends AbstractActor with PersistentActo
   def deferAsync[A](event: A)(handler: Procedure[A]): Unit =
     super.deferAsync(event)(event ⇒ handler(event))
 
-  override def receive = super[PersistentActor].receive
-
+  override def receive = super [PersistentActor].receive
 }
-

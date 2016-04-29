@@ -38,7 +38,5 @@ class RecipeSeq extends RecipeSpec {
       limited.futureValue should ===(Seq("1", "2", "3"))
       ignoreOverflow.futureValue should ===(Seq("1", "2", "3"))
     }
-
   }
-
 }

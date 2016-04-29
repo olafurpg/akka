@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.pattern
 
 import akka.testkit.AkkaSpec
@@ -28,7 +27,7 @@ class PipeToSpec extends AkkaSpec {
     }
 
     "pick up an implicit sender()" in {
-      val p = TestProbe()
+      val p          = TestProbe()
       implicit val s = testActor
       Future(42) pipeTo p.ref
       p.expectMsg(42)
@@ -47,28 +46,27 @@ class PipeToSpec extends AkkaSpec {
       p.expectMsg(42)
       p.lastSender should ===(testActor)
     }
-
   }
 
   "PipeToSelection" must {
 
     "work" in {
-      val p = TestProbe()
+      val p   = TestProbe()
       val sel = system.actorSelection(p.ref.path)
       Future(42) pipeToSelection sel
       p.expectMsg(42)
     }
 
     "signal failure" in {
-      val p = TestProbe()
+      val p   = TestProbe()
       val sel = system.actorSelection(p.ref.path)
       Future.failed(new Exception("failed")) pipeToSelection sel
       p.expectMsgType[Status.Failure].cause.getMessage should ===("failed")
     }
 
     "pick up an implicit sender()" in {
-      val p = TestProbe()
-      val sel = system.actorSelection(p.ref.path)
+      val p          = TestProbe()
+      val sel        = system.actorSelection(p.ref.path)
       implicit val s = testActor
       Future(42) pipeToSelection sel
       p.expectMsg(42)
@@ -76,20 +74,18 @@ class PipeToSpec extends AkkaSpec {
     }
 
     "work in Java form" in {
-      val p = TestProbe()
+      val p   = TestProbe()
       val sel = system.actorSelection(p.ref.path)
       pipe(Future(42)) to sel
       p.expectMsg(42)
     }
 
     "work in Java form with sender()" in {
-      val p = TestProbe()
+      val p   = TestProbe()
       val sel = system.actorSelection(p.ref.path)
       pipe(Future(42)) to (sel, testActor)
       p.expectMsg(42)
       p.lastSender should ===(testActor)
     }
-
   }
-
 }

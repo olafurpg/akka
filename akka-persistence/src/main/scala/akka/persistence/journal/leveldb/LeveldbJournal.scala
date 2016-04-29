@@ -19,15 +19,19 @@ import akka.pattern.pipe
  *
  * Journal backed by a local LevelDB store. For production use.
  */
-private[persistence] class LeveldbJournal extends { val configPath = "akka.persistence.journal.leveldb" } with AsyncWriteJournal with LeveldbStore {
+private[persistence] class LeveldbJournal extends {
+  val configPath = "akka.persistence.journal.leveldb"
+} with AsyncWriteJournal with LeveldbStore {
   import LeveldbJournal._
 
   override def receivePluginInternal: Receive = {
-    case r @ ReplayTaggedMessages(fromSequenceNr, toSequenceNr, max, tag, replyTo) ⇒
+    case r @ ReplayTaggedMessages(
+        fromSequenceNr, toSequenceNr, max, tag, replyTo) ⇒
       import context.dispatcher
       val readHighestSequenceNrFrom = math.max(0L, fromSequenceNr - 1)
-      asyncReadHighestSequenceNr(tagAsPersistenceId(tag), readHighestSequenceNrFrom)
-        .flatMap { highSeqNr ⇒
+      asyncReadHighestSequenceNr(tagAsPersistenceId(tag),
+                                 readHighestSequenceNrFrom).flatMap {
+        highSeqNr ⇒
           val toSeqNr = math.min(toSequenceNr, highSeqNr)
           if (highSeqNr == 0L || fromSequenceNr > toSeqNr)
             Future.successful(highSeqNr)
@@ -35,15 +39,18 @@ private[persistence] class LeveldbJournal extends { val configPath = "akka.persi
             asyncReplayTaggedMessages(tag, fromSequenceNr, toSeqNr, max) {
               case ReplayedTaggedMessage(p, tag, offset) ⇒
                 adaptFromJournal(p).foreach { adaptedPersistentRepr ⇒
-                  replyTo.tell(ReplayedTaggedMessage(adaptedPersistentRepr, tag, offset), Actor.noSender)
+                  replyTo.tell(ReplayedTaggedMessage(adaptedPersistentRepr,
+                                                     tag,
+                                                     offset),
+                               Actor.noSender)
                 }
             }.map(_ ⇒ highSeqNr)
           }
-        }.map {
-          highSeqNr ⇒ RecoverySuccess(highSeqNr)
-        }.recover {
-          case e ⇒ ReplayMessagesFailure(e)
-        }.pipeTo(replyTo)
+      }.map { highSeqNr ⇒
+        RecoverySuccess(highSeqNr)
+      }.recover {
+        case e ⇒ ReplayMessagesFailure(e)
+      }.pipeTo(replyTo)
 
     case SubscribePersistenceId(persistenceId: String) ⇒
       addPersistenceIdSubscriber(sender(), persistenceId)
@@ -70,8 +77,10 @@ private[persistence] object LeveldbJournal {
    * Used by query-side. The journal will send [[EventAppended]] messages to
    * the subscriber when `asyncWriteMessages` has been called.
    */
-  final case class SubscribePersistenceId(persistenceId: String) extends SubscriptionCommand
-  final case class EventAppended(persistenceId: String) extends DeadLetterSuppression
+  final case class SubscribePersistenceId(persistenceId: String)
+      extends SubscriptionCommand
+  final case class EventAppended(persistenceId: String)
+      extends DeadLetterSuppression
 
   /**
    * Subscribe the `sender` to current and new persistenceIds.
@@ -80,8 +89,10 @@ private[persistence] object LeveldbJournal {
    * are created.
    */
   final case object SubscribeAllPersistenceIds extends SubscriptionCommand
-  final case class CurrentPersistenceIds(allPersistenceIds: Set[String]) extends DeadLetterSuppression
-  final case class PersistenceIdAdded(persistenceId: String) extends DeadLetterSuppression
+  final case class CurrentPersistenceIds(allPersistenceIds: Set[String])
+      extends DeadLetterSuppression
+  final case class PersistenceIdAdded(persistenceId: String)
+      extends DeadLetterSuppression
 
   /**
    * Subscribe the `sender` to changes (appended events) for a specific `tag`.
@@ -91,12 +102,18 @@ private[persistence] object LeveldbJournal {
    * via an [[akka.persistence.journal.EventAdapter]].
    */
   final case class SubscribeTag(tag: String) extends SubscriptionCommand
-  final case class TaggedEventAppended(tag: String) extends DeadLetterSuppression
+  final case class TaggedEventAppended(tag: String)
+      extends DeadLetterSuppression
 
-  final case class ReplayTaggedMessages(fromSequenceNr: Long, toSequenceNr: Long, max: Long,
-                                        tag: String, replyTo: ActorRef) extends SubscriptionCommand
-  final case class ReplayedTaggedMessage(persistent: PersistentRepr, tag: String, offset: Long)
-    extends DeadLetterSuppression with NoSerializationVerificationNeeded
+  final case class ReplayTaggedMessages(fromSequenceNr: Long,
+                                        toSequenceNr: Long,
+                                        max: Long,
+                                        tag: String,
+                                        replyTo: ActorRef)
+      extends SubscriptionCommand
+  final case class ReplayedTaggedMessage(
+      persistent: PersistentRepr, tag: String, offset: Long)
+      extends DeadLetterSuppression with NoSerializationVerificationNeeded
 }
 
 /**
@@ -105,8 +122,8 @@ private[persistence] object LeveldbJournal {
  * Journal backed by a [[SharedLeveldbStore]]. For testing only.
  */
 private[persistence] class SharedLeveldbJournal extends AsyncWriteProxy {
-  val timeout: Timeout = context.system.settings.config.getMillisDuration(
-    "akka.persistence.journal.leveldb-shared.timeout")
+  val timeout: Timeout = context.system.settings.config
+    .getMillisDuration("akka.persistence.journal.leveldb-shared.timeout")
 
   override def receivePluginInternal: Receive = {
     case cmd: LeveldbJournal.SubscriptionCommand ⇒
@@ -114,14 +131,16 @@ private[persistence] class SharedLeveldbJournal extends AsyncWriteProxy {
       store match {
         case Some(s) ⇒ s.forward(cmd)
         case None ⇒
-          log.error("Failed {} request. " +
-            "Store not initialized. Use `SharedLeveldbJournal.setStore(sharedStore, system)`", cmd)
+          log.error(
+              "Failed {} request. " +
+              "Store not initialized. Use `SharedLeveldbJournal.setStore(sharedStore, system)`",
+              cmd)
       }
-
   }
 }
 
 object SharedLeveldbJournal {
+
   /**
    * Sets the shared LevelDB `store` for the given actor `system`.
    *

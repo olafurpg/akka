@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka
 
 import akka.actor.ActorSystem
@@ -25,13 +24,19 @@ object Main {
    */
   def main(args: Array[String]): Unit = {
     if (args.length != 1) {
-      println("you need to provide exactly one argument: the class of the application supervisor actor")
+      println(
+          "you need to provide exactly one argument: the class of the application supervisor actor")
     } else {
       val system = ActorSystem("Main")
       try {
-        val appClass = system.asInstanceOf[ExtendedActorSystem].dynamicAccess.getClassFor[Actor](args(0)).get
+        val appClass = system
+          .asInstanceOf[ExtendedActorSystem]
+          .dynamicAccess
+          .getClassFor[Actor](args(0))
+          .get
         val app = system.actorOf(Props(appClass), "app")
-        val terminator = system.actorOf(Props(classOf[Terminator], app), "app-terminator")
+        val terminator =
+          system.actorOf(Props(classOf[Terminator], app), "app-terminator")
       } catch {
         case NonFatal(e) ⇒ system.terminate(); throw e
       }
@@ -46,5 +51,4 @@ object Main {
         context.system.terminate()
     }
   }
-
 }

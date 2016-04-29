@@ -3,31 +3,38 @@
  */
 package akka.actor
 
-import akka.testkit.{ TestProbe, AkkaSpec }
-import akka.actor.SupervisorStrategy.{ Restart, Stop }
+import akka.testkit.{TestProbe, AkkaSpec}
+import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.dispatch.sysmsg.SystemMessage
 import akka.event.EventStream
 import scala.util.control.NoStackTrace
 
 object UidClashTest {
 
-  class TerminatedForNonWatchedActor extends Exception("Received Terminated for actor that was not actually watched")
-    with NoStackTrace
+  class TerminatedForNonWatchedActor
+      extends Exception(
+          "Received Terminated for actor that was not actually watched")
+      with NoStackTrace
 
   @volatile var oldActor: ActorRef = _
 
-  private[akka] class EvilCollidingActorRef(override val provider: ActorRefProvider,
-                                            override val path: ActorPath,
-                                            val eventStream: EventStream) extends MinimalActorRef {
+  private[akka] class EvilCollidingActorRef(
+      override val provider: ActorRefProvider,
+      override val path: ActorPath,
+      val eventStream: EventStream)
+      extends MinimalActorRef {
 
     //Ignore everything
-    override def isTerminated: Boolean = true
+    override def isTerminated: Boolean                           = true
     override def sendSystemMessage(message: SystemMessage): Unit = ()
-    override def !(message: Any)(implicit sender: ActorRef = Actor.noSender): Unit = ()
+    override def !(message: Any)(
+        implicit sender: ActorRef = Actor.noSender): Unit = ()
   }
 
   def createCollidingRef(system: ActorSystem): ActorRef =
-    new EvilCollidingActorRef(system.asInstanceOf[ActorSystemImpl].provider, oldActor.path, system.eventStream)
+    new EvilCollidingActorRef(system.asInstanceOf[ActorSystemImpl].provider,
+                              oldActor.path,
+                              system.eventStream)
 
   case object PleaseRestart
   case object PingMyself
@@ -57,7 +64,8 @@ object UidClashTest {
       }
     }
 
-    override def preStart(): Unit = context.watch(context.actorOf(Props.empty, "child"))
+    override def preStart(): Unit =
+      context.watch(context.actorOf(Props.empty, "child"))
 
     override def postRestart(reason: Throwable): Unit = {
       context.watch(createCollidingRef(context.system))
@@ -66,20 +74,21 @@ object UidClashTest {
   }
 
   class RestartingActor(probe: ActorRef) extends Actor {
-    override val supervisorStrategy = OneForOneStrategy(loggingEnabled = false) {
-      case _: TerminatedForNonWatchedActor ⇒
-        context.stop(self)
-        Stop
-      case _ ⇒ Restart
-    }
-    val theRestartedOne = context.actorOf(Props[RestartedActor], "theRestartedOne")
+    override val supervisorStrategy =
+      OneForOneStrategy(loggingEnabled = false) {
+        case _: TerminatedForNonWatchedActor ⇒
+          context.stop(self)
+          Stop
+        case _ ⇒ Restart
+      }
+    val theRestartedOne =
+      context.actorOf(Props[RestartedActor], "theRestartedOne")
 
     def receive = {
       case PleaseRestart   ⇒ theRestartedOne ! PleaseRestart
       case RestartedSafely ⇒ probe ! RestartedSafely
     }
   }
-
 }
 
 class UidClashTest extends AkkaSpec {
@@ -88,12 +97,12 @@ class UidClashTest extends AkkaSpec {
   "The Terminated message for an old child stopped in preRestart" should {
     "not arrive after restart" in {
       val watcher = TestProbe()
-      val topActor = system.actorOf(Props(classOf[RestartingActor], watcher.ref), "top")
+      val topActor =
+        system.actorOf(Props(classOf[RestartingActor], watcher.ref), "top")
       watcher.watch(topActor)
 
       topActor ! PleaseRestart
       watcher.expectMsg(RestartedSafely)
     }
   }
-
 }

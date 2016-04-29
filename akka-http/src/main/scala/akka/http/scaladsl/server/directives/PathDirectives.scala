@@ -13,7 +13,9 @@ import akka.http.scaladsl.model.Uri.Path
  * @groupname path Path directives
  * @groupprio path 170
  */
-trait PathDirectives extends PathMatchers with ImplicitPathMatcherConstruction with ToNameReceptacleEnhancements {
+trait PathDirectives
+    extends PathMatchers with ImplicitPathMatcherConstruction
+    with ToNameReceptacleEnhancements {
   import BasicDirectives._
   import RouteDirectives._
   import PathMatcher._
@@ -34,7 +36,8 @@ trait PathDirectives extends PathMatchers with ImplicitPathMatcherConstruction w
    *
    * @group path
    */
-  def pathPrefix[L](pm: PathMatcher[L]): Directive[L] = rawPathPrefix(Slash ~ pm)
+  def pathPrefix[L](pm: PathMatcher[L]): Directive[L] =
+    rawPathPrefix(Slash ~ pm)
 
   /**
    * Applies the given matcher directly to a prefix of the unmatched path of the
@@ -47,8 +50,9 @@ trait PathDirectives extends PathMatchers with ImplicitPathMatcherConstruction w
   def rawPathPrefix[L](pm: PathMatcher[L]): Directive[L] = {
     implicit val LIsTuple = pm.ev
     extract(ctx ⇒ pm(ctx.unmatchedPath)).flatMap {
-      case Matched(rest, values) ⇒ tprovide(values) & mapRequestContext(_ withUnmatchedPath rest)
-      case Unmatched             ⇒ reject
+      case Matched(rest, values) ⇒
+        tprovide(values) & mapRequestContext(_ withUnmatchedPath rest)
+      case Unmatched ⇒ reject
     }
   }
 
@@ -58,7 +62,8 @@ trait PathDirectives extends PathMatchers with ImplicitPathMatcherConstruction w
    *
    * @group path
    */
-  def pathPrefixTest[L](pm: PathMatcher[L]): Directive[L] = rawPathPrefixTest(Slash ~ pm)
+  def pathPrefixTest[L](pm: PathMatcher[L]): Directive[L] =
+    rawPathPrefixTest(Slash ~ pm)
 
   /**
    * Checks whether the unmatchedPath of the [[RequestContext]] has a prefix matched by the
@@ -86,8 +91,9 @@ trait PathDirectives extends PathMatchers with ImplicitPathMatcherConstruction w
   def pathSuffix[L](pm: PathMatcher[L]): Directive[L] = {
     implicit val LIsTuple = pm.ev
     extract(ctx ⇒ pm(ctx.unmatchedPath.reverse)).flatMap {
-      case Matched(rest, values) ⇒ tprovide(values) & mapRequestContext(_.withUnmatchedPath(rest.reverse))
-      case Unmatched             ⇒ reject
+      case Matched(rest, values) ⇒
+        tprovide(values) & mapRequestContext(_.withUnmatchedPath(rest.reverse))
+      case Unmatched ⇒ reject
     }
   }
 
@@ -164,12 +170,13 @@ trait PathDirectives extends PathMatchers with ImplicitPathMatcherConstruction w
    *
    * @group path
    */
-  def redirectToTrailingSlashIfMissing(redirectionType: StatusCodes.Redirection): Directive0 =
+  def redirectToTrailingSlashIfMissing(
+      redirectionType: StatusCodes.Redirection): Directive0 =
     extractUri.flatMap { uri ⇒
       if (uri.path.endsWithSlash) pass
       else {
         val newPath = uri.path ++ Path.SingleSlash
-        val newUri = uri.withPath(newPath)
+        val newUri  = uri.withPath(newPath)
         redirect(newUri, redirectionType)
       }
     }
@@ -181,15 +188,15 @@ trait PathDirectives extends PathMatchers with ImplicitPathMatcherConstruction w
    *
    * @group path
    */
-  def redirectToNoTrailingSlashIfPresent(redirectionType: StatusCodes.Redirection): Directive0 =
+  def redirectToNoTrailingSlashIfPresent(
+      redirectionType: StatusCodes.Redirection): Directive0 =
     extractUri.flatMap { uri ⇒
       if (uri.path.endsWithSlash) {
         val newPath = uri.path.reverse.tail.reverse
-        val newUri = uri.withPath(newPath)
+        val newUri  = uri.withPath(newPath)
         redirect(newUri, redirectionType)
       } else pass
     }
-
 }
 
 object PathDirectives extends PathDirectives

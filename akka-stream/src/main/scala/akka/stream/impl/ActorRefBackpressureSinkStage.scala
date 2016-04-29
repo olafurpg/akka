@@ -7,18 +7,20 @@ import java.util
 
 import akka.actor._
 import akka.stream.impl.Stages.DefaultAttributes
-import akka.stream.{ Inlet, SinkShape, Attributes }
+import akka.stream.{Inlet, SinkShape, Attributes}
 import akka.stream.Attributes.InputBuffer
 import akka.stream.stage._
 
 /**
  * INTERNAL API
  */
-private[akka] class ActorRefBackpressureSinkStage[In](ref: ActorRef, onInitMessage: Any,
-                                                      ackMessage: Any,
-                                                      onCompleteMessage: Any,
-                                                      onFailureMessage: (Throwable) ⇒ Any)
-  extends GraphStage[SinkShape[In]] {
+private[akka] class ActorRefBackpressureSinkStage[In](
+    ref: ActorRef,
+    onInitMessage: Any,
+    ackMessage: Any,
+    onCompleteMessage: Any,
+    onFailureMessage: (Throwable) ⇒ Any)
+    extends GraphStage[SinkShape[In]] {
   val in: Inlet[In] = Inlet[In]("ActorRefBackpressureSink.in")
   override def initialAttributes = DefaultAttributes.actorRefWithAck
   override val shape: SinkShape[In] = SinkShape(in)
@@ -27,24 +29,26 @@ private[akka] class ActorRefBackpressureSinkStage[In](ref: ActorRef, onInitMessa
     new GraphStageLogic(shape) {
       implicit def self: ActorRef = stageActor.ref
 
-      val maxBuffer = inheritedAttributes.getAttribute(classOf[InputBuffer], InputBuffer(16, 16)).max
+      val maxBuffer = inheritedAttributes
+        .getAttribute(classOf[InputBuffer], InputBuffer(16, 16))
+        .max
       require(maxBuffer > 0, "Buffer size must be greater than 0")
 
       val buffer: util.Deque[In] = new util.ArrayDeque[In]()
       var acknowledgementReceived = false
-      var completeReceived = false
+      var completeReceived        = false
 
       private def receive(evt: (ActorRef, Any)): Unit = {
         evt._2 match {
           case `ackMessage` ⇒ {
-            if (buffer.isEmpty) acknowledgementReceived = true
-            else {
-              // onPush might have filled the buffer up and
-              // stopped pulling, so we pull here
-              if (buffer.size() == maxBuffer) tryPull(in)
-              dequeueAndSend()
+              if (buffer.isEmpty) acknowledgementReceived = true
+              else {
+                // onPush might have filled the buffer up and
+                // stopped pulling, so we pull here
+                if (buffer.size() == maxBuffer) tryPull(in)
+                dequeueAndSend()
+              }
             }
-          }
           case Terminated(`ref`) ⇒ completeStage()
           case _                 ⇒ //ignore all other messages
         }

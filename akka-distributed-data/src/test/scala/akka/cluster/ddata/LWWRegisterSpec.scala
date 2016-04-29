@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster.ddata
 
 import akka.actor.Address
@@ -66,13 +65,13 @@ class LWWRegisterSpec extends WordSpec with Matchers {
     }
 
     "have unapply extractor" in {
-      val r1 = LWWRegister(node1, "a", defaultClock)
+      val r1                  = LWWRegister(node1, "a", defaultClock)
       val LWWRegister(value1) = r1
-      val value2: String = value1
+      val value2: String      = value1
       Changed(LWWRegisterKey[String]("key"))(r1) match {
         case c @ Changed(LWWRegisterKey("key")) ⇒
           val LWWRegister(value3) = c.dataValue
-          val value4: String = value3
+          val value4: String      = value3
           value4 should be("a")
       }
     }

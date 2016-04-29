@@ -1,12 +1,11 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.camel
 
 import akka.util.Timeout
-import akka.actor.{ ActorRef }
-import scala.concurrent.{ ExecutionContext, Future }
+import akka.actor.{ActorRef}
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Activation trait that can be used to wait on activation or de-activation of Camel endpoints.
@@ -21,7 +20,8 @@ trait Activation {
    * @param endpoint the endpoint to be activated
    * @param timeout the timeout for the Future
    */
-  def activationFutureFor(endpoint: ActorRef)(implicit timeout: Timeout, executor: ExecutionContext): Future[ActorRef]
+  def activationFutureFor(endpoint: ActorRef)(
+      implicit timeout: Timeout, executor: ExecutionContext): Future[ActorRef]
 
   /**
    * Produces a Future which will be completed when the given endpoint has been deactivated or
@@ -30,5 +30,6 @@ trait Activation {
    * @param endpoint the endpoint to be deactivated
    * @param timeout the timeout of the Future
    */
-  def deactivationFutureFor(endpoint: ActorRef)(implicit timeout: Timeout, executor: ExecutionContext): Future[ActorRef]
+  def deactivationFutureFor(endpoint: ActorRef)(
+      implicit timeout: Timeout, executor: ExecutionContext): Future[ActorRef]
 }

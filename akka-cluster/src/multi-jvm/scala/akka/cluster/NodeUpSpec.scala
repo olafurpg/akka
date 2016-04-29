@@ -15,18 +15,18 @@ import akka.actor.Props
 import akka.actor.Actor
 
 object NodeUpMultiJvmSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
 
-  commonConfig(debugConfig(on = false).withFallback(MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
+  commonConfig(debugConfig(on = false).withFallback(
+          MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
 }
 
 class NodeUpMultiJvmNode1 extends NodeUpSpec
 class NodeUpMultiJvmNode2 extends NodeUpSpec
 
 abstract class NodeUpSpec
-  extends MultiNodeSpec(NodeUpMultiJvmSpec)
-  with MultiNodeClusterSpec {
+    extends MultiNodeSpec(NodeUpMultiJvmSpec) with MultiNodeClusterSpec {
 
   import NodeUpMultiJvmSpec._
   import ClusterEvent._
@@ -71,7 +71,8 @@ abstract class NodeUpSpec
       for (n ← 1 to 20) {
         Thread.sleep(100.millis.dilated.toMillis)
         unexpected.get should ===(SortedSet.empty)
-        clusterView.members.forall(_.status == MemberStatus.Up) should ===(true)
+        clusterView.members.forall(_.status == MemberStatus.Up) should ===(
+            true)
       }
 
       enterBarrier("after-2")

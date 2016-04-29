@@ -17,16 +17,19 @@ import akka.remote.RemoteWatcher
  * INTERNAL API
  */
 private[cluster] object ClusterRemoteWatcher {
+
   /**
    * Factory method for `ClusterRemoteWatcher` [[akka.actor.Props]].
    */
-  def props(
-    failureDetector: FailureDetectorRegistry[Address],
-    heartbeatInterval: FiniteDuration,
-    unreachableReaperInterval: FiniteDuration,
-    heartbeatExpectedResponseAfter: FiniteDuration): Props =
-    Props(classOf[ClusterRemoteWatcher], failureDetector, heartbeatInterval, unreachableReaperInterval,
-      heartbeatExpectedResponseAfter).withDeploy(Deploy.local)
+  def props(failureDetector: FailureDetectorRegistry[Address],
+            heartbeatInterval: FiniteDuration,
+            unreachableReaperInterval: FiniteDuration,
+            heartbeatExpectedResponseAfter: FiniteDuration): Props =
+    Props(classOf[ClusterRemoteWatcher],
+          failureDetector,
+          heartbeatInterval,
+          unreachableReaperInterval,
+          heartbeatExpectedResponseAfter).withDeploy(Deploy.local)
 }
 
 /**
@@ -41,15 +44,14 @@ private[cluster] object ClusterRemoteWatcher {
  * of the cluster and then later becomes cluster member.
  */
 private[cluster] class ClusterRemoteWatcher(
-  failureDetector: FailureDetectorRegistry[Address],
-  heartbeatInterval: FiniteDuration,
-  unreachableReaperInterval: FiniteDuration,
-  heartbeatExpectedResponseAfter: FiniteDuration)
-  extends RemoteWatcher(
-    failureDetector,
-    heartbeatInterval,
-    unreachableReaperInterval,
-    heartbeatExpectedResponseAfter) {
+    failureDetector: FailureDetectorRegistry[Address],
+    heartbeatInterval: FiniteDuration,
+    unreachableReaperInterval: FiniteDuration,
+    heartbeatExpectedResponseAfter: FiniteDuration)
+    extends RemoteWatcher(failureDetector,
+                          heartbeatInterval,
+                          unreachableReaperInterval,
+                          heartbeatExpectedResponseAfter) {
 
   val cluster = Cluster(context.system)
   import cluster.selfAddress
@@ -70,7 +72,9 @@ private[cluster] class ClusterRemoteWatcher(
 
   def receiveClusterEvent: Actor.Receive = {
     case state: CurrentClusterState ⇒
-      clusterNodes = state.members.collect { case m if m.address != selfAddress ⇒ m.address }
+      clusterNodes = state.members.collect {
+        case m if m.address != selfAddress ⇒ m.address
+      }
       clusterNodes foreach takeOverResponsibility
       unreachable = unreachable diff clusterNodes
     case MemberUp(m)                      ⇒ memberUp(m)
@@ -79,12 +83,11 @@ private[cluster] class ClusterRemoteWatcher(
     case _: MemberEvent                   ⇒ // not interesting
   }
 
-  def memberUp(m: Member): Unit =
-    if (m.address != selfAddress) {
-      clusterNodes += m.address
-      takeOverResponsibility(m.address)
-      unreachable -= m.address
-    }
+  def memberUp(m: Member): Unit = if (m.address != selfAddress) {
+    clusterNodes += m.address
+    takeOverResponsibility(m.address)
+    unreachable -= m.address
+  }
 
   def memberRemoved(m: Member, previousStatus: MemberStatus): Unit =
     if (m.address != selfAddress) {
@@ -108,5 +111,4 @@ private[cluster] class ClusterRemoteWatcher(
       log.debug("Cluster is taking over responsibility of node: [{}]", address)
       unwatchNode(address)
     }
-
 }

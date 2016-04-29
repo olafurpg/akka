@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor.dsl
 
 import scala.concurrent.Await
@@ -31,39 +30,46 @@ private[akka] object Inbox {
     def withClient(c: ActorRef): Query
     def client: ActorRef
   }
-  private final case class Get(deadline: Deadline, client: ActorRef = null) extends Query {
+  private final case class Get(deadline: Deadline, client: ActorRef = null)
+      extends Query {
     def withClient(c: ActorRef) = copy(client = c)
   }
-  private final case class Select(deadline: Deadline, predicate: PartialFunction[Any, Any], client: ActorRef = null) extends Query {
+  private final case class Select(deadline: Deadline,
+                                  predicate: PartialFunction[Any, Any],
+                                  client: ActorRef = null)
+      extends Query {
     def withClient(c: ActorRef) = copy(client = c)
   }
   private final case class StartWatch(target: ActorRef)
   private case object Kick
-
 }
 
-trait Inbox { this: ActorDSL.type ⇒
+trait Inbox {
+  this: ActorDSL.type ⇒
 
   import Inbox._
 
-  protected trait InboxExtension { this: Extension ⇒
+  protected trait InboxExtension {
+    this: Extension ⇒
     val DSLInboxQueueSize = config.getInt("inbox-size")
 
-    val inboxNr = new AtomicInteger
+    val inboxNr    = new AtomicInteger
     val inboxProps = Props(classOf[InboxActor], ActorDSL, DSLInboxQueueSize)
 
-    def newReceiver: ActorRef = mkChild(inboxProps, "inbox-" + inboxNr.incrementAndGet)
+    def newReceiver: ActorRef =
+      mkChild(inboxProps, "inbox-" + inboxNr.incrementAndGet)
   }
 
   private implicit val deadlineOrder: Ordering[Query] = new Ordering[Query] {
-    def compare(left: Query, right: Query): Int = left.deadline.time compare right.deadline.time
+    def compare(left: Query, right: Query): Int =
+      left.deadline.time compare right.deadline.time
   }
 
   private class InboxActor(size: Int) extends Actor with ActorLogging {
     var clients = Queue.empty[Query]
     val messages = Queue.empty[Any]
     var clientsByTimeout = TreeSet.empty[Query]
-    var printedWarning = false
+    var printedWarning   = false
 
     def enqueueQuery(q: Query) {
       val query = q withClient sender()
@@ -75,7 +81,9 @@ trait Inbox { this: ActorDSL.type ⇒
       if (messages.size < size) messages enqueue msg
       else {
         if (!printedWarning) {
-          log.warning("dropping message: either your program is buggy or you might want to increase akka.actor.dsl.inbox-size, current value is " + size)
+          log.warning(
+              "dropping message: either your program is buggy or you might want to increase akka.actor.dsl.inbox-size, current value is " +
+              size)
           printedWarning = true
         }
       }
@@ -89,63 +97,72 @@ trait Inbox { this: ActorDSL.type ⇒
     }
 
     var currentSelect: Select = _
-    val messagePredicate: (Any ⇒ Boolean) = (msg) ⇒ currentSelect.predicate.isDefinedAt(msg)
+    val messagePredicate: (Any ⇒ Boolean) = (msg) ⇒
+      currentSelect.predicate.isDefinedAt(msg)
 
     var currentDeadline: Option[(Deadline, Cancellable)] = None
 
-    def receive = ({
-      case g: Get ⇒
-        if (messages.isEmpty) enqueueQuery(g)
-        else sender() ! messages.dequeue()
-      case s @ Select(_, predicate, _) ⇒
-        if (messages.isEmpty) enqueueQuery(s)
-        else {
-          currentSelect = s
-          messages.dequeueFirst(messagePredicate) match {
-            case Some(msg) ⇒ sender() ! msg
-            case None      ⇒ enqueueQuery(s)
+    def receive =
+      ({
+        case g: Get ⇒
+          if (messages.isEmpty) enqueueQuery(g)
+          else sender() ! messages.dequeue()
+        case s @ Select(_, predicate, _) ⇒
+          if (messages.isEmpty) enqueueQuery(s)
+          else {
+            currentSelect = s
+            messages.dequeueFirst(messagePredicate) match {
+              case Some(msg) ⇒ sender() ! msg
+              case None      ⇒ enqueueQuery(s)
+            }
+            currentSelect = null
           }
-          currentSelect = null
-        }
-      case StartWatch(target) ⇒ context watch target
-      case Kick ⇒
-        val now = Deadline.now
-        val pred = (q: Query) ⇒ q.deadline.time < now.time
-        val overdue = clientsByTimeout.iterator.takeWhile(pred)
-        while (overdue.hasNext) {
-          val toKick = overdue.next()
-          toKick.client ! Status.Failure(new TimeoutException("deadline passed"))
-        }
-        clients = clients.filterNot(pred)
-        clientsByTimeout = clientsByTimeout.from(Get(now))
-      case msg ⇒
-        if (clients.isEmpty) enqueueMessage(msg)
-        else {
-          currentMsg = msg
-          clients.dequeueFirst(clientPredicate) match {
-            case Some(q) ⇒ { clientsByTimeout -= q; q.client ! msg }
-            case None    ⇒ enqueueMessage(msg)
+        case StartWatch(target) ⇒ context watch target
+        case Kick ⇒
+          val now     = Deadline.now
+          val pred    = (q: Query) ⇒ q.deadline.time < now.time
+          val overdue = clientsByTimeout.iterator.takeWhile(pred)
+          while (overdue.hasNext) {
+            val toKick = overdue.next()
+            toKick.client ! Status.Failure(
+                new TimeoutException("deadline passed"))
           }
-          currentMsg = null
-        }
-    }: Receive) andThen { _ ⇒
-      if (clients.isEmpty) {
-        if (currentDeadline.isDefined) {
-          currentDeadline.get._2.cancel()
-          currentDeadline = None
-        }
-      } else {
-        val next = clientsByTimeout.head.deadline
-        import context.dispatcher
-        if (currentDeadline.isEmpty) {
-          currentDeadline = Some((next, context.system.scheduler.scheduleOnce(next.timeLeft, self, Kick)))
+          clients = clients.filterNot(pred)
+          clientsByTimeout = clientsByTimeout.from(Get(now))
+        case msg ⇒
+          if (clients.isEmpty) enqueueMessage(msg)
+          else {
+            currentMsg = msg
+            clients.dequeueFirst(clientPredicate) match {
+              case Some(q) ⇒ { clientsByTimeout -= q; q.client ! msg }
+              case None    ⇒ enqueueMessage(msg)
+            }
+            currentMsg = null
+          }
+      }: Receive) andThen { _ ⇒
+        if (clients.isEmpty) {
+          if (currentDeadline.isDefined) {
+            currentDeadline.get._2.cancel()
+            currentDeadline = None
+          }
         } else {
-          // must not rely on the Scheduler to not fire early (for robustness)
-          currentDeadline.get._2.cancel()
-          currentDeadline = Some((next, context.system.scheduler.scheduleOnce(next.timeLeft, self, Kick)))
+          val next = clientsByTimeout.head.deadline
+          import context.dispatcher
+          if (currentDeadline.isEmpty) {
+            currentDeadline = Some(
+                (next,
+                 context.system.scheduler
+                   .scheduleOnce(next.timeLeft, self, Kick)))
+          } else {
+            // must not rely on the Scheduler to not fire early (for robustness)
+            currentDeadline.get._2.cancel()
+            currentDeadline = Some(
+                (next,
+                 context.system.scheduler
+                   .scheduleOnce(next.timeLeft, self, Kick)))
+          }
         }
       }
-    }
   }
 
   /*
@@ -168,10 +185,11 @@ trait Inbox { this: ActorDSL.type ⇒
     val receiver: ActorRef = Extension(system).newReceiver
 
     // Java API
-    def getRef: ActorRef = receiver
+    def getRef: ActorRef                          = receiver
     def send(target: ActorRef, msg: AnyRef): Unit = target.tell(msg, receiver)
 
-    private val defaultTimeout: FiniteDuration = Extension(system).DSLDefaultTimeout
+    private val defaultTimeout: FiniteDuration =
+      Extension(system).DSLDefaultTimeout
 
     /**
      * Receive a single message from the internal `receiver` actor. The supplied
@@ -200,9 +218,12 @@ trait Inbox { this: ActorDSL.type ⇒
      * indirectly by causing starvation of the thread pool). <b>Do not use
      * this method within an actor!</b>
      */
-    def select[T](timeout: FiniteDuration = defaultTimeout)(predicate: PartialFunction[Any, T]): T = {
+    def select[T](timeout: FiniteDuration = defaultTimeout)(
+        predicate: PartialFunction[Any, T]): T = {
       implicit val t = Timeout(timeout + extraTime)
-      predicate(Await.result(receiver ? Select(Deadline.now + timeout, predicate), Duration.Inf))
+      predicate(
+          Await.result(receiver ? Select(Deadline.now + timeout, predicate),
+                       Duration.Inf))
     }
 
     /**
@@ -220,5 +241,6 @@ trait Inbox { this: ActorDSL.type ⇒
     }
   }
 
-  implicit def senderFromInbox(implicit inbox: Inbox): ActorRef = inbox.receiver
+  implicit def senderFromInbox(implicit inbox: Inbox): ActorRef =
+    inbox.receiver
 }

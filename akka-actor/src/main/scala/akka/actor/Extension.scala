@@ -97,7 +97,8 @@ trait ExtensionId[T <: Extension] {
   def createExtension(system: ExtendedActorSystem): T
 
   override final def hashCode: Int = System.identityHashCode(this)
-  override final def equals(other: Any): Boolean = this eq other.asInstanceOf[AnyRef]
+  override final def equals(other: Any): Boolean =
+    this eq other.asInstanceOf[AnyRef]
 }
 
 /**
@@ -111,6 +112,7 @@ abstract class AbstractExtensionId[T <: Extension] extends ExtensionId[T]
  * The lookup method should return the canonical reference to the extension.
  */
 trait ExtensionIdProvider {
+
   /**
    * Returns the canonical ExtensionId for this Extension
    */
@@ -146,9 +148,14 @@ trait ExtensionIdProvider {
  * `get` method.
  *
  */
-abstract class ExtensionKey[T <: Extension](implicit m: ClassTag[T]) extends ExtensionId[T] with ExtensionIdProvider {
+abstract class ExtensionKey[T <: Extension](implicit m: ClassTag[T])
+    extends ExtensionId[T] with ExtensionIdProvider {
   def this(clazz: Class[T]) = this()(ClassTag(clazz))
 
   override def lookup(): ExtensionId[T] = this
-  def createExtension(system: ExtendedActorSystem): T = system.dynamicAccess.createInstanceFor[T](m.runtimeClass, List(classOf[ExtendedActorSystem] -> system)).get
+  def createExtension(system: ExtendedActorSystem): T =
+    system.dynamicAccess
+      .createInstanceFor[T](
+          m.runtimeClass, List(classOf[ExtendedActorSystem] -> system))
+      .get
 }

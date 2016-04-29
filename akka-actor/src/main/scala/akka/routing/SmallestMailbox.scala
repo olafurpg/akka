@@ -30,7 +30,8 @@ object SmallestMailboxRoutingLogic {
  */
 @SerialVersionUID(1L)
 class SmallestMailboxRoutingLogic extends RoutingLogic {
-  override def select(message: Any, routees: immutable.IndexedSeq[Routee]): Routee =
+  override def select(
+      message: Any, routees: immutable.IndexedSeq[Routee]): Routee =
     if (routees.isEmpty) NoRoutee
     else selectNext(routees)
 
@@ -50,25 +51,31 @@ class SmallestMailboxRoutingLogic extends RoutingLogic {
                                   currentScore: Long = Long.MaxValue,
                                   at: Int = 0,
                                   deep: Boolean = false): Routee = {
-    if (targets.isEmpty)
-      NoRoutee
+    if (targets.isEmpty) NoRoutee
     else if (at >= targets.size) {
       if (deep) {
-        if (isTerminated(proposedTarget)) targets(ThreadLocalRandom.current.nextInt(targets.size)) else proposedTarget
+        if (isTerminated(proposedTarget))
+          targets(ThreadLocalRandom.current.nextInt(targets.size))
+        else proposedTarget
       } else selectNext(targets, proposedTarget, currentScore, 0, deep = true)
     } else {
       val target = targets(at)
       val newScore: Long =
-        if (isSuspended(target)) Long.MaxValue - 1 else { //Just about better than the DeadLetters
+        if (isSuspended(target)) Long.MaxValue - 1
+        else {
+          //Just about better than the DeadLetters
           (if (isProcessingMessage(target)) 1l else 0l) +
-            (if (!hasMessages(target)) 0l else { //Race between hasMessages and numberOfMessages here, unfortunate the numberOfMessages returns 0 if unknown
-              val noOfMsgs: Long = if (deep) numberOfMessages(target) else 0
-              if (noOfMsgs > 0) noOfMsgs else Long.MaxValue - 3 //Just better than a suspended actorref
-            })
+          (if (!hasMessages(target)) 0l
+           else {
+             //Race between hasMessages and numberOfMessages here, unfortunate the numberOfMessages returns 0 if unknown
+             val noOfMsgs: Long = if (deep) numberOfMessages(target) else 0
+             if (noOfMsgs > 0) noOfMsgs else Long.MaxValue - 3 //Just better than a suspended actorref
+           })
         }
 
       if (newScore == 0) target
-      else if (newScore < 0 || newScore >= currentScore) selectNext(targets, proposedTarget, currentScore, at + 1, deep)
+      else if (newScore < 0 || newScore >= currentScore)
+        selectNext(targets, proposedTarget, currentScore, at + 1, deep)
       else selectNext(targets, target, newScore, at + 1, deep)
     }
   }
@@ -87,8 +94,9 @@ class SmallestMailboxRoutingLogic extends RoutingLogic {
   protected def isProcessingMessage(a: Routee): Boolean = a match {
     case ActorRefRoutee(x: ActorRefWithCell) ⇒
       x.underlying match {
-        case cell: ActorCell ⇒ cell.mailbox.isScheduled && cell.currentMessage != null
-        case _               ⇒ false
+        case cell: ActorCell ⇒
+          cell.mailbox.isScheduled && cell.currentMessage != null
+        case _ ⇒ false
       }
     case _ ⇒ false
   }
@@ -172,17 +180,17 @@ class SmallestMailboxRoutingLogic extends RoutingLogic {
  */
 @SerialVersionUID(1L)
 final case class SmallestMailboxPool(
-  override val nrOfInstances: Int, override val resizer: Option[Resizer] = None,
-  override val supervisorStrategy: SupervisorStrategy = Pool.defaultSupervisorStrategy,
-  override val routerDispatcher: String = Dispatchers.DefaultDispatcherId,
-  override val usePoolDispatcher: Boolean = false)
-  extends Pool with PoolOverrideUnsetConfig[SmallestMailboxPool] {
+    override val nrOfInstances: Int,
+    override val resizer: Option[Resizer] = None,
+    override val supervisorStrategy: SupervisorStrategy = Pool.defaultSupervisorStrategy,
+    override val routerDispatcher: String = Dispatchers.DefaultDispatcherId,
+    override val usePoolDispatcher: Boolean = false)
+    extends Pool with PoolOverrideUnsetConfig[SmallestMailboxPool] {
 
   def this(config: Config) =
-    this(
-      nrOfInstances = config.getInt("nr-of-instances"),
-      resizer = Resizer.fromConfig(config),
-      usePoolDispatcher = config.hasPath("pool-dispatcher"))
+    this(nrOfInstances = config.getInt("nr-of-instances"),
+         resizer = Resizer.fromConfig(config),
+         usePoolDispatcher = config.hasPath("pool-dispatcher"))
 
   /**
    * Java API
@@ -190,31 +198,36 @@ final case class SmallestMailboxPool(
    */
   def this(nr: Int) = this(nrOfInstances = nr)
 
-  override def createRouter(system: ActorSystem): Router = new Router(SmallestMailboxRoutingLogic())
+  override def createRouter(system: ActorSystem): Router =
+    new Router(SmallestMailboxRoutingLogic())
 
   override def nrOfInstances(sys: ActorSystem) = this.nrOfInstances
 
   /**
    * Setting the supervisor strategy to be used for the “head” Router actor.
    */
-  def withSupervisorStrategy(strategy: SupervisorStrategy): SmallestMailboxPool = copy(supervisorStrategy = strategy)
+  def withSupervisorStrategy(
+      strategy: SupervisorStrategy): SmallestMailboxPool =
+    copy(supervisorStrategy = strategy)
 
   /**
    * Setting the resizer to be used.
    */
-  def withResizer(resizer: Resizer): SmallestMailboxPool = copy(resizer = Some(resizer))
+  def withResizer(resizer: Resizer): SmallestMailboxPool =
+    copy(resizer = Some(resizer))
 
   /**
    * Setting the dispatcher to be used for the router head actor,  which handles
    * supervision, death watch and router management messages.
    */
-  def withDispatcher(dispatcherId: String): SmallestMailboxPool = copy(routerDispatcher = dispatcherId)
+  def withDispatcher(dispatcherId: String): SmallestMailboxPool =
+    copy(routerDispatcher = dispatcherId)
 
   /**
    * Uses the resizer and/or the supervisor strategy of the given RouterConfig
    * if this RouterConfig doesn't have one, i.e. the resizer defined in code is used if
    * resizer was not defined in config.
    */
-  override def withFallback(other: RouterConfig): RouterConfig = this.overrideUnsetConfig(other)
-
+  override def withFallback(other: RouterConfig): RouterConfig =
+    this.overrideUnsetConfig(other)
 }

@@ -21,15 +21,15 @@ import java.nio.charset.Charset
 
 package object parboiled2 {
 
-  type Rule0 = RuleN[HNil]
-  type Rule1[+T] = RuleN[T :: HNil]
-  type Rule2[+A, +B] = RuleN[A :: B :: HNil]
-  type RuleN[+L <: HList] = Rule[HNil, L]
+  type Rule0                = RuleN[HNil]
+  type Rule1[+T]            = RuleN[T :: HNil]
+  type Rule2[+A, +B]        = RuleN[A :: B :: HNil]
+  type RuleN[+L <: HList]   = Rule[HNil, L]
   type PopRule[-L <: HList] = Rule[L, HNil]
 
   val EOI = '\uFFFF'
 
-  val UTF8 = Charset.forName("UTF-8")
+  val UTF8         = Charset.forName("UTF-8")
   val `ISO-8859-1` = Charset.forName("ISO-8859-1")
 
   val EmptyArray = Array.empty[Any]

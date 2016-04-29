@@ -4,7 +4,7 @@
 package akka.osgi.test
 
 import akka.osgi.ActorSystemActivator
-import akka.actor.{ Props, ActorSystem }
+import akka.actor.{Props, ActorSystem}
 import PingPong._
 import org.osgi.framework.BundleContext
 
@@ -14,7 +14,6 @@ import org.osgi.framework.BundleContext
 object TestActivators {
 
   val ACTOR_SYSTEM_NAME_PATTERN = "actor-system-for-bundle-%s"
-
 }
 
 /**
@@ -26,7 +25,6 @@ class PingPongActorSystemActivator extends ActorSystemActivator {
     system.actorOf(Props[PongActor], name = "pong")
     registerService(context, system)
   }
-
 }
 
 /**
@@ -34,9 +32,10 @@ class PingPongActorSystemActivator extends ActorSystemActivator {
  */
 class RuntimeNameActorSystemActivator extends ActorSystemActivator {
 
-  def configure(context: BundleContext, system: ActorSystem) = registerService(context, system);
+  def configure(context: BundleContext, system: ActorSystem) =
+    registerService(context, system);
 
   override def getActorSystemName(context: BundleContext) =
-    TestActivators.ACTOR_SYSTEM_NAME_PATTERN.format(context.getBundle.getBundleId)
-
+    TestActivators.ACTOR_SYSTEM_NAME_PATTERN.format(
+        context.getBundle.getBundleId)
 }

@@ -5,11 +5,11 @@ package docs.stream
 
 import akka.NotUsed
 import akka.actor.Cancellable
-import akka.stream.{ ClosedShape, FlowShape }
+import akka.stream.{ClosedShape, FlowShape}
 import akka.stream.scaladsl._
 import akka.testkit.AkkaSpec
 
-import scala.concurrent.{ Promise, Future }
+import scala.concurrent.{Promise, Future}
 
 class FlowDocSpec extends AkkaSpec {
 
@@ -24,10 +24,11 @@ class FlowDocSpec extends AkkaSpec {
   "source is immutable" in {
     //#source-immutable
     val source = Source(1 to 10)
-    source.map(_ => 0) // has no effect on source, since it's immutable
+    source.map(_ => 0)                  // has no effect on source, since it's immutable
     source.runWith(Sink.fold(0)(_ + _)) // 55
 
-    val zeroes = source.map(_ => 0) // returns new Source[Int], with `map()` appended
+    val zeroes =
+      source.map(_ => 0)                // returns new Source[Int], with `map()` appended
     zeroes.runWith(Sink.fold(0)(_ + _)) // 0
     //#source-immutable
   }
@@ -35,7 +36,7 @@ class FlowDocSpec extends AkkaSpec {
   "materialization in steps" in {
     //#materialization-in-steps
     val source = Source(1 to 10)
-    val sink = Sink.fold[Int, Int](0)(_ + _)
+    val sink   = Sink.fold[Int, Int](0)(_ + _)
 
     // connect the Source to the Sink, obtaining a RunnableGraph
     val runnable: RunnableGraph[Future[Int]] = source.toMat(sink)(Keep.right)
@@ -49,7 +50,7 @@ class FlowDocSpec extends AkkaSpec {
   "materialization runWith" in {
     //#materialization-runWith
     val source = Source(1 to 10)
-    val sink = Sink.fold[Int, Int](0)(_ + _)
+    val sink   = Sink.fold[Int, Int](0)(_ + _)
 
     // materialize the flow, getting the Sinks materialized value
     val sum: Future[Int] = source.runWith(sink)
@@ -78,7 +79,8 @@ class FlowDocSpec extends AkkaSpec {
     import scala.concurrent.duration._
     case object Tick
 
-    val timer = Source.tick(initialDelay = 1.second, interval = 1.seconds, tick = () => Tick)
+    val timer = Source.tick(
+        initialDelay = 1.second, interval = 1.seconds, tick = () => Tick)
 
     val timerCancel: Cancellable = Sink.ignore.runWith(timer)
     timerCancel.cancel()
@@ -135,7 +137,8 @@ class FlowDocSpec extends AkkaSpec {
     source.to(Sink.foreach(println(_)))
 
     // Starting from a Sink
-    val sink: Sink[Int, NotUsed] = Flow[Int].map(_ * 2).to(Sink.foreach(println(_)))
+    val sink: Sink[Int, NotUsed] =
+      Flow[Int].map(_ * 2).to(Sink.foreach(println(_)))
     Source(1 to 6).to(sink)
 
     // Broadcast to a sink inline
@@ -149,8 +152,9 @@ class FlowDocSpec extends AkkaSpec {
   "various ways of transforming materialized values" in {
     import scala.concurrent.duration._
 
-    val throttler = Flow.fromGraph(GraphDSL.create(Source.tick(1.second, 1.second, "test")) { implicit builder =>
-      tickSource =>
+    val throttler = Flow.fromGraph(
+        GraphDSL.create(Source.tick(1.second, 1.second, "test")) {
+      implicit builder => tickSource =>
         import GraphDSL.Implicits._
         val zip = builder.add(ZipWith[String, Int, Int](Keep.right))
         tickSource ~> zip.in0
@@ -172,13 +176,15 @@ class FlowDocSpec extends AkkaSpec {
     val r1: RunnableGraph[Promise[Option[Int]]] = source.via(flow).to(sink)
 
     // Simple selection of materialized values by using Keep.right
-    val r2: RunnableGraph[Cancellable] = source.viaMat(flow)(Keep.right).to(sink)
-    val r3: RunnableGraph[Future[Int]] = source.via(flow).toMat(sink)(Keep.right)
+    val r2: RunnableGraph[Cancellable] =
+      source.viaMat(flow)(Keep.right).to(sink)
+    val r3: RunnableGraph[Future[Int]] =
+      source.via(flow).toMat(sink)(Keep.right)
 
     // Using runWith will always give the materialized values of the stages added
     // by runWith() itself
-    val r4: Future[Int] = source.via(flow).runWith(sink)
-    val r5: Promise[Option[Int]] = flow.to(sink).runWith(source)
+    val r4: Future[Int]                         = source.via(flow).runWith(sink)
+    val r5: Promise[Option[Int]]                = flow.to(sink).runWith(source)
     val r6: (Promise[Option[Int]], Future[Int]) = flow.runWith(source, sink)
 
     // Using more complex combinations
@@ -212,8 +218,9 @@ class FlowDocSpec extends AkkaSpec {
 
     // The result of r11 can be also achieved by using the Graph API
     val r12: RunnableGraph[(Promise[Option[Int]], Cancellable, Future[Int])] =
-      RunnableGraph.fromGraph(GraphDSL.create(source, flow, sink)((_, _, _)) { implicit builder =>
-        (src, f, dst) =>
+      RunnableGraph.fromGraph(
+          GraphDSL.create(source, flow, sink)((_, _, _)) {
+        implicit builder => (src, f, dst) =>
           import GraphDSL.Implicits._
           src ~> f ~> dst
           ClosedShape
@@ -226,21 +233,18 @@ class FlowDocSpec extends AkkaSpec {
     //#explicit-fusing
     import akka.stream.Fusing
 
-    val flow = Flow[Int].map(_ * 2).filter(_ > 500)
+    val flow  = Flow[Int].map(_ * 2).filter(_ > 500)
     val fused = Fusing.aggressive(flow)
 
-    Source.fromIterator { () => Iterator from 0 }
-      .via(fused)
-      .take(1000)
+    Source.fromIterator { () =>
+      Iterator from 0
+    }.via(fused).take(1000)
     //#explicit-fusing
   }
 
   "defining asynchronous boundaries" in {
     //#flow-async
-    Source(List(1, 2, 3))
-      .map(_ + 1).async
-      .map(_ * 2)
-      .to(Sink.ignore)
+    Source(List(1, 2, 3)).map(_ + 1).async.map(_ * 2).to(Sink.ignore)
     //#flow-async
   }
 }

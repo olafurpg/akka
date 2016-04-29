@@ -16,7 +16,6 @@
 
 package akka.shapeless
 
-
 /**
  * `HList` ADT base trait.
  *
@@ -39,7 +38,7 @@ final case class ::[+H, +T <: HList](head: H, tail: T) extends HList {
  * @author Miles Sabin
  */
 sealed trait HNil extends HList {
-  def ::[H](h: H) = akka.shapeless.::(h, this)
+  def ::[H](h: H)       = akka.shapeless.::(h, this)
   override def toString = "HNil"
 }
 

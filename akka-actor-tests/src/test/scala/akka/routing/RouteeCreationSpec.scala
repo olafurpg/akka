@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.routing
 
 import akka.testkit.AkkaSpec
@@ -31,7 +30,8 @@ class RouteeCreationSpec extends AkkaSpec {
 
     "allow sending to context.parent" in {
       val N = 100
-      system.actorOf(RoundRobinPool(N).props(Props(new Actor {
+      system.actorOf(
+          RoundRobinPool(N).props(Props(new Actor {
         context.parent ! "one"
         def receive = {
           case "one" ⇒ testActor forward "two"
@@ -45,7 +45,5 @@ class RouteeCreationSpec extends AkkaSpec {
         fail(s"got only ${gotit.size} from [${gotit mkString ", "}]")
       }
     }
-
   }
-
 }

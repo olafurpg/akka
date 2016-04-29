@@ -15,7 +15,8 @@ import java.util.concurrent.CompletionStage
  * See also [[Handler1]], [[Handler2]], ..., until [[Handler21]] for handling `N` request values.
  */
 //#handler
-trait Handler extends akka.japi.function.Function[RequestContext, RouteResult] {
+trait Handler
+    extends akka.japi.function.Function[RequestContext, RouteResult] {
   override def apply(ctx: RequestContext): RouteResult
 }
 //#handler
@@ -27,6 +28,8 @@ trait Handler extends akka.japi.function.Function[RequestContext, RouteResult] {
  * Use the methods in [[RequestContext]] to create a [[RouteResult]].
  * A handler MUST NOT return `null` as the result.
  */
-trait AsyncHandler extends akka.japi.function.Function[RequestContext, CompletionStage[RouteResult]] {
+trait AsyncHandler
+    extends akka.japi.function.Function[
+        RequestContext, CompletionStage[RouteResult]] {
   override def apply(ctx: RequestContext): CompletionStage[RouteResult]
 }

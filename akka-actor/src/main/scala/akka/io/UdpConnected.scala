@@ -3,7 +3,7 @@
  */
 package akka.io
 
-import java.lang.{ Iterable ⇒ JIterable }
+import java.lang.{Iterable ⇒ JIterable}
 import java.net.InetSocketAddress
 import scala.collection.immutable
 import akka.io.Inet.SocketOption
@@ -23,11 +23,13 @@ import akka.actor._
  *
  * The Java API for generating UDP commands is available at [[UdpConnectedMessage]].
  */
-object UdpConnected extends ExtensionId[UdpConnectedExt] with ExtensionIdProvider {
+object UdpConnected
+    extends ExtensionId[UdpConnectedExt] with ExtensionIdProvider {
 
   override def lookup = UdpConnected
 
-  override def createExtension(system: ExtendedActorSystem): UdpConnectedExt = new UdpConnectedExt(system)
+  override def createExtension(system: ExtendedActorSystem): UdpConnectedExt =
+    new UdpConnectedExt(system)
 
   /**
    * Java API: retrieve the UdpConnected extension for the given system.
@@ -69,8 +71,8 @@ object UdpConnected extends ExtensionId[UdpConnectedExt] with ExtensionIdProvide
    * has been successfully enqueued to the O/S kernel.
    */
   final case class Send(payload: ByteString, ack: Any) extends Command {
-    require(ack
-      != null, "ack must be non-null. Use NoAck if you don't want acks.")
+    require(
+        ack != null, "ack must be non-null. Use NoAck if you don't want acks.")
 
     def wantsAck: Boolean = !ack.isInstanceOf[NoAck]
   }
@@ -87,7 +89,8 @@ object UdpConnected extends ExtensionId[UdpConnectedExt] with ExtensionIdProvide
   final case class Connect(handler: ActorRef,
                            remoteAddress: InetSocketAddress,
                            localAddress: Option[InetSocketAddress] = None,
-                           options: immutable.Traversable[SocketOption] = Nil) extends Command
+                           options: immutable.Traversable[SocketOption] = Nil)
+      extends Command
 
   /**
    * Send this message to a connection actor (which had previously sent the
@@ -141,17 +144,17 @@ object UdpConnected extends ExtensionId[UdpConnectedExt] with ExtensionIdProvide
    */
   sealed trait Disconnected extends Event
   case object Disconnected extends Disconnected
-
 }
 
 class UdpConnectedExt(system: ExtendedActorSystem) extends IO.Extension {
 
-  val settings: UdpSettings = new UdpSettings(system.settings.config.getConfig("akka.io.udp-connected"))
+  val settings: UdpSettings = new UdpSettings(
+      system.settings.config.getConfig("akka.io.udp-connected"))
 
   val manager: ActorRef = {
-    system.systemActorOf(
-      props = Props(classOf[UdpConnectedManager], this).withDeploy(Deploy.local),
-      name = "IO-UDP-CONN")
+    system.systemActorOf(props = Props(classOf[UdpConnectedManager], this)
+                             .withDeploy(Deploy.local),
+                         name = "IO-UDP-CONN")
   }
 
   /**
@@ -159,8 +162,8 @@ class UdpConnectedExt(system: ExtendedActorSystem) extends IO.Extension {
    */
   def getManager: ActorRef = manager
 
-  val bufferPool: BufferPool = new DirectByteBufferPool(settings.DirectBufferSize, settings.MaxDirectBufferPoolSize)
-
+  val bufferPool: BufferPool = new DirectByteBufferPool(
+      settings.DirectBufferSize, settings.MaxDirectBufferPoolSize)
 }
 
 /**
@@ -179,18 +182,22 @@ object UdpConnectedMessage {
   def connect(handler: ActorRef,
               remoteAddress: InetSocketAddress,
               localAddress: InetSocketAddress,
-              options: JIterable[SocketOption]): Command = Connect(handler, remoteAddress, Some(localAddress), options)
+              options: JIterable[SocketOption]): Command =
+    Connect(handler, remoteAddress, Some(localAddress), options)
+
   /**
    * Connect without specifying the `localAddress`.
    */
   def connect(handler: ActorRef,
               remoteAddress: InetSocketAddress,
-              options: JIterable[SocketOption]): Command = Connect(handler, remoteAddress, None, options)
+              options: JIterable[SocketOption]): Command =
+    Connect(handler, remoteAddress, None, options)
+
   /**
    * Connect without specifying the `localAddress` or `options`.
    */
-  def connect(handler: ActorRef,
-              remoteAddress: InetSocketAddress): Command = Connect(handler, remoteAddress, None, Nil)
+  def connect(handler: ActorRef, remoteAddress: InetSocketAddress): Command =
+    Connect(handler, remoteAddress, None, Nil)
 
   /**
    * This message is understood by the connection actors to send data to their
@@ -201,6 +208,7 @@ object UdpConnectedMessage {
    * has been successfully enqueued to the O/S kernel.
    */
   def send(data: ByteString, ack: AnyRef): Command = Send(data, ack)
+
   /**
    * Send without requesting acknowledgment.
    */
@@ -241,7 +249,8 @@ object UdpConnectedMessage {
    */
   def resumeReading: Command = ResumeReading
 
-  implicit private def fromJava[T](coll: JIterable[T]): immutable.Traversable[T] = {
+  implicit private def fromJava[T](
+      coll: JIterable[T]): immutable.Traversable[T] = {
     import scala.collection.JavaConverters._
     coll.asScala.to[immutable.Traversable]
   }

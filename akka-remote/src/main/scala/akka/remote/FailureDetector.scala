@@ -27,7 +27,6 @@ trait FailureDetector {
    * to update its state.
    */
   def heartbeat(): Unit
-
 }
 
 object FailureDetector {

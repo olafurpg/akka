@@ -21,5 +21,4 @@ trait AllPersistenceIdsQuery extends ReadJournal {
    * currently used `persistenceIds` is provided by [[CurrentPersistenceIdsQuery#currentPersistenceIds]].
    */
   def allPersistenceIds(): Source[String, NotUsed]
-
 }

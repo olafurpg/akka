@@ -18,8 +18,8 @@ class FlowErrorDocSpec extends AkkaSpec {
   "demonstrate fail stream" in {
     //#stop
     implicit val materializer = ActorMaterializer()
-    val source = Source(0 to 5).map(100 / _)
-    val result = source.runWith(Sink.fold(0)(_ + _))
+    val source                = Source(0 to 5).map(100 / _)
+    val result                = source.runWith(Sink.fold(0)(_ + _))
     // division by zero will fail the stream and the
     // result here will be a Future completed with Failure(ArithmeticException)
     //#stop
@@ -36,7 +36,7 @@ class FlowErrorDocSpec extends AkkaSpec {
       case _                      => Supervision.Stop
     }
     implicit val materializer = ActorMaterializer(
-      ActorMaterializerSettings(system).withSupervisionStrategy(decider))
+        ActorMaterializerSettings(system).withSupervisionStrategy(decider))
     val source = Source(0 to 5).map(100 / _)
     val result = source.runWith(Sink.fold(0)(_ + _))
     // the element causing division by zero will be dropped
@@ -54,7 +54,8 @@ class FlowErrorDocSpec extends AkkaSpec {
       case _                      => Supervision.Stop
     }
     val flow = Flow[Int]
-      .filter(100 / _ < 50).map(elem => 100 / (5 - elem))
+      .filter(100 / _ < 50)
+      .map(elem => 100 / (5 - elem))
       .withAttributes(ActorAttributes.supervisionStrategy(decider))
     val source = Source(0 to 5).via(flow)
 
@@ -75,7 +76,8 @@ class FlowErrorDocSpec extends AkkaSpec {
     }
     val flow = Flow[Int]
       .scan(0) { (acc, elem) =>
-        if (elem < 0) throw new IllegalArgumentException("negative not allowed")
+        if (elem < 0)
+          throw new IllegalArgumentException("negative not allowed")
         else acc + elem
       }
       .withAttributes(ActorAttributes.supervisionStrategy(decider))
@@ -88,5 +90,4 @@ class FlowErrorDocSpec extends AkkaSpec {
 
     Await.result(result, 3.seconds) should be(Vector(0, 1, 4, 0, 5, 12))
   }
-
 }

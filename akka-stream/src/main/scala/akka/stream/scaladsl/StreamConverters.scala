@@ -3,11 +3,11 @@
  */
 package akka.stream.scaladsl
 
-import java.io.{ OutputStream, InputStream }
+import java.io.{OutputStream, InputStream}
 
 import akka.stream.IOResult
 import akka.stream.impl.Stages.DefaultAttributes
-import akka.stream.impl.io.{ InputStreamSinkStage, OutputStreamSink, OutputStreamSourceStage, InputStreamSource }
+import akka.stream.impl.io.{InputStreamSinkStage, OutputStreamSink, OutputStreamSourceStage, InputStreamSource}
 import akka.util.ByteString
 
 import scala.concurrent.Future
@@ -18,8 +18,8 @@ import scala.concurrent.duration._
  */
 object StreamConverters {
 
-  import Source.{ shape ⇒ sourceShape }
-  import Sink.{ shape ⇒ sinkShape }
+  import Source.{shape ⇒ sourceShape}
+  import Sink.{shape ⇒ sinkShape}
 
   /**
    * Creates a Source from an [[InputStream]] created by the given function.
@@ -37,8 +37,14 @@ object StreamConverters {
    * @param in a function which creates the InputStream to read from
    * @param chunkSize the size of each read operation, defaults to 8192
    */
-  def fromInputStream(in: () ⇒ InputStream, chunkSize: Int = 8192): Source[ByteString, Future[IOResult]] =
-    new Source(new InputStreamSource(in, chunkSize, DefaultAttributes.inputStreamSource, sourceShape("InputStreamSource")))
+  def fromInputStream(
+      in: () ⇒ InputStream,
+      chunkSize: Int = 8192): Source[ByteString, Future[IOResult]] =
+    new Source(
+        new InputStreamSource(in,
+                              chunkSize,
+                              DefaultAttributes.inputStreamSource,
+                              sourceShape("InputStreamSource")))
 
   /**
    * Creates a Source which when materialized will return an [[OutputStream]] which it is possible
@@ -54,7 +60,8 @@ object StreamConverters {
    *
    * @param writeTimeout the max time the write operation on the materialized OutputStream should block, defaults to 5 seconds
    */
-  def asOutputStream(writeTimeout: FiniteDuration = 5.seconds): Source[ByteString, OutputStream] =
+  def asOutputStream(writeTimeout: FiniteDuration = 5.seconds
+      ): Source[ByteString, OutputStream] =
     Source.fromGraph(new OutputStreamSourceStage(writeTimeout))
 
   /**
@@ -70,8 +77,14 @@ object StreamConverters {
    * The [[OutputStream]] will be closed when the stream flowing into this [[Sink]] is completed. The [[Sink]]
    * will cancel the stream when the [[OutputStream]] is no longer writable.
    */
-  def fromOutputStream(out: () ⇒ OutputStream, autoFlush: Boolean = false): Sink[ByteString, Future[IOResult]] =
-    new Sink(new OutputStreamSink(out, DefaultAttributes.outputStreamSink, sinkShape("OutputStreamSink"), autoFlush))
+  def fromOutputStream(
+      out: () ⇒ OutputStream,
+      autoFlush: Boolean = false): Sink[ByteString, Future[IOResult]] =
+    new Sink(
+        new OutputStreamSink(out,
+                             DefaultAttributes.outputStreamSink,
+                             sinkShape("OutputStreamSink"),
+                             autoFlush))
 
   /**
    * Creates a Sink which when materialized will return an [[InputStream]] which it is possible
@@ -87,7 +100,7 @@ object StreamConverters {
    *
    * @param readTimeout the max time the read operation on the materialized InputStream should block
    */
-  def asInputStream(readTimeout: FiniteDuration = 5.seconds): Sink[ByteString, InputStream] =
+  def asInputStream(
+      readTimeout: FiniteDuration = 5.seconds): Sink[ByteString, InputStream] =
     Sink.fromGraph(new InputStreamSinkStage(readTimeout))
-
 }

@@ -1,20 +1,19 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.http.impl.engine.client
 
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.Done
 import akka.actor.ActorRef
-import akka.http.impl.engine.client.PoolGateway.{ GatewayIdentifier, SharedGateway }
+import akka.http.impl.engine.client.PoolGateway.{GatewayIdentifier, SharedGateway}
 import akka.http.impl.engine.client.PoolMasterActor._
 import akka.http.impl.settings.HostConnectionPoolSetup
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.Materializer
 
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.{Future, Promise}
 
 /**
  * Manages access to a host connection pool through the [[PoolMasterActor]]
@@ -22,7 +21,10 @@ import scala.concurrent.{ Future, Promise }
  * A [[PoolGateway]] is represented by its [[HostConnectionPoolSetup]] and its [[GatewayIdentifier]]. If the later
  * is [[SharedGateway]], it means that a shared pool must be used for this particular [[HostConnectionPoolSetup]].
  */
-private[http] final class PoolGateway(gatewayRef: ActorRef, val hcps: HostConnectionPoolSetup, val gatewayId: GatewayIdentifier)(implicit fm: Materializer) {
+private[http] final class PoolGateway(gatewayRef: ActorRef,
+                                      val hcps: HostConnectionPoolSetup,
+                                      val gatewayId: GatewayIdentifier)(
+    implicit fm: Materializer) {
 
   /**
    * Send a request through the corresponding pool. If the pool is not running, it will be started
@@ -71,11 +73,10 @@ private[http] final class PoolGateway(gatewayRef: ActorRef, val hcps: HostConnec
     statusPromise.future
   }
 
-  override def equals(that: Any): Boolean =
-    that match {
-      case p: PoolGateway ⇒ p.hcps == hcps && p.gatewayId == gatewayId
-      case _              ⇒ false
-    }
+  override def equals(that: Any): Boolean = that match {
+    case p: PoolGateway ⇒ p.hcps == hcps && p.gatewayId == gatewayId
+    case _              ⇒ false
+  }
 
   override def hashCode(): Int = hcps.hashCode() ^ gatewayId.hashCode()
 }
@@ -87,6 +88,6 @@ private[http] object PoolGateway {
   final case class UniqueGateway(id: Long) extends GatewayIdentifier
 
   private[this] val uniqueGatewayId = new AtomicLong(0)
-  def newUniqueGatewayIdentifier = UniqueGateway(uniqueGatewayId.incrementAndGet())
-
+  def newUniqueGatewayIdentifier =
+    UniqueGateway(uniqueGatewayId.incrementAndGet())
 }

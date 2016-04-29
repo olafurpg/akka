@@ -6,7 +6,7 @@ package akka.http.javadsl.server
 
 import scala.concurrent.ExecutionContextExecutor
 import akka.http.javadsl.model._
-import akka.http.javadsl.settings.{ RoutingSettings, ParserSettings }
+import akka.http.javadsl.settings.{RoutingSettings, ParserSettings}
 import akka.stream.Materializer
 import java.util.concurrent.CompletionStage
 
@@ -15,6 +15,7 @@ import java.util.concurrent.CompletionStage
  * the route structure.
  */
 trait RequestContext {
+
   /**
    * The incoming request.
    */

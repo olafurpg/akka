@@ -7,7 +7,7 @@ package directives
 
 import scala.collection.immutable
 import scala.util.control.NonFatal
-import akka.http.scaladsl.model.headers.{ HttpEncoding, HttpEncodings }
+import akka.http.scaladsl.model.headers.{HttpEncoding, HttpEncodings}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.coding._
 import akka.http.impl.util._
@@ -81,23 +81,24 @@ trait CodingDirectives {
       if (decoder == NoCoding) pass
       else
         extractSettings flatMap { settings ⇒
-          val effectiveDecoder = decoder.withMaxBytesPerChunk(settings.decodeMaxBytesPerChunk)
+          val effectiveDecoder =
+            decoder.withMaxBytesPerChunk(settings.decodeMaxBytesPerChunk)
           mapRequest { request ⇒
             effectiveDecoder.decode(request).mapEntity { entity ⇒
               entity.transformDataBytes(Flow[ByteString].recover {
                 case NonFatal(e) ⇒
                   throw IllegalRequestException(
-                    StatusCodes.BadRequest,
-                    ErrorInfo("The request's encoding is corrupt", e.getMessage))
+                      StatusCodes.BadRequest,
+                      ErrorInfo("The request's encoding is corrupt",
+                                e.getMessage))
               })
             }
           }
         }
 
-    requestEntityEmpty | (
-      requestEncodedWith(decoder.encoding) &
-      applyDecoder &
-      cancelRejections(classOf[UnsupportedRequestEncodingRejection]))
+    requestEntityEmpty |
+    (requestEncodedWith(decoder.encoding) & applyDecoder & cancelRejections(
+            classOf[UnsupportedRequestEncodingRejection]))
   }
 
   /**
@@ -129,8 +130,7 @@ trait CodingDirectives {
    *
    * @group coding
    */
-  def decodeRequest: Directive0 =
-    decodeRequestWith(DefaultCoders: _*)
+  def decodeRequest: Directive0 = decodeRequestWith(DefaultCoders: _*)
 
   /**
    * Inspects the response entity and adds a `Content-Encoding: gzip` response header if
@@ -138,19 +138,24 @@ trait CodingDirectives {
    *
    * @group coding
    */
-  def withPrecompressedMediaTypeSupport: Directive0 =
-    mapResponse { response ⇒
-      if (response.entity.contentType.mediaType.comp != MediaType.Gzipped) response
-      else response.withDefaultHeaders(headers.`Content-Encoding`(HttpEncodings.gzip))
-    }
+  def withPrecompressedMediaTypeSupport: Directive0 = mapResponse { response ⇒
+    if (response.entity.contentType.mediaType.comp != MediaType.Gzipped)
+      response
+    else
+      response.withDefaultHeaders(
+          headers.`Content-Encoding`(HttpEncodings.gzip))
+  }
 }
 
 object CodingDirectives extends CodingDirectives {
-  val DefaultCoders: immutable.Seq[Coder] = immutable.Seq(Gzip, Deflate, NoCoding)
+  val DefaultCoders: immutable.Seq[Coder] =
+    immutable.Seq(Gzip, Deflate, NoCoding)
 
-  private[http] val DefaultEncodeResponseEncoders = immutable.Seq(NoCoding, Gzip, Deflate)
+  private[http] val DefaultEncodeResponseEncoders =
+    immutable.Seq(NoCoding, Gzip, Deflate)
 
-  def theseOrDefault[T >: Coder](these: Seq[T]): Seq[T] = if (these.isEmpty) DefaultCoders else these
+  def theseOrDefault[T >: Coder](these: Seq[T]): Seq[T] =
+    if (these.isEmpty) DefaultCoders else these
 
   import BasicDirectives._
   import RouteDirectives._
@@ -158,12 +163,16 @@ object CodingDirectives extends CodingDirectives {
   private def _encodeResponse(encoders: immutable.Seq[Encoder]): Directive0 =
     BasicDirectives.extractRequest.flatMap { request ⇒
       val negotiator = EncodingNegotiator(request.headers)
-      val encodings: List[HttpEncoding] = encoders.map(_.encoding)(collection.breakOut)
-      val bestEncoder = negotiator.pickEncoding(encodings).flatMap(be ⇒ encoders.find(_.encoding == be))
+      val encodings: List[HttpEncoding] =
+        encoders.map(_.encoding)(collection.breakOut)
+      val bestEncoder = negotiator
+        .pickEncoding(encodings)
+        .flatMap(be ⇒ encoders.find(_.encoding == be))
       bestEncoder match {
         case Some(encoder) ⇒ mapResponse(encoder.encode(_))
         case _ ⇒
-          if (encoders.contains(NoCoding) && !negotiator.hasMatchingFor(HttpEncodings.identity)) pass
+          if (encoders.contains(NoCoding) &&
+              !negotiator.hasMatchingFor(HttpEncodings.identity)) pass
           else reject(UnacceptedResponseEncodingRejection(encodings.toSet))
       }
     }

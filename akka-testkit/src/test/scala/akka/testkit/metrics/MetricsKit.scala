@@ -51,10 +51,13 @@ private[akka] trait MetricsKit extends MetricsKitOps {
 
     def configureConsoleReporter() {
       if (settings.Reporters.contains("console")) {
-        val akkaConsoleReporter = new AkkaConsoleReporter(registry, settings.ConsoleReporter.Verbose)
+        val akkaConsoleReporter = new AkkaConsoleReporter(
+            registry, settings.ConsoleReporter.Verbose)
 
         if (settings.ConsoleReporter.ScheduledReportInterval > Duration.Zero)
-          akkaConsoleReporter.start(settings.ConsoleReporter.ScheduledReportInterval.toMillis, TimeUnit.MILLISECONDS)
+          akkaConsoleReporter.start(
+              settings.ConsoleReporter.ScheduledReportInterval.toMillis,
+              TimeUnit.MILLISECONDS)
 
         reporters ::= akkaConsoleReporter
       }
@@ -144,12 +147,18 @@ private[akka] trait MetricsKit extends MetricsKitOps {
     reporters foreach { _.stop() }
   }
 
-  private[metrics] def getOrRegister[M <: Metric](key: String, metric: ⇒ M)(implicit tag: ClassTag[M]): M = {
+  private[metrics] def getOrRegister[M <: Metric](key: String, metric: ⇒ M)(
+      implicit tag: ClassTag[M]): M = {
     import collection.JavaConverters._
     registry.getMetrics.asScala.find(_._1 == key).map(_._2) match {
       case Some(existing: M) ⇒ existing
-      case Some(existing)    ⇒ throw new IllegalArgumentException("Key: [%s] is already for different kind of metric! Was [%s], expected [%s]".format(key, metric.getClass.getSimpleName, tag.runtimeClass.getSimpleName))
-      case _                 ⇒ registry.register(key, metric)
+      case Some(existing) ⇒
+        throw new IllegalArgumentException(
+            "Key: [%s] is already for different kind of metric! Was [%s], expected [%s]"
+              .format(key,
+                      metric.getClass.getSimpleName,
+                      tag.runtimeClass.getSimpleName))
+      case _ ⇒ registry.register(key, metric)
     }
   }
 
@@ -160,21 +169,25 @@ private[akka] trait MetricsKit extends MetricsKitOps {
 private[akka] object MetricsKit {
 
   class RegexMetricFilter(regex: Regex) extends MetricFilter {
-    override def matches(name: String, metric: Metric) = regex.pattern.matcher(name).matches()
+    override def matches(name: String, metric: Metric) =
+      regex.pattern.matcher(name).matches()
   }
 
   val MemMetricsFilter = new RegexMetricFilter(""".*\.mem\..*""".r)
 
-  val FileDescriptorMetricsFilter = new RegexMetricFilter(""".*\.file-descriptors\..*""".r)
+  val FileDescriptorMetricsFilter = new RegexMetricFilter(
+      """.*\.file-descriptors\..*""".r)
 
   val KnownOpsInTimespanCounterFilter = new MetricFilter {
-    override def matches(name: String, metric: Metric) = classOf[KnownOpsInTimespanTimer].isInstance(metric)
+    override def matches(name: String, metric: Metric) =
+      classOf[KnownOpsInTimespanTimer].isInstance(metric)
   }
 
   val GcMetricsFilter = new MetricFilter {
     val keyPattern = """.*\.gc\..*""".r.pattern
 
-    override def matches(name: String, metric: Metric) = keyPattern.matcher(name).matches()
+    override def matches(name: String, metric: Metric) =
+      keyPattern.matcher(name).matches()
   }
 }
 
@@ -182,15 +195,15 @@ private[akka] object MetricsKit {
 trait AkkaMetricRegistry {
   this: MetricRegistry ⇒
 
-  def getKnownOpsInTimespanCounters = filterFor(classOf[KnownOpsInTimespanTimer])
-  def getHdrHistograms = filterFor(classOf[HdrHistogram])
+  def getKnownOpsInTimespanCounters =
+    filterFor(classOf[KnownOpsInTimespanTimer])
+  def getHdrHistograms   = filterFor(classOf[HdrHistogram])
   def getAveragingGauges = filterFor(classOf[AveragingGauge])
 
   import collection.JavaConverters._
   private def filterFor[T](clazz: Class[T]): mutable.Iterable[(String, T)] =
     for {
-      (key, metric) ← getMetrics.asScala
-      if clazz.isInstance(metric)
+      (key, metric) ← getMetrics.asScala if clazz.isInstance(metric)
     } yield key -> metric.asInstanceOf[T]
 }
 
@@ -201,8 +214,9 @@ private[akka] class MetricsKitSettings(config: Config) {
   val Reporters = config.getStringList("akka.test.metrics.reporters")
 
   object ConsoleReporter {
-    val ScheduledReportInterval = config.getMillisDuration("akka.test.metrics.reporter.console.scheduled-report-interval")
-    val Verbose = config.getBoolean("akka.test.metrics.reporter.console.verbose")
+    val ScheduledReportInterval = config.getMillisDuration(
+        "akka.test.metrics.reporter.console.scheduled-report-interval")
+    val Verbose =
+      config.getBoolean("akka.test.metrics.reporter.console.verbose")
   }
-
 }

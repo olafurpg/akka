@@ -1,10 +1,9 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor
 
-import java.lang.reflect.{ Modifier, ParameterizedType, TypeVariable }
+import java.lang.reflect.{Modifier, ParameterizedType, TypeVariable}
 
 import akka.japi.Creator
 import akka.util.Reflect
@@ -23,13 +22,15 @@ private[akka] trait AbstractProps {
    */
   private[akka] def validate(clazz: Class[_]) =
     if (Modifier.isAbstract(clazz.getModifiers))
-      throw new IllegalArgumentException(s"Actor class [${clazz.getName}] must not be abstract")
+      throw new IllegalArgumentException(
+          s"Actor class [${clazz.getName}] must not be abstract")
 
   /**
    * Java API: create a Props given a class and its constructor arguments.
    */
   @varargs
-  def create(clazz: Class[_], args: AnyRef*): Props = new Props(deploy = Props.defaultDeploy, clazz = clazz, args = args.toList)
+  def create(clazz: Class[_], args: AnyRef*): Props =
+    new Props(deploy = Props.defaultDeploy, clazz = clazz, args = args.toList)
 
   /**
    * Create new Props from the given [[akka.japi.Creator]].
@@ -42,19 +43,25 @@ private[akka] trait AbstractProps {
   def create[T <: Actor](creator: Creator[T]): Props = {
     val cc = creator.getClass
     if ((cc.getEnclosingClass ne null) && (cc.getModifiers & Modifier.STATIC) == 0)
-      throw new IllegalArgumentException("cannot use non-static local Creator to create actors; make it static (e.g. local to a static method) or top-level")
-    val ac = classOf[Actor]
+      throw new IllegalArgumentException(
+          "cannot use non-static local Creator to create actors; make it static (e.g. local to a static method) or top-level")
+    val ac  = classOf[Actor]
     val coc = classOf[Creator[_]]
     val actorClass = Reflect.findMarker(cc, coc) match {
       case t: ParameterizedType ⇒
         t.getActualTypeArguments.head match {
-          case c: Class[_] ⇒ c // since T <: Actor
-          case v: TypeVariable[_] ⇒
-            v.getBounds collectFirst { case c: Class[_] if ac.isAssignableFrom(c) && c != ac ⇒ c } getOrElse ac
-          case x ⇒ throw new IllegalArgumentException(s"unsupported type found in Creator argument [$x]")
+          case c: Class [_] ⇒ c // since T <: Actor
+          case v: TypeVariable [_] ⇒
+            v.getBounds collectFirst {
+              case c: Class [_] if ac.isAssignableFrom(c) && c != ac ⇒ c
+            } getOrElse ac
+          case x ⇒
+            throw new IllegalArgumentException(
+                s"unsupported type found in Creator argument [$x]")
         }
-      case c: Class[_] if (c == coc) ⇒
-        throw new IllegalArgumentException(s"erased Creator types are unsupported, use Props.create(actorClass, creator) instead")
+      case c: Class [_] if (c == coc) ⇒
+        throw new IllegalArgumentException(
+            s"erased Creator types are unsupported, use Props.create(actorClass, creator) instead")
     }
     create(classOf[CreatorConsumer], actorClass, creator)
   }

@@ -11,12 +11,14 @@ import com.typesafe.config._
 import org.scalatest._
 import java.util.UUID
 
-abstract class PluginSpec(val config: Config) extends TestKitBase with WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
+abstract class PluginSpec(val config: Config)
+    extends TestKitBase with WordSpecLike with Matchers with BeforeAndAfterAll
+    with BeforeAndAfterEach {
   private val counter = new AtomicInteger(0)
 
   private var _extension: Persistence = _
-  private var _pid: String = _
-  private var _writerUuid: String = _
+  private var _pid: String            = _
+  private var _writerUuid: String     = _
 
   // used to avoid messages be delivered to a restarted actor,
   // this is akka-persistence internals and journals themselves don't really care
@@ -27,11 +29,9 @@ abstract class PluginSpec(val config: Config) extends TestKitBase with WordSpecL
     _writerUuid = UUID.randomUUID.toString
   }
 
-  override protected def beforeAll(): Unit =
-    _extension = Persistence(system)
+  override protected def beforeAll(): Unit = _extension = Persistence(system)
 
-  override protected def afterAll(): Unit =
-    shutdown(system)
+  override protected def afterAll(): Unit = shutdown(system)
 
   def extension: Persistence = _extension
 
@@ -39,6 +39,7 @@ abstract class PluginSpec(val config: Config) extends TestKitBase with WordSpecL
 
   def writerUuid: String = _writerUuid
 
-  def subscribe[T: ClassTag](subscriber: ActorRef) =
-    system.eventStream.subscribe(subscriber, implicitly[ClassTag[T]].runtimeClass)
+  def subscribe[T : ClassTag](subscriber: ActorRef) =
+    system.eventStream.subscribe(
+        subscriber, implicitly[ClassTag[T]].runtimeClass)
 }

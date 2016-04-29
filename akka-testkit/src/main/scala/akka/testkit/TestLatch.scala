@@ -1,13 +1,12 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.testkit
 
 import scala.concurrent.duration.Duration
 import akka.actor.ActorSystem
-import scala.concurrent.{ CanAwait, Awaitable }
-import java.util.concurrent.{ TimeoutException, CountDownLatch, TimeUnit }
+import scala.concurrent.{CanAwait, Awaitable}
+import java.util.concurrent.{TimeoutException, CountDownLatch, TimeUnit}
 import scala.concurrent.duration.FiniteDuration
 
 /**
@@ -20,26 +19,32 @@ import scala.concurrent.duration.FiniteDuration
 object TestLatch {
   val DefaultTimeout = Duration(5, TimeUnit.SECONDS)
 
-  def apply(count: Int = 1)(implicit system: ActorSystem) = new TestLatch(count)
+  def apply(count: Int = 1)(implicit system: ActorSystem) =
+    new TestLatch(count)
 }
 
-class TestLatch(count: Int = 1)(implicit system: ActorSystem) extends Awaitable[Unit] {
+class TestLatch(count: Int = 1)(implicit system: ActorSystem)
+    extends Awaitable[Unit] {
   private var latch = new CountDownLatch(count)
 
-  def countDown() = latch.countDown()
+  def countDown()     = latch.countDown()
   def isOpen: Boolean = latch.getCount == 0
-  def open() = while (!isOpen) countDown()
-  def reset() = latch = new CountDownLatch(count)
+  def open()          = while (!isOpen) countDown()
+  def reset()         = latch = new CountDownLatch(count)
 
   @throws(classOf[TimeoutException])
   def ready(atMost: Duration)(implicit permit: CanAwait) = {
     val waitTime = atMost match {
       case f: FiniteDuration ⇒ f
-      case _                 ⇒ throw new IllegalArgumentException("TestLatch does not support waiting for " + atMost)
+      case _ ⇒
+        throw new IllegalArgumentException(
+            "TestLatch does not support waiting for " + atMost)
     }
     val opened = latch.await(waitTime.dilated.toNanos, TimeUnit.NANOSECONDS)
-    if (!opened) throw new TimeoutException(
-      "Timeout of %s with time factor of %s" format (atMost.toString, TestKitExtension(system).TestTimeFactor))
+    if (!opened)
+      throw new TimeoutException(
+          "Timeout of %s with time factor of %s" format
+          (atMost.toString, TestKitExtension(system).TestTimeFactor))
     this
   }
   @throws(classOf[Exception])
@@ -47,4 +52,3 @@ class TestLatch(count: Int = 1)(implicit system: ActorSystem) extends Awaitable[
     ready(atMost)
   }
 }
-

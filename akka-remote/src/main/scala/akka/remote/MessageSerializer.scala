@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.remote
 
 import akka.remote.WireFormats._
@@ -20,20 +19,24 @@ private[akka] object MessageSerializer {
   /**
    * Uses Akka Serialization for the specified ActorSystem to transform the given MessageProtocol to a message
    */
-  def deserialize(system: ExtendedActorSystem, messageProtocol: SerializedMessage): AnyRef = {
-    SerializationExtension(system).deserialize(
-      messageProtocol.getMessage.toByteArray,
-      messageProtocol.getSerializerId,
-      if (messageProtocol.hasMessageManifest) messageProtocol.getMessageManifest.toStringUtf8 else "").get
+  def deserialize(system: ExtendedActorSystem,
+                  messageProtocol: SerializedMessage): AnyRef = {
+    SerializationExtension(system)
+      .deserialize(messageProtocol.getMessage.toByteArray,
+                   messageProtocol.getSerializerId,
+                   if (messageProtocol.hasMessageManifest)
+                     messageProtocol.getMessageManifest.toStringUtf8 else "")
+      .get
   }
 
   /**
    * Uses Akka Serialization for the specified ActorSystem to transform the given message to a MessageProtocol
    */
-  def serialize(system: ExtendedActorSystem, message: AnyRef): SerializedMessage = {
-    val s = SerializationExtension(system)
+  def serialize(
+      system: ExtendedActorSystem, message: AnyRef): SerializedMessage = {
+    val s          = SerializationExtension(system)
     val serializer = s.findSerializerFor(message)
-    val builder = SerializedMessage.newBuilder
+    val builder    = SerializedMessage.newBuilder
     builder.setMessage(ByteString.copyFrom(serializer.toBinary(message)))
     builder.setSerializerId(serializer.identifier)
     serializer match {
@@ -43,7 +46,8 @@ private[akka] object MessageSerializer {
           builder.setMessageManifest(ByteString.copyFromUtf8(manifest))
       case _ ⇒
         if (serializer.includeManifest)
-          builder.setMessageManifest(ByteString.copyFromUtf8(message.getClass.getName))
+          builder.setMessageManifest(
+              ByteString.copyFromUtf8(message.getClass.getName))
     }
     builder.build
   }

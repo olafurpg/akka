@@ -15,5 +15,4 @@ object TestSource {
    */
   def probe[T](system: ActorSystem): Source[T, TestPublisher.Probe[T]] =
     new Source(scaladsl.TestSource.probe[T](system))
-
 }

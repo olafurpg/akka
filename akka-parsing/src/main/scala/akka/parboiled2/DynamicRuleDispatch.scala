@@ -26,7 +26,8 @@ import akka.shapeless.HList
  * Often times this interface is directly implemented by the Parser class itself
  * (even though this is not a requirement).
  */
-trait DynamicRuleHandler[P <: Parser, L <: HList] extends Parser.DeliveryScheme[L] {
+trait DynamicRuleHandler[P <: Parser, L <: HList]
+    extends Parser.DeliveryScheme[L] {
   def parser: P
   def ruleNotFound(ruleName: String): Result
 }
@@ -36,7 +37,8 @@ trait DynamicRuleHandler[P <: Parser, L <: HList] extends Parser.DeliveryScheme[
  * The rule must have type `RuleN[L]`.
  */
 trait DynamicRuleDispatch[P <: Parser, L <: HList] {
-  def apply(handler: DynamicRuleHandler[P, L], ruleName: String): handler.Result
+  def apply(
+      handler: DynamicRuleHandler[P, L], ruleName: String): handler.Result
 }
 
 object DynamicRuleDispatch {
@@ -48,23 +50,31 @@ object DynamicRuleDispatch {
    * Note that there is no reflection involved and compilation will fail, if one of the given rule names
    * does not constitute a method of parser type `P` or has a type different from `RuleN[L]`.
    */
-  def apply[P <: Parser, L <: HList](ruleNames: String*): (DynamicRuleDispatch[P, L], immutable.Seq[String]) = macro __create[P, L]
+  def apply[P <: Parser, L <: HList](
+      ruleNames: String*): (DynamicRuleDispatch[P, L],
+  immutable.Seq[String]) = macro __create[P, L]
 
   ///////////////////// INTERNAL ////////////////////////
 
-  def __create[P <: Parser, L <: HList](c: Context)(ruleNames: c.Expr[String]*)(implicit P: c.WeakTypeTag[P], L: c.WeakTypeTag[L]): c.Expr[(DynamicRuleDispatch[P, L], immutable.Seq[String])] = {
+  def __create[P <: Parser, L <: HList](
+      c: Context)(ruleNames: c.Expr[String]*)(implicit P: c.WeakTypeTag[P],
+                                              L: c.WeakTypeTag[L]
+  ): c.Expr[(DynamicRuleDispatch[P, L], immutable.Seq[String])] = {
     import c.universe._
     val names: Array[String] = ruleNames.map {
       _.tree match {
         case Literal(Constant(s: String)) ⇒ s
-        case x                            ⇒ c.abort(x.pos, s"Invalid `String` argument `x`, only `String` literals are supported!")
+        case x ⇒
+          c.abort(
+              x.pos,
+              s"Invalid `String` argument `x`, only `String` literals are supported!")
       }
     }(collection.breakOut)
     java.util.Arrays.sort(names.asInstanceOf[Array[Object]])
 
     def rec(start: Int, end: Int): Tree =
       if (start <= end) {
-        val mid = (start + end) >>> 1
+        val mid  = (start + end) >>> 1
         val name = names(mid)
         q"""val c = $name compare ruleName
             if (c < 0) ${rec(mid + 1, end)}

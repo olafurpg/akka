@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.io
 
 import java.nio.ByteBuffer
@@ -24,18 +23,18 @@ trait BufferPool {
  * to be faster than wrapping on-heap Arrays. There is ultimately no performance
  * benefit to wrapping in-heap JVM data when writing with NIO.
  */
-private[akka] class DirectByteBufferPool(defaultBufferSize: Int, maxPoolEntries: Int) extends BufferPool {
-  private[this] val pool: Array[ByteBuffer] = new Array[ByteBuffer](maxPoolEntries)
+private[akka] class DirectByteBufferPool(
+    defaultBufferSize: Int, maxPoolEntries: Int)
+    extends BufferPool {
+  private[this] val pool: Array[ByteBuffer] =
+    new Array[ByteBuffer](maxPoolEntries)
   private[this] var buffersInPool: Int = 0
 
-  def acquire(): ByteBuffer =
-    takeBufferFromPool()
+  def acquire(): ByteBuffer = takeBufferFromPool()
 
-  def release(buf: ByteBuffer): Unit =
-    offerBufferToPool(buf)
+  def release(buf: ByteBuffer): Unit = offerBufferToPool(buf)
 
-  private def allocate(size: Int): ByteBuffer =
-    ByteBuffer.allocateDirect(size)
+  private def allocate(size: Int): ByteBuffer = ByteBuffer.allocateDirect(size)
 
   private final def takeBufferFromPool(): ByteBuffer = {
     val buffer = pool.synchronized {
@@ -46,8 +45,7 @@ private[akka] class DirectByteBufferPool(defaultBufferSize: Int, maxPoolEntries:
     }
 
     // allocate new and clear outside the lock
-    if (buffer == null)
-      allocate(defaultBufferSize)
+    if (buffer == null) allocate(defaultBufferSize)
     else {
       buffer.clear()
       buffer

@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.http.impl.engine.parsing
 
 import scala.annotation.tailrec
@@ -17,11 +16,10 @@ private class BoyerMoore(needle: Array[Byte]) {
 
   private[this] val charTable: Array[Int] = {
     val table = Array.fill(256)(needle.length)
-    @tailrec def rec(i: Int): Unit =
-      if (i < nl1) {
-        table(needle(i) & 0xff) = nl1 - i
-        rec(i + 1)
-      }
+    @tailrec def rec(i: Int): Unit = if (i < nl1) {
+      table(needle(i) & 0xff) = nl1 - i
+      rec(i + 1)
+    }
     rec(0)
     table
   }
@@ -31,22 +29,22 @@ private class BoyerMoore(needle: Array[Byte]) {
 
     @tailrec def isPrefix(i: Int, j: Int): Boolean =
       i == needle.length || needle(i) == needle(j) && isPrefix(i + 1, j + 1)
-    @tailrec def loop1(i: Int, lastPrefixPosition: Int): Unit =
-      if (i >= 0) {
-        val nextLastPrefixPosition = if (isPrefix(i + 1, 0)) i + 1 else lastPrefixPosition
-        table(nl1 - i) = nextLastPrefixPosition - i + nl1
-        loop1(i - 1, nextLastPrefixPosition)
-      }
+    @tailrec def loop1(i: Int, lastPrefixPosition: Int): Unit = if (i >= 0) {
+      val nextLastPrefixPosition =
+        if (isPrefix(i + 1, 0)) i + 1 else lastPrefixPosition
+      table(nl1 - i) = nextLastPrefixPosition - i + nl1
+      loop1(i - 1, nextLastPrefixPosition)
+    }
     loop1(nl1, needle.length)
 
     @tailrec def suffixLength(i: Int, j: Int, result: Int): Int =
-      if (i >= 0 && needle(i) == needle(j)) suffixLength(i - 1, j - 1, result + 1) else result
-    @tailrec def loop2(i: Int): Unit =
-      if (i < nl1) {
-        val sl = suffixLength(i, nl1, 0)
-        table(sl) = nl1 - i + sl
-        loop2(i + 1)
-      }
+      if (i >= 0 && needle(i) == needle(j))
+        suffixLength(i - 1, j - 1, result + 1) else result
+    @tailrec def loop2(i: Int): Unit = if (i < nl1) {
+      val sl = suffixLength(i, nl1, 0)
+      table(sl) = nl1 - i + sl
+      loop2(i + 1)
+    }
     loop2(0)
     table
   }
@@ -61,7 +59,8 @@ private class BoyerMoore(needle: Array[Byte]) {
       if (needle(j) == byte) {
         if (j == 0) i // found
         else rec(i - 1, j - 1)
-      } else rec(i + math.max(offsetTable(nl1 - j), charTable(byte & 0xff)), nl1)
+      } else
+        rec(i + math.max(offsetTable(nl1 - j), charTable(byte & 0xff)), nl1)
     }
     rec(offset + nl1, nl1)
   }

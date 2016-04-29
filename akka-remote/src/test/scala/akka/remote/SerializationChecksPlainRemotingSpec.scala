@@ -13,7 +13,5 @@ class SerializationChecksPlainRemotingSpec extends AkkaSpec {
       system.settings.SerializeAllCreators should ===(true)
       system.settings.SerializeAllMessages should ===(true)
     }
-
   }
-
 }

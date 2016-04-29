@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit._
 class KnownOpsInTimespanTimer(expectedOps: Long) extends Metric with Counting {
 
   val startTime = System.nanoTime
-  val stopTime = new AtomicLong(0)
+  val stopTime  = new AtomicLong(0)
 
   /**
    * Stops the Timer.
@@ -32,6 +32,7 @@ class KnownOpsInTimespanTimer(expectedOps: Long) extends Metric with Counting {
 
   def avgDuration: Long = (elapsedTime.toDouble / expectedOps).toLong
 
-  def opsPerSecond: Double = expectedOps.toDouble / (elapsedTime.toDouble / NANOSECONDS.convert(1, SECONDS))
-
+  def opsPerSecond: Double =
+    expectedOps.toDouble /
+    (elapsedTime.toDouble / NANOSECONDS.convert(1, SECONDS))
 }

@@ -1,10 +1,9 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.japi
 
-import java.util.Collections.{ emptyList, singletonList }
+import java.util.Collections.{emptyList, singletonList}
 
 import akka.util.Collections.EmptyImmutableSeq
 
@@ -72,6 +71,7 @@ object Pair {
  */
 @SerialVersionUID(1L)
 trait Creator[T] extends Serializable {
+
   /**
    * This method must return a different instance upon every call.
    */
@@ -80,7 +80,8 @@ trait Creator[T] extends Serializable {
 }
 
 object JavaPartialFunction {
-  sealed abstract class NoMatchException extends RuntimeException with NoStackTrace
+  sealed abstract class NoMatchException
+      extends RuntimeException with NoStackTrace
   case object NoMatch extends NoMatchException
   final def noMatch(): RuntimeException = NoMatch
 }
@@ -121,15 +122,20 @@ object JavaPartialFunction {
  * does not throw `noMatch()` it will continue with calling
  * `JavaPartialFunction.apply(x, false)`.
  */
-abstract class JavaPartialFunction[A, B] extends AbstractPartialFunction[A, B] {
+abstract class JavaPartialFunction[A, B]
+    extends AbstractPartialFunction[A, B] {
   import JavaPartialFunction._
 
   @throws(classOf[Exception])
   def apply(x: A, isCheck: Boolean): B
 
-  final def isDefinedAt(x: A): Boolean = try { apply(x, true); true } catch { case NoMatch ⇒ false }
-  final override def apply(x: A): B = try apply(x, false) catch { case NoMatch ⇒ throw new MatchError(x) }
-  final override def applyOrElse[A1 <: A, B1 >: B](x: A1, default: A1 ⇒ B1): B1 = try apply(x, false) catch { case NoMatch ⇒ default(x) }
+  final def isDefinedAt(x: A): Boolean =
+    try { apply(x, true); true } catch { case NoMatch ⇒ false }
+  final override def apply(x: A): B =
+    try apply(x, false) catch { case NoMatch ⇒ throw new MatchError(x) }
+  final override def applyOrElse[A1 <: A, B1 >: B](
+      x: A1, default: A1 ⇒ B1): B1 =
+    try apply(x, false) catch { case NoMatch ⇒ default(x) }
 }
 
 /**
@@ -139,6 +145,7 @@ abstract class JavaPartialFunction[A, B] extends AbstractPartialFunction[A, B] {
  */
 sealed abstract class Option[A] extends java.lang.Iterable[A] {
   def get: A
+
   /**
    * Returns <code>a</code> if this is <code>some(a)</code> or <code>defaultValue</code> if
    * this is <code>none</code>.
@@ -147,10 +154,12 @@ sealed abstract class Option[A] extends java.lang.Iterable[A] {
   def isEmpty: Boolean
   def isDefined: Boolean = !isEmpty
   def asScala: scala.Option[A]
-  def iterator: java.util.Iterator[A] = if (isEmpty) emptyList[A].iterator else singletonList(get).iterator
+  def iterator: java.util.Iterator[A] =
+    if (isEmpty) emptyList[A].iterator else singletonList(get).iterator
 }
 
 object Option {
+
   /**
    * <code>Option</code> factory that creates <code>Some</code>
    */
@@ -170,34 +179,36 @@ object Option {
   /**
    * Converts a Scala Option to a Java Option
    */
-  def fromScalaOption[T](scalaOption: scala.Option[T]): Option[T] = scalaOption match {
-    case scala.Some(r) ⇒ some(r)
-    case scala.None    ⇒ none
-  }
+  def fromScalaOption[T](scalaOption: scala.Option[T]): Option[T] =
+    scalaOption match {
+      case scala.Some(r) ⇒ some(r)
+      case scala.None    ⇒ none
+    }
 
   /**
    * Class <code>Some[A]</code> represents existing values of type
    * <code>A</code>.
    */
   final case class Some[A](v: A) extends Option[A] {
-    def get: A = v
+    def get: A                                = v
     def getOrElse[B >: A](defaultValue: B): B = v
-    def isEmpty: Boolean = false
-    def asScala: scala.Some[A] = scala.Some(v)
+    def isEmpty: Boolean                      = false
+    def asScala: scala.Some[A]                = scala.Some(v)
   }
 
   /**
    * This case object represents non-existent values.
    */
   private case object None extends Option[Nothing] {
-    def get: Nothing = throw new NoSuchElementException("None.get")
+    def get: Nothing                     = throw new NoSuchElementException("None.get")
     def getOrElse[B](defaultValue: B): B = defaultValue
-    def isEmpty: Boolean = true
-    def asScala: scala.None.type = scala.None
+    def isEmpty: Boolean                 = true
+    def asScala: scala.None.type         = scala.None
   }
 
   implicit def java2ScalaOption[A](o: Option[A]): scala.Option[A] = o.asScala
-  implicit def scala2JavaOption[A](o: scala.Option[A]): Option[A] = if (o.isDefined) some(o.get) else none
+  implicit def scala2JavaOption[A](o: scala.Option[A]): Option[A] =
+    if (o.isDefined) some(o.get) else none
 }
 
 /**
@@ -214,19 +225,21 @@ object Util {
    * Returns an immutable.Seq representing the provided array of Classes,
    * an overloading of the generic immutableSeq in Util, to accommodate for erasure.
    */
-  def immutableSeq(arr: Array[Class[_]]): immutable.Seq[Class[_]] = immutableSeq[Class[_]](arr)
+  def immutableSeq(arr: Array[Class[_]]): immutable.Seq[Class[_]] =
+    immutableSeq[Class[_]](arr)
 
   /**
    * Turns an array into an immutable Scala sequence (by copying it).
    */
-  def immutableSeq[T](arr: Array[T]): immutable.Seq[T] = if ((arr ne null) && arr.length > 0) Vector(arr: _*) else Nil
+  def immutableSeq[T](arr: Array[T]): immutable.Seq[T] =
+    if ((arr ne null) && arr.length > 0) Vector(arr: _*) else Nil
 
   /**
    * Turns an [[java.lang.Iterable]] into an immutable Scala sequence (by copying it).
    */
   def immutableSeq[T](iterable: java.lang.Iterable[T]): immutable.Seq[T] =
     iterable match {
-      case imm: immutable.Seq[_] ⇒ imm.asInstanceOf[immutable.Seq[T]]
+      case imm: immutable.Seq [_] ⇒ imm.asInstanceOf[immutable.Seq[T]]
       case other ⇒
         val i = other.iterator()
         if (i.hasNext) {
@@ -243,7 +256,8 @@ object Util {
   /**
    * Turns an [[java.lang.Iterable]] into an immutable Scala IndexedSeq (by copying it).
    */
-  def immutableIndexedSeq[T](iterable: java.lang.Iterable[T]): immutable.IndexedSeq[T] =
+  def immutableIndexedSeq[T](
+      iterable: java.lang.Iterable[T]): immutable.IndexedSeq[T] =
     immutableSeq(iterable).toVector
 
   // TODO in case we decide to pull in scala-java8-compat methods below could be removed - https://github.com/akka/akka/issues/16247

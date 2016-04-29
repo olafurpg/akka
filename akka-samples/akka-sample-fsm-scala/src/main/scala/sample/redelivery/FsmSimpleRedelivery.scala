@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package sample.redelivery
 
 import akka.actor._
@@ -10,10 +9,12 @@ import java.util.concurrent.ThreadLocalRandom
 import java.util.UUID
 
 object SimpleOrderedRedeliverer {
+
   /**
    * Props for creating a [[SimpleOrderedRedeliverer]].
    */
-  def props(retryTimeout: FiniteDuration) = Props(classOf[SimpleOrderedRedeliverer], retryTimeout)
+  def props(retryTimeout: FiniteDuration) =
+    Props(classOf[SimpleOrderedRedeliverer], retryTimeout)
 
   /*
    * Messages exchanged with the requester of the delivery.
@@ -33,7 +34,7 @@ object SimpleOrderedRedeliverer {
    * Various states the [[SimpleOrderedRedeliverer]] can be in.
    */
   sealed trait State
-  case object Idle extends State
+  case object Idle        extends State
   case object AwaitingAck extends State
 
   sealed trait Data
@@ -70,7 +71,9 @@ object SimpleOrderedRedeliverer {
  *
  * @param retryTimeout how long to wait for the [[SimpleOrderedRedeliverer.Ack]] message
  */
-class SimpleOrderedRedeliverer(retryTimeout: FiniteDuration) extends Actor with FSM[SimpleOrderedRedeliverer.State, SimpleOrderedRedeliverer.Data] {
+class SimpleOrderedRedeliverer(retryTimeout: FiniteDuration)
+    extends Actor
+    with FSM[SimpleOrderedRedeliverer.State, SimpleOrderedRedeliverer.Data] {
   import SimpleOrderedRedeliverer._
 
   // So that we don't make a typo when referencing this timer.
@@ -112,7 +115,8 @@ class SimpleOrderedRedeliverer(retryTimeout: FiniteDuration) extends Actor with 
      * cancel the retry timer, notify original requester with [[Delivered]] message,
      * and turn [[Idle]] again.
      */
-    case Event(Ack(uuid), LastRequest(request, requester)) if uuid == request.uuid =>
+    case Event(Ack(uuid), LastRequest(request, requester))
+        if uuid == request.uuid =>
       cancelTimer(RetryTimer)
       requester ! Delivered(uuid)
       goto(Idle) using NoData
@@ -124,10 +128,10 @@ class SimpleOrderedRedeliverer(retryTimeout: FiniteDuration) extends Actor with 
     case Event(request: Deliver, LastRequest(current, _)) =>
       stay() replying Busy(request.uuid, current.uuid)
   }
-
 }
 
 object Receiver {
+
   /**
    * Props for creating a [[Receiver]].
    */
@@ -135,6 +139,7 @@ object Receiver {
 }
 
 class Receiver extends Actor {
+
   /**
    * Simulate losing 75% of all messages on the receiving end. We want to see the redelivery in action!
    */
@@ -143,13 +148,15 @@ class Receiver extends Actor {
   def receive = {
     case SimpleOrderedRedeliverer.Ackable(from, msg, uuid) =>
       val goingToSendAck = shouldSendAck
-      println(s"""  [Receiver] got "$msg"; ${if (goingToSendAck) "" else " ***NOT***"} going to send Ack this time""")
+      println(s"""  [Receiver] got "$msg"; ${if (goingToSendAck) ""
+      else " ***NOT***"} going to send Ack this time""")
       // Send a [[SimpleOrderedRedeliverer.Ack]] -- if they're lucky!
       if (goingToSendAck) sender() ! SimpleOrderedRedeliverer.Ack(uuid)
   }
 }
 
 object Requester {
+
   /**
    * Props for creating a [[Requester]].
    */
@@ -168,7 +175,8 @@ class Requester extends Actor {
   /*
    * Create a [[SimpleOrderedRedeliverer]] and a [[Receiver]].
    */
-  val redeliverer = context.actorOf(SimpleOrderedRedeliverer.props(retryTimeout = 3.seconds))
+  val redeliverer =
+    context.actorOf(SimpleOrderedRedeliverer.props(retryTimeout = 3.seconds))
   val receiver = context.actorOf(Receiver.props)
 
   /*
@@ -184,13 +192,15 @@ class Requester extends Actor {
   /**
    * Make a new request every anywhere-between-1-and-10 seconds.
    */
-  def nextTickIn: FiniteDuration = (1.0 + ThreadLocalRandom.current.nextDouble() * 9.0).seconds
+  def nextTickIn: FiniteDuration =
+    (1.0 + ThreadLocalRandom.current.nextDouble() * 9.0).seconds
 
   def receive = {
     case Tick =>
-      val msg = util.Random.shuffle(messages).head
+      val msg  = util.Random.shuffle(messages).head
       val uuid = UUID.randomUUID()
-      println(s"""[Requester] requesting ("$msg", $uuid) to be sent to [Receiver]...""")
+      println(
+          s"""[Requester] requesting ("$msg", $uuid) to be sent to [Receiver]...""")
 
       /*
        * Make the actual request...
@@ -208,7 +218,6 @@ class Requester extends Actor {
      */
     case msg => println(s"[Requester] got $msg")
   }
-
 }
 
 object FsmSimpleRedelivery extends App {
@@ -219,5 +228,4 @@ object FsmSimpleRedelivery extends App {
    * Start a new [[Requester]] actor.
    */
   system.actorOf(Requester.props)
-
 }

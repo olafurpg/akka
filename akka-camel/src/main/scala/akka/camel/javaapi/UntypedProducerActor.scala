@@ -1,18 +1,18 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.camel.javaapi
 
 import akka.actor.UntypedActor
 import akka.camel._
-import org.apache.camel.{ ProducerTemplate }
+import org.apache.camel.{ProducerTemplate}
 import org.apache.camel.impl.DefaultCamelContext
 
 /**
  * Subclass this abstract class to create an untyped producer actor. This class is meant to be used from Java.
  */
 abstract class UntypedProducerActor extends UntypedActor with ProducerSupport {
+
   /**
    * Called before the message is sent to the endpoint specified by <code>getEndpointUri</code>. The original
    * message is passed as argument. By default, this method simply returns the argument but may be overridden
@@ -35,9 +35,12 @@ abstract class UntypedProducerActor extends UntypedActor with ProducerSupport {
    */
   def onRouteResponse(message: AnyRef): Unit = super.routeResponse(message)
 
-  final override def transformOutgoingMessage(msg: Any): AnyRef = onTransformOutgoingMessage(msg.asInstanceOf[AnyRef])
-  final override def transformResponse(msg: Any): AnyRef = onTransformResponse(msg.asInstanceOf[AnyRef])
-  final override def routeResponse(msg: Any): Unit = onRouteResponse(msg.asInstanceOf[AnyRef])
+  final override def transformOutgoingMessage(msg: Any): AnyRef =
+    onTransformOutgoingMessage(msg.asInstanceOf[AnyRef])
+  final override def transformResponse(msg: Any): AnyRef =
+    onTransformResponse(msg.asInstanceOf[AnyRef])
+  final override def routeResponse(msg: Any): Unit =
+    onRouteResponse(msg.asInstanceOf[AnyRef])
 
   final override def endpointUri: String = getEndpointUri
 

@@ -14,9 +14,9 @@ class DurationSpec extends AkkaSpec {
   "Duration" must {
 
     "form a one-dimensional vector field" in {
-      val zero = 0 seconds
-      val one = 1 second
-      val two = one + one
+      val zero  = 0 seconds
+      val one   = 1 second
+      val two   = one + one
       val three = 3 * one
       (0 * one) should ===(zero)
       (2 * one) should ===(two)
@@ -28,9 +28,9 @@ class DurationSpec extends AkkaSpec {
     }
 
     "respect correct treatment of infinities" in {
-      val one = 1.second
-      val inf = Duration.Inf
-      val minf = Duration.MinusInf
+      val one       = 1.second
+      val inf       = Duration.Inf
+      val minf      = Duration.MinusInf
       val undefined = Duration.Undefined
       (-inf) should ===(minf)
       (minf + inf) should ===(undefined)
@@ -83,7 +83,7 @@ class DurationSpec extends AkkaSpec {
     }*/
 
     "support fromNow" in {
-      val dead = 2.seconds.fromNow
+      val dead  = 2.seconds.fromNow
       val dead2 = 2 seconds fromNow
       // view bounds vs. very local type inference vs. operator precedence: sigh
       dead.timeLeft should be > (1 second: Duration)
@@ -92,7 +92,5 @@ class DurationSpec extends AkkaSpec {
       dead.timeLeft should be < (1 second: Duration)
       dead2.timeLeft should be < (1 second: Duration)
     }
-
   }
-
 }

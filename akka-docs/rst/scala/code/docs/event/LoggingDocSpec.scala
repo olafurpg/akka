@@ -3,7 +3,7 @@
  */
 package docs.event
 
-import akka.actor.{ Actor, Props }
+import akka.actor.{Actor, Props}
 import akka.testkit.AkkaSpec
 
 object LoggingDocSpec {
@@ -17,8 +17,10 @@ object LoggingDocSpec {
       log.debug("Starting")
     }
     override def preRestart(reason: Throwable, message: Option[Any]) {
-      log.error(reason, "Restarting due to [{}] when processing [{}]",
-        reason.getMessage, message.getOrElse(""))
+      log.error(reason,
+                "Restarting due to [{}] when processing [{}]",
+                reason.getMessage,
+                message.getOrElse(""))
     }
     def receive = {
       case "test" => log.info("Received test")
@@ -34,16 +36,16 @@ object LoggingDocSpec {
     def receive = {
 
       case _ => {
-        //#mdc
-        val mdc = Map("requestId" -> 1234, "visitorId" -> 5678)
-        log.mdc(mdc)
+          //#mdc
+          val mdc = Map("requestId" -> 1234, "visitorId" -> 5678)
+          log.mdc(mdc)
 
-        // Log something
-        log.info("Starting new request")
+          // Log something
+          log.info("Starting new request")
 
-        log.clearMDC()
-        //#mdc
-      }
+          log.clearMDC()
+          //#mdc
+        }
     }
   }
 
@@ -67,8 +69,8 @@ object LoggingDocSpec {
 
     def receive: Receive = {
       case r: Req => {
-        log.info(s"Starting new request: ${r.work}")
-      }
+          log.info(s"Starting new request: ${r.work}")
+        }
     }
   }
 
@@ -99,7 +101,7 @@ object LoggingDocSpec {
 
   object MyType {
     implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
-      def genString(o: AnyRef): String = o.getClass.getName
+      def genString(o: AnyRef): String           = o.getClass.getName
       override def getClazz(o: AnyRef): Class[_] = o.getClass
     }
   }
@@ -111,12 +113,11 @@ object LoggingDocSpec {
     val log = Logging(system, this)
   }
   //#my-source
-
 }
 
 class LoggingDocSpec extends AkkaSpec {
 
-  import LoggingDocSpec.{ MdcActor, MdcActorMixin, MyActor, Req }
+  import LoggingDocSpec.{MdcActor, MdcActorMixin, MyActor, Req}
 
   "use a logging actor" in {
     val myActor = system.actorOf(Props[MyActor])
@@ -136,7 +137,7 @@ class LoggingDocSpec extends AkkaSpec {
   "allow registration to dead letters" in {
     new AnyRef {
       //#deadletters
-      import akka.actor.{ Actor, DeadLetter, Props }
+      import akka.actor.{Actor, DeadLetter, Props}
 
       class Listener extends Actor {
         def receive = {
@@ -154,18 +155,20 @@ class LoggingDocSpec extends AkkaSpec {
     def println(s: String) = ()
     //#superclass-subscription-eventstream
     abstract class AllKindsOfMusic { def artist: String }
-    case class Jazz(artist: String) extends AllKindsOfMusic
+    case class Jazz(artist: String)       extends AllKindsOfMusic
     case class Electronic(artist: String) extends AllKindsOfMusic
 
     new AnyRef {
       class Listener extends Actor {
         def receive = {
-          case m: Jazz       => println(s"${self.path.name} is listening to: ${m.artist}")
-          case m: Electronic => println(s"${self.path.name} is listening to: ${m.artist}")
+          case m: Jazz =>
+            println(s"${self.path.name} is listening to: ${m.artist}")
+          case m: Electronic =>
+            println(s"${self.path.name} is listening to: ${m.artist}")
         }
       }
 
-      val jazzListener = system.actorOf(Props(classOf[Listener], this))
+      val jazzListener  = system.actorOf(Props(classOf[Listener], this))
       val musicListener = system.actorOf(Props(classOf[Listener], this))
       system.eventStream.subscribe(jazzListener, classOf[Jazz])
       system.eventStream.subscribe(musicListener, classOf[AllKindsOfMusic])
@@ -202,5 +205,4 @@ class LoggingDocSpec extends AkkaSpec {
     system.log.debug("five parameters: {}, {}, {}, {}, {}", args)
     //#array
   }
-
 }

@@ -5,7 +5,7 @@
 package akka.http.scaladsl.server
 package directives
 
-import akka.http.scaladsl.model.{ StatusCodes, HttpMethod }
+import akka.http.scaladsl.model.{StatusCodes, HttpMethod}
 import akka.http.scaladsl.model.HttpMethods._
 
 /**
@@ -99,7 +99,7 @@ trait MethodDirectives {
    * @group method
    */
   def overrideMethodWithParameter(paramName: String): Directive0 =
-    parameter(paramName?) flatMap {
+    parameter(paramName ?) flatMap {
       case Some(method) ⇒
         getForKey(method.toUpperCase) match {
           case Some(m) ⇒ mapRequest(_.copy(method = m))

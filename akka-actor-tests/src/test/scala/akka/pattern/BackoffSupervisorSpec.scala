@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2015-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.pattern
 
 import scala.concurrent.duration._
@@ -15,8 +14,7 @@ object BackoffSupervisorSpec {
   class TestException extends RuntimeException with NoStackTrace
 
   object Child {
-    def props(probe: ActorRef): Props =
-      Props(new Child(probe))
+    def props(probe: ActorRef): Props = Props(new Child(probe))
   }
 
   class Child(probe: ActorRef) extends Actor {
@@ -27,8 +25,7 @@ object BackoffSupervisorSpec {
   }
 
   object ManualChild {
-    def props(probe: ActorRef): Props =
-      Props(new ManualChild(probe))
+    def props(probe: ActorRef): Props = Props(new ManualChild(probe))
   }
 
   class ManualChild(probe: ActorRef) extends Actor {
@@ -44,9 +41,12 @@ object BackoffSupervisorSpec {
 class BackoffSupervisorSpec extends AkkaSpec with ImplicitSender {
   import BackoffSupervisorSpec._
 
-  def onStopOptions(props: Props = Child.props(testActor)) = Backoff.onStop(props, "c1", 100.millis, 3.seconds, 0.2)
-  def onFailureOptions(props: Props = Child.props(testActor)) = Backoff.onFailure(props, "c1", 100.millis, 3.seconds, 0.2)
-  def create(options: BackoffOptions) = system.actorOf(BackoffSupervisor.props(options))
+  def onStopOptions(props: Props = Child.props(testActor)) =
+    Backoff.onStop(props, "c1", 100.millis, 3.seconds, 0.2)
+  def onFailureOptions(props: Props = Child.props(testActor)) =
+    Backoff.onFailure(props, "c1", 100.millis, 3.seconds, 0.2)
+  def create(options: BackoffOptions) =
+    system.actorOf(BackoffSupervisor.props(options))
 
   "BackoffSupervisor" must {
     "start child again when it stops when using `Backoff.onStop`" in {
@@ -94,12 +94,10 @@ class BackoffSupervisorSpec extends AkkaSpec with ImplicitSender {
         }
 
         assertCustomStrategy(
-          create(onStopOptions()
-            .withSupervisorStrategy(stoppingStrategy)))
+            create(onStopOptions().withSupervisorStrategy(stoppingStrategy)))
 
-        assertCustomStrategy(
-          create(onFailureOptions()
-            .withSupervisorStrategy(restartingStrategy)))
+        assertCustomStrategy(create(
+                onFailureOptions().withSupervisorStrategy(restartingStrategy)))
       }
     }
 
@@ -121,7 +119,6 @@ class BackoffSupervisorSpec extends AkkaSpec with ImplicitSender {
         }
         supervisor ! BackoffSupervisor.GetRestartCount
         expectMsg(BackoffSupervisor.RestartCount(1))
-
       }
     }
 
@@ -142,7 +139,8 @@ class BackoffSupervisorSpec extends AkkaSpec with ImplicitSender {
           awaitAssert {
             supervisor ! BackoffSupervisor.GetCurrentChild
             // new instance
-            expectMsgType[BackoffSupervisor.CurrentChild].ref.get should !==(c1)
+            expectMsgType[BackoffSupervisor.CurrentChild].ref.get should !==(
+                c1)
           }
 
           supervisor ! "hello"
@@ -164,14 +162,12 @@ class BackoffSupervisorSpec extends AkkaSpec with ImplicitSender {
         }
 
         assertManualReset(
-          create(onStopOptions(ManualChild.props(testActor))
-            .withManualReset
-            .withSupervisorStrategy(stoppingStrategy)))
+            create(onStopOptions(ManualChild.props(testActor)).withManualReset
+                  .withSupervisorStrategy(stoppingStrategy)))
 
-        assertManualReset(
-          create(onFailureOptions(ManualChild.props(testActor))
-            .withManualReset
-            .withSupervisorStrategy(restartingStrategy)))
+        assertManualReset(create(
+                onFailureOptions(ManualChild.props(testActor)).withManualReset
+                  .withSupervisorStrategy(restartingStrategy)))
       }
     }
   }

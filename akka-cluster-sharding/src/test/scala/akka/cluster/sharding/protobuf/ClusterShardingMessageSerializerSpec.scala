@@ -3,7 +3,7 @@
  */
 package akka.cluster.sharding.protobuf
 
-import akka.actor.{ ExtendedActorSystem }
+import akka.actor.{ExtendedActorSystem}
 import akka.testkit.AkkaSpec
 import akka.actor.Props
 import akka.cluster.sharding.ShardCoordinator
@@ -12,28 +12,31 @@ import akka.cluster.sharding.Shard
 class ClusterShardingMessageSerializerSpec extends AkkaSpec {
   import ShardCoordinator.Internal._
 
-  val serializer = new ClusterShardingMessageSerializer(system.asInstanceOf[ExtendedActorSystem])
+  val serializer = new ClusterShardingMessageSerializer(
+      system.asInstanceOf[ExtendedActorSystem])
 
-  val region1 = system.actorOf(Props.empty, "region1")
-  val region2 = system.actorOf(Props.empty, "region2")
-  val region3 = system.actorOf(Props.empty, "region3")
+  val region1      = system.actorOf(Props.empty, "region1")
+  val region2      = system.actorOf(Props.empty, "region2")
+  val region3      = system.actorOf(Props.empty, "region3")
   val regionProxy1 = system.actorOf(Props.empty, "regionProxy1")
   val regionProxy2 = system.actorOf(Props.empty, "regionProxy2")
 
   def checkSerialization(obj: AnyRef): Unit = {
     val blob = serializer.toBinary(obj)
-    val ref = serializer.fromBinary(blob, serializer.manifest(obj))
+    val ref  = serializer.fromBinary(blob, serializer.manifest(obj))
     ref should ===(obj)
   }
 
   "ClusterShardingMessageSerializer" must {
 
     "be able to serializable ShardCoordinator snapshot State" in {
-      val state = State(
-        shards = Map("a" -> region1, "b" -> region2, "c" -> region2),
-        regions = Map(region1 -> Vector("a"), region2 -> Vector("b", "c"), region3 -> Vector.empty[String]),
-        regionProxies = Set(regionProxy1, regionProxy2),
-        unallocatedShards = Set("d"))
+      val state =
+        State(shards = Map("a"      -> region1, "b" -> region2, "c" -> region2),
+              regions = Map(region1 -> Vector("a"),
+                            region2 -> Vector("b", "c"),
+                            region3 -> Vector.empty[String]),
+              regionProxies = Set(regionProxy1, regionProxy2),
+              unallocatedShards = Set("d"))
       checkSerialization(state)
     }
 

@@ -11,6 +11,7 @@ import org.apache.camel.impl.DefaultCamelContext
  * An instance of this class must be instantiable using a no-arg constructor.
  */
 trait ContextProvider {
+
   /**
    * Retrieve or create a Camel Context for the given actor system
    * Called once per actor system
@@ -23,5 +24,6 @@ trait ContextProvider {
  * Provides a new DefaultCamelContext per actor system
  */
 final class DefaultContextProvider extends ContextProvider {
-  override def getContext(system: ExtendedActorSystem) = new DefaultCamelContext
+  override def getContext(system: ExtendedActorSystem) =
+    new DefaultCamelContext
 }

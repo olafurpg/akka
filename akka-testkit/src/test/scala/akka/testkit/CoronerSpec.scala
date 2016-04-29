@@ -15,8 +15,8 @@ import scala.concurrent.Await
 class CoronerSpec extends WordSpec with Matchers {
 
   private def captureOutput[A](f: PrintStream ⇒ A): (A, String) = {
-    val bytes = new ByteArrayOutputStream()
-    val out = new PrintStream(bytes, true, "UTF-8")
+    val bytes  = new ByteArrayOutputStream()
+    val out    = new PrintStream(bytes, true, "UTF-8")
     val result = f(out)
     (result, new String(bytes.toByteArray(), "UTF-8"))
   }
@@ -24,29 +24,36 @@ class CoronerSpec extends WordSpec with Matchers {
   "A Coroner" must {
 
     "generate a report if enough time passes" in {
-      val (_, report) = captureOutput(out ⇒ {
-        val coroner = Coroner.watch(100.milliseconds, "XXXX", out)
-        Await.ready(coroner, 5.seconds)
-        coroner.cancel()
+      val (_, report) = captureOutput(
+          out ⇒
+            {
+          val coroner = Coroner.watch(100.milliseconds, "XXXX", out)
+          Await.ready(coroner, 5.seconds)
+          coroner.cancel()
       })
       report should include("Coroner's Report")
       report should include("XXXX")
     }
 
     "not generate a report if cancelled early" in {
-      val (_, report) = captureOutput(out ⇒ {
-        val coroner = Coroner.watch(60.seconds, "XXXX", out)
-        coroner.cancel()
-        Await.ready(coroner, 1.seconds)
+      val (_, report) = captureOutput(
+          out ⇒
+            {
+          val coroner = Coroner.watch(60.seconds, "XXXX", out)
+          coroner.cancel()
+          Await.ready(coroner, 1.seconds)
       })
       report should ===("")
     }
 
     "display thread counts if enabled" in {
-      val (_, report) = captureOutput(out ⇒ {
-        val coroner = Coroner.watch(60.seconds, "XXXX", out, displayThreadCounts = true)
-        coroner.cancel()
-        Await.ready(coroner, 1.second)
+      val (_, report) = captureOutput(
+          out ⇒
+            {
+          val coroner =
+            Coroner.watch(60.seconds, "XXXX", out, displayThreadCounts = true)
+          coroner.cancel()
+          Await.ready(coroner, 1.second)
       })
       report should include("Coroner Thread Count starts at ")
       report should include("Coroner Thread Count started at ")
@@ -62,27 +69,31 @@ class CoronerSpec extends WordSpec with Matchers {
       // that the other wants to synchronize on. BOOM! Deadlock. Generate a
       // report, then clean up and check the report contents.
 
-      final case class LockingThread(name: String, thread: Thread, ready: Semaphore, proceed: Semaphore)
+      final case class LockingThread(
+          name: String, thread: Thread, ready: Semaphore, proceed: Semaphore)
 
-      def lockingThread(name: String, initialLocks: List[ReentrantLock]): LockingThread = {
-        val ready = new Semaphore(0)
+      def lockingThread(name: String,
+                        initialLocks: List[ReentrantLock]): LockingThread = {
+        val ready   = new Semaphore(0)
         val proceed = new Semaphore(0)
         val t = new Thread(new Runnable {
-          def run = try recursiveLock(initialLocks) catch { case _: InterruptedException ⇒ () }
+          def run = try recursiveLock(initialLocks) catch {
+            case _: InterruptedException ⇒ ()
+          }
 
           def recursiveLock(locks: List[ReentrantLock]) {
             locks match {
               case Nil ⇒ ()
               case lock :: rest ⇒ {
-                ready.release()
-                proceed.acquire()
-                lock.lockInterruptibly() // Allows us to break deadlock and free threads
-                try {
-                  recursiveLock(rest)
-                } finally {
-                  lock.unlock()
+                  ready.release()
+                  proceed.acquire()
+                  lock.lockInterruptibly() // Allows us to break deadlock and free threads
+                  try {
+                    recursiveLock(rest)
+                  } finally {
+                    lock.unlock()
+                  }
                 }
-              }
             }
           }
         }, name)
@@ -119,13 +130,15 @@ class CoronerSpec extends WordSpec with Matchers {
 
       val threadMx = ManagementFactory.getThreadMXBean()
       if (threadMx.isSynchronizerUsageSupported()) {
-        val sectionHeading = "Deadlocks found for monitors and ownable synchronizers"
+        val sectionHeading =
+          "Deadlocks found for monitors and ownable synchronizers"
         report should include(sectionHeading)
         val deadlockSection = report.split(sectionHeading)(1)
         deadlockSection should include("deadlock-thread-a")
         deadlockSection should include("deadlock-thread-b")
       } else {
-        val sectionHeading = "Deadlocks found for monitors, but NOT ownable synchronizers"
+        val sectionHeading =
+          "Deadlocks found for monitors, but NOT ownable synchronizers"
         report should include(sectionHeading)
         val deadlockSection = report.split(sectionHeading)(1)
         deadlockSection should include("None")
@@ -133,6 +146,5 @@ class CoronerSpec extends WordSpec with Matchers {
         deadlockSection should not include ("deadlock-thread-b")
       }
     }
-
   }
 }

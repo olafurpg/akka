@@ -36,6 +36,7 @@ trait SourceQueue[T] {
  * This trait adds completion support to [[SourceQueue]].
  */
 trait SourceQueueWithComplete[T] extends SourceQueue[T] {
+
   /**
    * Complete the stream normally. Use `watchCompletion` to be notified of this
    * operation’s success.

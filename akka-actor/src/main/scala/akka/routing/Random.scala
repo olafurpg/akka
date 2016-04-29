@@ -20,7 +20,8 @@ object RandomRoutingLogic {
  */
 @SerialVersionUID(1L)
 final class RandomRoutingLogic extends RoutingLogic {
-  override def select(message: Any, routees: immutable.IndexedSeq[Routee]): Routee =
+  override def select(
+      message: Any, routees: immutable.IndexedSeq[Routee]): Routee =
     if (routees.isEmpty) NoRoutee
     else routees(ThreadLocalRandom.current.nextInt(routees.size))
 }
@@ -57,17 +58,17 @@ final class RandomRoutingLogic extends RoutingLogic {
  */
 @SerialVersionUID(1L)
 final case class RandomPool(
-  override val nrOfInstances: Int, override val resizer: Option[Resizer] = None,
-  override val supervisorStrategy: SupervisorStrategy = Pool.defaultSupervisorStrategy,
-  override val routerDispatcher: String = Dispatchers.DefaultDispatcherId,
-  override val usePoolDispatcher: Boolean = false)
-  extends Pool with PoolOverrideUnsetConfig[RandomPool] {
+    override val nrOfInstances: Int,
+    override val resizer: Option[Resizer] = None,
+    override val supervisorStrategy: SupervisorStrategy = Pool.defaultSupervisorStrategy,
+    override val routerDispatcher: String = Dispatchers.DefaultDispatcherId,
+    override val usePoolDispatcher: Boolean = false)
+    extends Pool with PoolOverrideUnsetConfig[RandomPool] {
 
   def this(config: Config) =
-    this(
-      nrOfInstances = config.getInt("nr-of-instances"),
-      resizer = Resizer.fromConfig(config),
-      usePoolDispatcher = config.hasPath("pool-dispatcher"))
+    this(nrOfInstances = config.getInt("nr-of-instances"),
+         resizer = Resizer.fromConfig(config),
+         usePoolDispatcher = config.hasPath("pool-dispatcher"))
 
   /**
    * Java API
@@ -75,14 +76,16 @@ final case class RandomPool(
    */
   def this(nr: Int) = this(nrOfInstances = nr)
 
-  override def createRouter(system: ActorSystem): Router = new Router(RandomRoutingLogic())
+  override def createRouter(system: ActorSystem): Router =
+    new Router(RandomRoutingLogic())
 
   override def nrOfInstances(sys: ActorSystem) = this.nrOfInstances
 
   /**
    * Setting the supervisor strategy to be used for the “head” Router actor.
    */
-  def withSupervisorStrategy(strategy: SupervisorStrategy): RandomPool = copy(supervisorStrategy = strategy)
+  def withSupervisorStrategy(strategy: SupervisorStrategy): RandomPool =
+    copy(supervisorStrategy = strategy)
 
   /**
    * Setting the resizer to be used.
@@ -93,15 +96,16 @@ final case class RandomPool(
    * Setting the dispatcher to be used for the router head actor,  which handles
    * supervision, death watch and router management messages.
    */
-  def withDispatcher(dispatcherId: String): RandomPool = copy(routerDispatcher = dispatcherId)
+  def withDispatcher(dispatcherId: String): RandomPool =
+    copy(routerDispatcher = dispatcherId)
 
   /**
    * Uses the resizer and/or the supervisor strategy of the given RouterConfig
    * if this RouterConfig doesn't have one, i.e. the resizer defined in code is used if
    * resizer was not defined in config.
    */
-  override def withFallback(other: RouterConfig): RouterConfig = this.overrideUnsetConfig(other)
-
+  override def withFallback(other: RouterConfig): RouterConfig =
+    this.overrideUnsetConfig(other)
 }
 
 /**
@@ -119,9 +123,9 @@ final case class RandomPool(
  */
 @SerialVersionUID(1L)
 final case class RandomGroup(
-  override val paths: immutable.Iterable[String],
-  override val routerDispatcher: String = Dispatchers.DefaultDispatcherId)
-  extends Group {
+    override val paths: immutable.Iterable[String],
+    override val routerDispatcher: String = Dispatchers.DefaultDispatcherId)
+    extends Group {
 
   def this(config: Config) =
     this(paths = immutableSeq(config.getStringList("routees.paths")))
@@ -131,16 +135,19 @@ final case class RandomGroup(
    * @param routeePaths string representation of the actor paths of the routees, messages are
    *   sent with [[akka.actor.ActorSelection]] to these paths
    */
-  def this(routeePaths: java.lang.Iterable[String]) = this(paths = immutableSeq(routeePaths))
+  def this(routeePaths: java.lang.Iterable[String]) =
+    this(paths = immutableSeq(routeePaths))
 
-  override def paths(system: ActorSystem): immutable.Iterable[String] = this.paths
+  override def paths(system: ActorSystem): immutable.Iterable[String] =
+    this.paths
 
-  override def createRouter(system: ActorSystem): Router = new Router(RandomRoutingLogic())
+  override def createRouter(system: ActorSystem): Router =
+    new Router(RandomRoutingLogic())
 
   /**
    * Setting the dispatcher to be used for the router head actor, which handles
    * router management messages
    */
-  def withDispatcher(dispatcherId: String): RandomGroup = copy(routerDispatcher = dispatcherId)
-
+  def withDispatcher(dispatcherId: String): RandomGroup =
+    copy(routerDispatcher = dispatcherId)
 }

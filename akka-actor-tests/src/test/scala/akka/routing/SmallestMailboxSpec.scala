@@ -5,17 +5,19 @@ package akka.routing
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.concurrent.Await
-import akka.actor.{ Props, Actor }
-import akka.testkit.{ TestLatch, ImplicitSender, DefaultTimeout, AkkaSpec }
+import akka.actor.{Props, Actor}
+import akka.testkit.{TestLatch, ImplicitSender, DefaultTimeout, AkkaSpec}
 
-class SmallestMailboxSpec extends AkkaSpec("akka.actor.serialize-messages = off")
-  with DefaultTimeout with ImplicitSender {
+class SmallestMailboxSpec
+    extends AkkaSpec("akka.actor.serialize-messages = off") with DefaultTimeout
+    with ImplicitSender {
 
   "smallest mailbox pool" must {
 
     "deliver messages to idle actor" in {
       val usedActors = new ConcurrentHashMap[Int, String]()
-      val router = system.actorOf(SmallestMailboxPool(3).props(routeeProps = Props(new Actor {
+      val router = system.actorOf(
+          SmallestMailboxPool(3).props(routeeProps = Props(new Actor {
         def receive = {
           case (busy: TestLatch, receivedLatch: TestLatch) ⇒
             usedActors.put(0, self.path.toString)
@@ -29,7 +31,7 @@ class SmallestMailboxSpec extends AkkaSpec("akka.actor.serialize-messages = off"
         }
       })))
 
-      val busy = TestLatch(1)
+      val busy      = TestLatch(1)
       val received0 = TestLatch(1)
       router ! ((busy, received0))
       Await.ready(received0, TestLatch.DefaultTimeout)
@@ -58,8 +60,6 @@ class SmallestMailboxSpec extends AkkaSpec("akka.actor.serialize-messages = off"
       path1 should not be (busyPath)
       path2 should not be (busyPath)
       path3 should not be (busyPath)
-
     }
   }
-
 }

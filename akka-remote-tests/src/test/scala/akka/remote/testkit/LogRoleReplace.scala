@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.remote.testkit
 
 import java.awt.Toolkit
@@ -45,36 +44,33 @@ object LogRoleReplace extends ClipboardOwner {
     val replacer = new LogRoleReplace
 
     if (args.length == 0) {
-      replacer.process(
-        new BufferedReader(new InputStreamReader(System.in)),
-        new PrintWriter(new OutputStreamWriter(System.out)))
-
+      replacer.process(new BufferedReader(new InputStreamReader(System.in)),
+                       new PrintWriter(new OutputStreamWriter(System.out)))
     } else if (args(0) == "clipboard") {
       val clipboard = Toolkit.getDefaultToolkit.getSystemClipboard
-      val contents = clipboard.getContents(null)
-      if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-        val text = contents.getTransferData(DataFlavor.stringFlavor).asInstanceOf[String]
+      val contents  = clipboard.getContents(null)
+      if (contents != null &&
+          contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        val text = contents
+          .getTransferData(DataFlavor.stringFlavor)
+          .asInstanceOf[String]
         val result = new StringWriter
-        replacer.process(
-          new BufferedReader(new StringReader(text)),
-          new PrintWriter(result))
+        replacer.process(new BufferedReader(new StringReader(text)),
+                         new PrintWriter(result))
         clipboard.setContents(new StringSelection(result.toString), this)
         println("Replaced clipboard contents")
       }
-
     } else if (args.length == 1) {
       val inputFile = new BufferedReader(new FileReader(args(0)))
       try {
-        replacer.process(
-          inputFile,
-          new PrintWriter(new OutputStreamWriter(System.out)))
+        replacer.process(inputFile,
+                         new PrintWriter(new OutputStreamWriter(System.out)))
       } finally {
         inputFile.close()
       }
-
     } else if (args.length == 2) {
       val outputFile = new PrintWriter(new FileWriter(args(1)))
-      val inputFile = new BufferedReader(new FileReader(args(0)))
+      val inputFile  = new BufferedReader(new FileReader(args(0)))
       try {
         replacer.process(inputFile, outputFile)
       } finally {
@@ -92,7 +88,8 @@ object LogRoleReplace extends ClipboardOwner {
 
 class LogRoleReplace {
 
-  private val RoleStarted = """\[([\w\-]+)\].*Role \[([\w]+)\] started with address \[[\w\-\+\.]+://.*@([\w\-\.]+):([0-9]+)\]""".r
+  private val RoleStarted =
+    """\[([\w\-]+)\].*Role \[([\w]+)\] started with address \[[\w\-\+\.]+://.*@([\w\-\.]+):([0-9]+)\]""".r
   private val ColorCode = """\u001B?\[[0-9]+m"""
 
   private var replacements: Map[String, String] = Map.empty
@@ -100,21 +97,18 @@ class LogRoleReplace {
   def process(in: BufferedReader, out: PrintWriter): Unit = {
 
     @tailrec
-    def processLines(line: String): Unit =
-      if (line ne null) {
-        out.println(processLine(line))
-        processLines(in.readLine)
-      }
+    def processLines(line: String): Unit = if (line ne null) {
+      out.println(processLine(line))
+      processLines(in.readLine)
+    }
 
     processLines(in.readLine())
   }
 
   def processLine(line: String): String = {
     val cleanLine = removeColorCodes(line)
-    if (updateReplacements(cleanLine))
-      replaceLine(cleanLine)
-    else
-      cleanLine
+    if (updateReplacements(cleanLine)) replaceLine(cleanLine)
+    else cleanLine
   }
 
   private def removeColorCodes(line: String): String =
@@ -128,7 +122,7 @@ class LogRoleReplace {
 
     line match {
       case RoleStarted(jvm, role, host, port) ⇒
-        replacements += (jvm -> role)
+        replacements += (jvm                 -> role)
         replacements += ((host + ":" + port) -> role)
         false
       case _ ⇒ true
@@ -142,5 +136,4 @@ class LogRoleReplace {
     }
     result
   }
-
 }

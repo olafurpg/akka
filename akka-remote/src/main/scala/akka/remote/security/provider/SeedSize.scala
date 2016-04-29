@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.remote.security.provider
 
 /**
@@ -17,4 +16,3 @@ private[provider] object SeedSize {
   val Seed192 = 24
   val Seed256 = 32
 }
-

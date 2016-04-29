@@ -1,10 +1,9 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.dispatch
 
-import java.util.concurrent.{ Executor }
+import java.util.concurrent.{Executor}
 import java.util.ArrayDeque
 import scala.concurrent._
 import scala.annotation.tailrec
@@ -49,7 +48,8 @@ private[akka] trait BatchingExecutor extends Executor {
   // invariant: if "_tasksLocal.get ne null" then we are inside Batch.run; if it is null, we are outside
   private[this] val _tasksLocal = new ThreadLocal[AbstractBatch]()
 
-  private[this] abstract class AbstractBatch extends ArrayDeque[Runnable](4) with Runnable {
+  private[this] abstract class AbstractBatch
+      extends ArrayDeque[Runnable](4) with Runnable {
     @tailrec final def processBatch(batch: AbstractBatch): Unit =
       if ((batch eq this) && !batch.isEmpty) {
         batch.poll().run()
@@ -59,7 +59,8 @@ private[akka] trait BatchingExecutor extends Executor {
     protected final def resubmitUnbatched(): Boolean = {
       val current = _tasksLocal.get()
       _tasksLocal.remove()
-      if ((current eq this) && !current.isEmpty) { // Resubmit ourselves if something bad happened and we still have work to do
+      if ((current eq this) && !current.isEmpty) {
+        // Resubmit ourselves if something bad happened and we still have work to do
         unbatchedExecute(current) //TODO what if this submission fails?
         true
       } else false
@@ -80,7 +81,8 @@ private[akka] trait BatchingExecutor extends Executor {
 
   private[this] val _blockContext = new ThreadLocal[BlockContext]()
 
-  private[this] final class BlockableBatch extends AbstractBatch with BlockContext {
+  private[this] final class BlockableBatch
+      extends AbstractBatch with BlockContext {
     // this method runs in the delegate ExecutionContext's thread
     override final def run(): Unit = {
       require(_tasksLocal.get eq null)
@@ -112,15 +114,19 @@ private[akka] trait BatchingExecutor extends Executor {
   protected def resubmitOnBlock: Boolean
 
   override def execute(runnable: Runnable): Unit = {
-    if (batchable(runnable)) { // If we can batch the runnable
+    if (batchable(runnable)) {
+      // If we can batch the runnable
       _tasksLocal.get match {
         case null ⇒
-          val newBatch: AbstractBatch = if (resubmitOnBlock) new BlockableBatch() else new Batch()
+          val newBatch: AbstractBatch =
+            if (resubmitOnBlock) new BlockableBatch() else new Batch()
           newBatch.add(runnable)
           unbatchedExecute(newBatch) // If we aren't in batching mode yet, enqueue batch
-        case batch ⇒ batch.add(runnable) // If we are already in batching mode, add to batch
+        case batch ⇒
+          batch.add(runnable) // If we are already in batching mode, add to batch
       }
-    } else unbatchedExecute(runnable) // If not batchable, just delegate to underlying
+    } else
+      unbatchedExecute(runnable) // If not batchable, just delegate to underlying
   }
 
   /** Override this to define which runnables will be batched. */

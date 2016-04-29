@@ -3,7 +3,7 @@
  */
 package akka.remote.testconductor
 
-import akka.actor.{ Extension, ExtensionId, ExtensionIdProvider, ExtendedActorSystem, ActorContext, ActorSystem }
+import akka.actor.{Extension, ExtensionId, ExtensionIdProvider, ExtendedActorSystem, ActorContext, ActorSystem}
 import akka.remote.RemoteActorRefProvider
 import akka.util.Timeout
 import com.typesafe.config.Config
@@ -19,11 +19,13 @@ import akka.dispatch.ThreadPoolConfig
  * tc.startClient(conductorPort)
  * }}}
  */
-object TestConductor extends ExtensionId[TestConductorExt] with ExtensionIdProvider {
+object TestConductor
+    extends ExtensionId[TestConductorExt] with ExtensionIdProvider {
 
   override def lookup = TestConductor
 
-  override def createExtension(system: ExtendedActorSystem): TestConductorExt = new TestConductorExt(system)
+  override def createExtension(system: ExtendedActorSystem): TestConductorExt =
+    new TestConductorExt(system)
 
   /**
    * Java API: retrieve the TestConductor extension for the given system.
@@ -31,7 +33,6 @@ object TestConductor extends ExtensionId[TestConductorExt] with ExtensionIdProvi
   override def get(system: ActorSystem): TestConductorExt = super.get(system)
 
   def apply()(implicit ctx: ActorContext): TestConductorExt = apply(ctx.system)
-
 }
 
 /**
@@ -49,39 +50,44 @@ object TestConductor extends ExtensionId[TestConductorExt] with ExtensionIdProvi
  * in your MultiNodeConfig.
  *
  */
-class TestConductorExt(val system: ExtendedActorSystem) extends Extension with Conductor with Player {
+class TestConductorExt(val system: ExtendedActorSystem)
+    extends Extension with Conductor with Player {
 
   object Settings {
     val config = system.settings.config.getConfig("akka.testconductor")
     import akka.util.Helpers.ConfigOps
 
-    val ConnectTimeout = config.getMillisDuration("connect-timeout")
+    val ConnectTimeout   = config.getMillisDuration("connect-timeout")
     val ClientReconnects = config.getInt("client-reconnects")
     val ReconnectBackoff = config.getMillisDuration("reconnect-backoff")
 
-    implicit val BarrierTimeout = Timeout(config.getMillisDuration("barrier-timeout"))
-    implicit val QueryTimeout = Timeout(config.getMillisDuration("query-timeout"))
-    val PacketSplitThreshold = config.getMillisDuration("packet-split-threshold")
+    implicit val BarrierTimeout = Timeout(
+        config.getMillisDuration("barrier-timeout"))
+    implicit val QueryTimeout = Timeout(
+        config.getMillisDuration("query-timeout"))
+    val PacketSplitThreshold =
+      config.getMillisDuration("packet-split-threshold")
 
     private def computeWPS(config: Config): Int =
-      ThreadPoolConfig.scaledPoolSize(
-        config.getInt("pool-size-min"),
-        config.getDouble("pool-size-factor"),
-        config.getInt("pool-size-max"))
+      ThreadPoolConfig.scaledPoolSize(config.getInt("pool-size-min"),
+                                      config.getDouble("pool-size-factor"),
+                                      config.getInt("pool-size-max"))
 
-    val ServerSocketWorkerPoolSize = computeWPS(config.getConfig("netty.server-socket-worker-pool"))
+    val ServerSocketWorkerPoolSize = computeWPS(
+        config.getConfig("netty.server-socket-worker-pool"))
 
-    val ClientSocketWorkerPoolSize = computeWPS(config.getConfig("netty.client-socket-worker-pool"))
+    val ClientSocketWorkerPoolSize = computeWPS(
+        config.getConfig("netty.client-socket-worker-pool"))
   }
 
   /**
    * Remote transport used by the actor ref provider.
    */
-  val transport = system.provider.asInstanceOf[RemoteActorRefProvider].transport
+  val transport =
+    system.provider.asInstanceOf[RemoteActorRefProvider].transport
 
   /**
    * Transport address of this Netty-like remote transport.
    */
   val address = transport.defaultAddress
-
 }

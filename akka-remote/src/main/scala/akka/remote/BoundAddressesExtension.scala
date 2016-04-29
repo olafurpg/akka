@@ -13,20 +13,28 @@ import akka.actor.ExtensionIdProvider
 /**
  * Extension provides access to bound addresses.
  */
-object BoundAddressesExtension extends ExtensionId[BoundAddressesExtension] with ExtensionIdProvider {
-  override def get(system: ActorSystem): BoundAddressesExtension = super.get(system)
+object BoundAddressesExtension
+    extends ExtensionId[BoundAddressesExtension] with ExtensionIdProvider {
+  override def get(system: ActorSystem): BoundAddressesExtension =
+    super.get(system)
 
   override def lookup = BoundAddressesExtension
 
-  override def createExtension(system: ExtendedActorSystem): BoundAddressesExtension =
+  override def createExtension(
+      system: ExtendedActorSystem): BoundAddressesExtension =
     new BoundAddressesExtension(system)
 }
 
-class BoundAddressesExtension(val system: ExtendedActorSystem) extends Extension {
+class BoundAddressesExtension(val system: ExtendedActorSystem)
+    extends Extension {
+
   /**
    * Returns a mapping from a protocol to a set of bound addresses.
    */
-  def boundAddresses: Map[String, Set[Address]] = system.provider
-    .asInstanceOf[RemoteActorRefProvider].transport
-    .asInstanceOf[Remoting].boundAddresses
+  def boundAddresses: Map[String, Set[Address]] =
+    system.provider
+      .asInstanceOf[RemoteActorRefProvider]
+      .transport
+      .asInstanceOf[Remoting]
+      .boundAddresses
 }

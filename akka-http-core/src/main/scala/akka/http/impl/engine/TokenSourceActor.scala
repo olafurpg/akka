@@ -5,7 +5,7 @@
 package akka.http.impl.engine
 
 import scala.annotation.tailrec
-import akka.stream.actor.{ ActorPublisherMessage, ActorPublisher }
+import akka.stream.actor.{ActorPublisherMessage, ActorPublisher}
 
 /**
  * An actor publisher for producing a simple stream of singleton tokens

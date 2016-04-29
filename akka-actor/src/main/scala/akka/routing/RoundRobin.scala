@@ -23,13 +23,13 @@ object RoundRobinRoutingLogic {
 final class RoundRobinRoutingLogic extends RoutingLogic {
   val next = new AtomicLong
 
-  override def select(message: Any, routees: immutable.IndexedSeq[Routee]): Routee =
+  override def select(
+      message: Any, routees: immutable.IndexedSeq[Routee]): Routee =
     if (routees.nonEmpty) {
-      val size = routees.size
+      val size  = routees.size
       val index = (next.getAndIncrement % size).asInstanceOf[Int]
       routees(if (index < 0) size + index - 1 else index)
     } else NoRoutee
-
 }
 
 /**
@@ -65,16 +65,17 @@ final class RoundRobinRoutingLogic extends RoutingLogic {
  */
 @SerialVersionUID(1L)
 final case class RoundRobinPool(
-  override val nrOfInstances: Int, override val resizer: Option[Resizer] = None,
-  override val supervisorStrategy: SupervisorStrategy = Pool.defaultSupervisorStrategy,
-  override val routerDispatcher: String = Dispatchers.DefaultDispatcherId,
-  override val usePoolDispatcher: Boolean = false)
-  extends Pool with PoolOverrideUnsetConfig[RoundRobinPool] {
+    override val nrOfInstances: Int,
+    override val resizer: Option[Resizer] = None,
+    override val supervisorStrategy: SupervisorStrategy = Pool.defaultSupervisorStrategy,
+    override val routerDispatcher: String = Dispatchers.DefaultDispatcherId,
+    override val usePoolDispatcher: Boolean = false)
+    extends Pool with PoolOverrideUnsetConfig[RoundRobinPool] {
 
   def this(config: Config) =
     this(nrOfInstances = config.getInt("nr-of-instances"),
-      resizer = Resizer.fromConfig(config),
-      usePoolDispatcher = config.hasPath("pool-dispatcher"))
+         resizer = Resizer.fromConfig(config),
+         usePoolDispatcher = config.hasPath("pool-dispatcher"))
 
   /**
    * Java API
@@ -82,33 +83,37 @@ final case class RoundRobinPool(
    */
   def this(nr: Int) = this(nrOfInstances = nr)
 
-  override def createRouter(system: ActorSystem): Router = new Router(RoundRobinRoutingLogic())
+  override def createRouter(system: ActorSystem): Router =
+    new Router(RoundRobinRoutingLogic())
 
   override def nrOfInstances(sys: ActorSystem) = this.nrOfInstances
 
   /**
    * Setting the supervisor strategy to be used for the “head” Router actor.
    */
-  def withSupervisorStrategy(strategy: SupervisorStrategy): RoundRobinPool = copy(supervisorStrategy = strategy)
+  def withSupervisorStrategy(strategy: SupervisorStrategy): RoundRobinPool =
+    copy(supervisorStrategy = strategy)
 
   /**
    * Setting the resizer to be used.
    */
-  def withResizer(resizer: Resizer): RoundRobinPool = copy(resizer = Some(resizer))
+  def withResizer(resizer: Resizer): RoundRobinPool =
+    copy(resizer = Some(resizer))
 
   /**
    * Setting the dispatcher to be used for the router head actor,  which handles
    * supervision, death watch and router management messages.
    */
-  def withDispatcher(dispatcherId: String): RoundRobinPool = copy(routerDispatcher = dispatcherId)
+  def withDispatcher(dispatcherId: String): RoundRobinPool =
+    copy(routerDispatcher = dispatcherId)
 
   /**
    * Uses the resizer and/or the supervisor strategy of the given RouterConfig
    * if this RouterConfig doesn't have one, i.e. the resizer defined in code is used if
    * resizer was not defined in config.
    */
-  override def withFallback(other: RouterConfig): RouterConfig = this.overrideUnsetConfig(other)
-
+  override def withFallback(other: RouterConfig): RouterConfig =
+    this.overrideUnsetConfig(other)
 }
 
 /**
@@ -127,9 +132,9 @@ final case class RoundRobinPool(
  */
 @SerialVersionUID(1L)
 final case class RoundRobinGroup(
-  override val paths: immutable.Iterable[String],
-  override val routerDispatcher: String = Dispatchers.DefaultDispatcherId)
-  extends Group {
+    override val paths: immutable.Iterable[String],
+    override val routerDispatcher: String = Dispatchers.DefaultDispatcherId)
+    extends Group {
 
   def this(config: Config) =
     this(paths = immutableSeq(config.getStringList("routees.paths")))
@@ -139,16 +144,19 @@ final case class RoundRobinGroup(
    * @param routeePaths string representation of the actor paths of the routees, messages are
    *   sent with [[akka.actor.ActorSelection]] to these paths
    */
-  def this(routeePaths: java.lang.Iterable[String]) = this(paths = immutableSeq(routeePaths))
+  def this(routeePaths: java.lang.Iterable[String]) =
+    this(paths = immutableSeq(routeePaths))
 
-  override def paths(system: ActorSystem): immutable.Iterable[String] = this.paths
+  override def paths(system: ActorSystem): immutable.Iterable[String] =
+    this.paths
 
-  override def createRouter(system: ActorSystem): Router = new Router(RoundRobinRoutingLogic())
+  override def createRouter(system: ActorSystem): Router =
+    new Router(RoundRobinRoutingLogic())
 
   /**
    * Setting the dispatcher to be used for the router head actor, which handles
    * router management messages
    */
-  def withDispatcher(dispatcherId: String): RoundRobinGroup = copy(routerDispatcher = dispatcherId)
-
+  def withDispatcher(dispatcherId: String): RoundRobinGroup =
+    copy(routerDispatcher = dispatcherId)
 }

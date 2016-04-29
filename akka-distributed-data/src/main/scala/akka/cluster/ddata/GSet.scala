@@ -5,8 +5,9 @@ package akka.cluster.ddata
 
 object GSet {
   private val _empty: GSet[Any] = new GSet(Set.empty)
-  def empty[A]: GSet[A] = _empty.asInstanceOf[GSet[A]]
+  def empty[A]: GSet[A]  = _empty.asInstanceOf[GSet[A]]
   def apply(): GSet[Any] = _empty
+
   /**
    * Java API
    */
@@ -27,7 +28,8 @@ object GSet {
  * This class is immutable, i.e. "modifying" methods return a new instance.
  */
 @SerialVersionUID(1L)
-final case class GSet[A](elements: Set[A]) extends ReplicatedData with ReplicatedDataSerialization with FastMerge {
+final case class GSet[A](elements: Set[A])
+    extends ReplicatedData with ReplicatedDataSerialization with FastMerge {
 
   type T = GSet[A]
 
@@ -69,4 +71,5 @@ object GSetKey {
 }
 
 @SerialVersionUID(1L)
-final case class GSetKey[A](_id: String) extends Key[GSet[A]](_id) with ReplicatedDataSerialization
+final case class GSetKey[A](_id: String)
+    extends Key[GSet[A]](_id) with ReplicatedDataSerialization

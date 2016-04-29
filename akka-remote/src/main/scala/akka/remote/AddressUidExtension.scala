@@ -16,12 +16,16 @@ import akka.actor.ExtensionIdProvider
  * to be able to distinguish restarted actor system using the same host
  * and port.
  */
-object AddressUidExtension extends ExtensionId[AddressUidExtension] with ExtensionIdProvider {
-  override def get(system: ActorSystem): AddressUidExtension = super.get(system)
+object AddressUidExtension
+    extends ExtensionId[AddressUidExtension] with ExtensionIdProvider {
+  override def get(system: ActorSystem): AddressUidExtension =
+    super.get(system)
 
   override def lookup = AddressUidExtension
 
-  override def createExtension(system: ExtendedActorSystem): AddressUidExtension = new AddressUidExtension(system)
+  override def createExtension(
+      system: ExtendedActorSystem): AddressUidExtension =
+    new AddressUidExtension(system)
 }
 
 class AddressUidExtension(val system: ExtendedActorSystem) extends Extension {

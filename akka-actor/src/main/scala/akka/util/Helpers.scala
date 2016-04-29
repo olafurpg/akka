@@ -16,9 +16,12 @@ object Helpers {
 
   def toRootLowerCase(s: String) = s.toLowerCase(Locale.ROOT)
 
-  val isWindows: Boolean = toRootLowerCase(System.getProperty("os.name", "")).indexOf("win") >= 0
+  val isWindows: Boolean =
+    toRootLowerCase(System.getProperty("os.name", "")).indexOf("win") >= 0
 
-  def makePattern(s: String): Pattern = Pattern.compile("^\\Q" + s.replace("?", "\\E.\\Q").replace("*", "\\E.*\\Q") + "\\E$")
+  def makePattern(s: String): Pattern =
+    Pattern.compile(
+        "^\\Q" + s.replace("?", "\\E.\\Q").replace("*", "\\E.*\\Q") + "\\E$")
 
   def compareIdentityHash(a: AnyRef, b: AnyRef): Int = {
     /*
@@ -26,7 +29,9 @@ object Helpers {
      * that the ordering is actually consistent and you cannot have a
      * sequence which cyclically is monotone without end.
      */
-    val diff = ((System.identityHashCode(a) & 0xffffffffL) - (System.identityHashCode(b) & 0xffffffffL))
+    val diff =
+      ((System.identityHashCode(a) & 0xffffffffL) -
+          (System.identityHashCode(b) & 0xffffffffL))
     if (diff > 0) 1 else if (diff < 0) -1 else 0
   }
 
@@ -37,12 +42,13 @@ object Helpers {
    * consistent with equals, otherwise it would not be an enhancement over
    * the identityHashCode.
    */
-  def identityHashComparator[T <: AnyRef](comp: Comparator[T]): Comparator[T] = new Comparator[T] {
-    def compare(a: T, b: T): Int = compareIdentityHash(a, b) match {
-      case 0 if a != b ⇒ comp.compare(a, b)
-      case x           ⇒ x
+  def identityHashComparator[T <: AnyRef](comp: Comparator[T]): Comparator[T] =
+    new Comparator[T] {
+      def compare(a: T, b: T): Int = compareIdentityHash(a, b) match {
+        case 0 if a != b ⇒ comp.compare(a, b)
+        case x           ⇒ x
+      }
     }
-  }
 
   /**
    * Converts a "currentTimeMillis"-obtained timestamp accordingly:
@@ -55,17 +61,20 @@ object Helpers {
    */
   def currentTimeMillisToUTCString(timestamp: Long): String = {
     val timeOfDay = timestamp % 86400000L
-    val hours = timeOfDay / 3600000L
-    val minutes = timeOfDay / 60000L % 60
-    val seconds = timeOfDay / 1000L % 60
-    val ms = timeOfDay % 1000
+    val hours     = timeOfDay / 3600000L
+    val minutes   = timeOfDay / 60000L % 60
+    val seconds   = timeOfDay / 1000L % 60
+    val ms        = timeOfDay % 1000
     f"$hours%02d:$minutes%02d:$seconds%02d.$ms%03dUTC"
   }
 
-  final val base64chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+~"
+  final val base64chars =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+~"
 
   @tailrec
-  def base64(l: Long, sb: java.lang.StringBuilder = new java.lang.StringBuilder("$")): String = {
+  def base64(
+      l: Long,
+      sb: java.lang.StringBuilder = new java.lang.StringBuilder("$")): String = {
     sb append base64chars.charAt(l.toInt & 63)
     val next = l >>> 6
     if (next == 0) sb.toString
@@ -91,6 +100,7 @@ object Helpers {
    * @param value The value to check.
    */
   @inline final implicit class Requiring[A](val value: A) extends AnyVal {
+
     /**
      * Check that a condition is true. If true, return `value`, otherwise throw
      * an `IllegalArgumentException` with the given message.
@@ -119,13 +129,15 @@ object Helpers {
   /**
    * INTERNAL API
    */
-  private[akka] final implicit class ConfigOps(val config: Config) extends AnyVal {
-    def getMillisDuration(path: String): FiniteDuration = getDuration(path, TimeUnit.MILLISECONDS)
+  private[akka] final implicit class ConfigOps(val config: Config)
+      extends AnyVal {
+    def getMillisDuration(path: String): FiniteDuration =
+      getDuration(path, TimeUnit.MILLISECONDS)
 
-    def getNanosDuration(path: String): FiniteDuration = getDuration(path, TimeUnit.NANOSECONDS)
+    def getNanosDuration(path: String): FiniteDuration =
+      getDuration(path, TimeUnit.NANOSECONDS)
 
     private def getDuration(path: String, unit: TimeUnit): FiniteDuration =
       Duration(config.getDuration(path, unit), unit)
   }
-
 }

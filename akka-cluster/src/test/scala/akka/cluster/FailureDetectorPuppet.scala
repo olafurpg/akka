@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster
 
 import java.util.concurrent.atomic.AtomicReference
@@ -12,11 +11,12 @@ import akka.event.EventStream
 /**
  * User controllable "puppet" failure detector.
  */
-class FailureDetectorPuppet(config: Config, ev: EventStream) extends FailureDetector {
+class FailureDetectorPuppet(config: Config, ev: EventStream)
+    extends FailureDetector {
 
   trait Status
-  object Up extends Status
-  object Down extends Status
+  object Up      extends Status
+  object Down    extends Status
   object Unknown extends Status
 
   private val status: AtomicReference[Status] = new AtomicReference(Unknown)
@@ -33,6 +33,4 @@ class FailureDetectorPuppet(config: Config, ev: EventStream) extends FailureDete
   override def isMonitoring: Boolean = status.get != Unknown
 
   override def heartbeat(): Unit = status.compareAndSet(Unknown, Up)
-
 }
-

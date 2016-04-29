@@ -1,14 +1,14 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka
 
 /**
  * Akka base Exception.
  */
 @SerialVersionUID(1L)
-class AkkaException(message: String, cause: Throwable) extends RuntimeException(message, cause) with Serializable {
+class AkkaException(message: String, cause: Throwable)
+    extends RuntimeException(message, cause) with Serializable {
   def this(msg: String) = this(msg, null)
 }
 
@@ -18,7 +18,8 @@ class AkkaException(message: String, cause: Throwable) extends RuntimeException(
  */
 trait OnlyCauseStackTrace { self: Throwable ⇒
   override def fillInStackTrace(): Throwable = {
-    setStackTrace(getCause match {
+    setStackTrace(
+        getCause match {
       case null ⇒ Array.empty
       case some ⇒ some.getStackTrace
     })
@@ -29,6 +30,7 @@ trait OnlyCauseStackTrace { self: Throwable ⇒
 /**
  * This exception is thrown when Akka detects a problem with the provided configuration
  */
-class ConfigurationException(message: String, cause: Throwable) extends AkkaException(message, cause) {
+class ConfigurationException(message: String, cause: Throwable)
+    extends AkkaException(message, cause) {
   def this(msg: String) = this(msg, null)
 }

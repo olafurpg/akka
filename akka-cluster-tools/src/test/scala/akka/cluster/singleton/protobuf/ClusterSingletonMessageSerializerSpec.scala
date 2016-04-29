@@ -12,11 +12,12 @@ import akka.cluster.singleton.ClusterSingletonManager.Internal.TakeOverFromMe
 
 class ClusterSingletonMessageSerializerSpec extends AkkaSpec {
 
-  val serializer = new ClusterSingletonMessageSerializer(system.asInstanceOf[ExtendedActorSystem])
+  val serializer = new ClusterSingletonMessageSerializer(
+      system.asInstanceOf[ExtendedActorSystem])
 
   def checkSerialization(obj: AnyRef): Unit = {
     val blob = serializer.toBinary(obj)
-    val ref = serializer.fromBinary(blob, serializer.manifest(obj))
+    val ref  = serializer.fromBinary(blob, serializer.manifest(obj))
     ref should ===(obj)
   }
 

@@ -9,7 +9,8 @@ import scala.util.Random
 
 class TokenBucketSpec extends AkkaSpec {
 
-  class TestBucket(_cap: Long, _period: Long) extends TokenBucket(_cap, _period) {
+  class TestBucket(_cap: Long, _period: Long)
+      extends TokenBucket(_cap, _period) {
     var currentTime: Long = 0L
   }
 
@@ -77,7 +78,6 @@ class TokenBucketSpec extends AkkaSpec {
         bucket.currentTime = time
         bucket.offer(1) should ===(0)
       }
-
     }
 
     "maintain maximum capacity" in {
@@ -176,7 +176,7 @@ class TokenBucketSpec extends AkkaSpec {
     }
 
     "work with very slow rates" in {
-      val T = Long.MaxValue >> 10
+      val T      = Long.MaxValue >> 10
       val bucket = new TestBucket(10, T)
       bucket.init()
 
@@ -194,22 +194,22 @@ class TokenBucketSpec extends AkkaSpec {
       val Debug = false
 
       for {
-        capacity ← List(0, 1, 5, 10)
-        period ← List(1, 3, 5)
+        capacity      ← List(0, 1, 5, 10)
+        period        ← List(1, 3, 5)
         arrivalPeriod ← List(1, 3, 5)
-        startTime ← List(Long.MinValue, -1L, 0L, Long.MaxValue)
-        maxCost ← List(1, 5, 10)
+        startTime     ← List(Long.MinValue, -1L, 0L, Long.MaxValue)
+        maxCost       ← List(1, 5, 10)
       } {
 
         val bucket = new TestBucket(capacity, period)
         bucket.currentTime = startTime
         bucket.init()
 
-        var idealBucket = capacity
-        var untilNextTick = period
+        var idealBucket      = capacity
+        var untilNextTick    = period
         var untilNextElement = Random.nextInt(arrivalPeriod) + 1
-        var nextEmit = 0L
-        var delaying = false
+        var nextEmit         = 0L
+        var delaying         = false
 
         for (time ← 0 to 1000) {
           if (untilNextTick == 0) {
@@ -245,9 +245,6 @@ class TokenBucketSpec extends AkkaSpec {
           untilNextElement -= 1
         }
       }
-
     }
-
   }
-
 }

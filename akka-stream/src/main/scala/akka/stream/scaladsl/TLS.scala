@@ -1,6 +1,6 @@
 package akka.stream.scaladsl
 
-import javax.net.ssl.{ SSLContext }
+import javax.net.ssl.{SSLContext}
 
 import akka.stream.impl.io.TlsModule
 import akka.NotUsed
@@ -62,10 +62,20 @@ object TLS {
    * The SSLEngine may use this information e.g. when an endpoint identification algorithm was
    * configured using [[SSLParameters.setEndpointIdentificationAlgorithm]].
    */
-  def apply(sslContext: SSLContext, firstSession: NegotiateNewSession, role: TLSRole,
-            closing: TLSClosing = IgnoreComplete, hostInfo: Option[(String, Int)] = None): scaladsl.BidiFlow[SslTlsOutbound, ByteString, ByteString, SslTlsInbound, NotUsed] =
-    new scaladsl.BidiFlow(TlsModule(Attributes.none, sslContext, firstSession, role, closing, hostInfo))
-
+  def apply(sslContext: SSLContext,
+            firstSession: NegotiateNewSession,
+            role: TLSRole,
+            closing: TLSClosing = IgnoreComplete,
+            hostInfo: Option[(String, Int)] = None
+  ): scaladsl.BidiFlow[
+      SslTlsOutbound, ByteString, ByteString, SslTlsInbound, NotUsed] =
+    new scaladsl.BidiFlow(
+        TlsModule(Attributes.none,
+                  sslContext,
+                  firstSession,
+                  role,
+                  closing,
+                  hostInfo))
 }
 
 /**
@@ -76,21 +86,28 @@ object TLS {
  */
 object TLSPlacebo {
   // this constructs a session for (invalid) protocol SSL_NULL_WITH_NULL_NULL
-  private[akka] val dummySession = SSLContext.getDefault.createSSLEngine.getSession
+  private[akka] val dummySession =
+    SSLContext.getDefault.createSSLEngine.getSession
 
-  def apply(): scaladsl.BidiFlow[SslTlsOutbound, ByteString, ByteString, SessionBytes, NotUsed] = instance
+  def apply(): scaladsl.BidiFlow[
+      SslTlsOutbound, ByteString, ByteString, SessionBytes, NotUsed] = instance
 
-  private val instance: scaladsl.BidiFlow[SslTlsOutbound, ByteString, ByteString, SessionBytes, NotUsed] =
-    scaladsl.BidiFlow.fromGraph(scaladsl.GraphDSL.create() { implicit b ⇒
-      val top = b.add(scaladsl.Flow[SslTlsOutbound].collect { case SendBytes(bytes) ⇒ bytes })
-      val bottom = b.add(scaladsl.Flow[ByteString].map(SessionBytes(dummySession, _)))
+  private val instance: scaladsl.BidiFlow[
+      SslTlsOutbound, ByteString, ByteString, SessionBytes, NotUsed] =
+    scaladsl.BidiFlow.fromGraph(
+        scaladsl.GraphDSL.create() { implicit b ⇒
+      val top = b.add(scaladsl
+            .Flow[SslTlsOutbound]
+            .collect { case SendBytes(bytes) ⇒ bytes })
+      val bottom =
+        b.add(scaladsl.Flow[ByteString].map(SessionBytes(dummySession, _)))
       BidiShape.fromFlows(top, bottom)
     })
 }
 
 import java.security.Principal
 import java.security.cert.Certificate
-import javax.net.ssl.{ SSLPeerUnverifiedException, SSLSession }
+import javax.net.ssl.{SSLPeerUnverifiedException, SSLSession}
 
 /** Allows access to an SSLSession with Scala types */
 trait ScalaSessionAPI {
@@ -105,33 +122,39 @@ trait ScalaSessionAPI {
    * engine during this session’s negotiation. The list is empty if no
    * certificates were used.
    */
-  def localCertificates: List[Certificate] = Option(session.getLocalCertificates).map(_.toList).getOrElse(Nil)
+  def localCertificates: List[Certificate] =
+    Option(session.getLocalCertificates).map(_.toList).getOrElse(Nil)
+
   /**
    * Scala API: Extract the Principal that was actually used by this engine
    * during this session’s negotiation.
    */
   def localPrincipal: Option[Principal] = Option(session.getLocalPrincipal)
+
   /**
    * Scala API: Extract the certificates that were used by the peer engine
    * during this session’s negotiation. The list is empty if no certificates
    * were used.
    */
   def peerCertificates: List[Certificate] =
-    try Option(session.getPeerCertificates).map(_.toList).getOrElse(Nil)
-    catch { case e: SSLPeerUnverifiedException ⇒ Nil }
+    try Option(session.getPeerCertificates).map(_.toList).getOrElse(Nil) catch {
+      case e: SSLPeerUnverifiedException ⇒ Nil
+    }
+
   /**
    * Scala API: Extract the Principal that the peer engine presented during
    * this session’s negotiation.
    */
   def peerPrincipal: Option[Principal] =
-    try Option(session.getPeerPrincipal)
-    catch { case e: SSLPeerUnverifiedException ⇒ None }
+    try Option(session.getPeerPrincipal) catch {
+      case e: SSLPeerUnverifiedException ⇒ None
+    }
 }
 
 object ScalaSessionAPI {
+
   /** Constructs a ScalaSessionAPI instance from an SSLSession */
-  def apply(_session: SSLSession): ScalaSessionAPI =
-    new ScalaSessionAPI {
-      def session: SSLSession = _session
-    }
+  def apply(_session: SSLSession): ScalaSessionAPI = new ScalaSessionAPI {
+    def session: SSLSession = _session
+  }
 }

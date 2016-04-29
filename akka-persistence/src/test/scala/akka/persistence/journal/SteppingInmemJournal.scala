@@ -1,19 +1,18 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.persistence.journal
 
-import akka.actor.{ ActorSystem, ActorRef }
+import akka.actor.{ActorSystem, ActorRef}
 import akka.pattern.ask
 import akka.persistence.journal.inmem.InmemJournal
-import akka.persistence.{ AtomicWrite, PersistentRepr }
+import akka.persistence.{AtomicWrite, PersistentRepr}
 import akka.util.Timeout
 import akka.testkit._
-import com.typesafe.config.{ ConfigFactory, Config }
+import com.typesafe.config.{ConfigFactory, Config}
 import scala.collection.immutable.Seq
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.{Await, Future, Promise}
 import scala.util.Try
 
 object SteppingInmemJournal {
@@ -31,11 +30,11 @@ object SteppingInmemJournal {
   }
 
   def config(instanceId: String): Config =
-    ConfigFactory.parseString(
-      s"""
-        |akka.persistence.journal.stepping-inmem.class=${classOf[SteppingInmemJournal].getName}
-        |akka.persistence.journal.plugin = "akka.persistence.journal.stepping-inmem"
-        |akka.persistence.journal.stepping-inmem.instance-id = "$instanceId"
+    ConfigFactory.parseString(s"""
+                                 |akka.persistence.journal.stepping-inmem.class=${classOf[
+                                 SteppingInmemJournal].getName}
+                                 |akka.persistence.journal.plugin = "akka.persistence.journal.stepping-inmem"
+                                 |akka.persistence.journal.stepping-inmem.instance-id = "$instanceId"
       """.stripMargin)
 
   // keep it in a thread safe:d global so that tests can get their
@@ -46,11 +45,12 @@ object SteppingInmemJournal {
   /** get the actor ref to the journal for a given instance id, throws exception if not found */
   def getRef(instanceId: String): ActorRef = synchronized(_current(instanceId))
 
-  private def putRef(instanceId: String, instance: ActorRef): Unit = synchronized {
-    _current = _current + (instanceId -> instance)
-  }
-  private def remove(instanceId: String): Unit = synchronized(
-    _current -= instanceId)
+  private def putRef(instanceId: String, instance: ActorRef): Unit =
+    synchronized {
+      _current = _current + (instanceId -> instance)
+    }
+  private def remove(instanceId: String): Unit =
+    synchronized(_current -= instanceId)
 }
 
 /**
@@ -67,13 +67,15 @@ final class SteppingInmemJournal extends InmemJournal {
   import SteppingInmemJournal._
   import context.dispatcher
 
-  val instanceId = context.system.settings.config.getString("akka.persistence.journal.stepping-inmem.instance-id")
+  val instanceId = context.system.settings.config
+    .getString("akka.persistence.journal.stepping-inmem.instance-id")
 
   var queuedOps: Seq[() ⇒ Future[Unit]] = Seq.empty
-  var queuedTokenRecipients = List.empty[ActorRef]
+  var queuedTokenRecipients             = List.empty[ActorRef]
 
   override def receivePluginInternal = super.receivePluginInternal orElse {
-    case Token if queuedOps.isEmpty ⇒ queuedTokenRecipients = queuedTokenRecipients :+ sender()
+    case Token if queuedOps.isEmpty ⇒
+      queuedTokenRecipients = queuedTokenRecipients :+ sender()
     case Token ⇒
       val op +: rest = queuedOps
       queuedOps = rest
@@ -91,15 +93,19 @@ final class SteppingInmemJournal extends InmemJournal {
     SteppingInmemJournal.remove(instanceId)
   }
 
-  override def asyncWriteMessages(messages: Seq[AtomicWrite]): Future[Seq[Try[Unit]]] = {
+  override def asyncWriteMessages(
+      messages: Seq[AtomicWrite]): Future[Seq[Try[Unit]]] = {
     val futures = messages.map { message ⇒
       val promise = Promise[Try[Unit]]()
-      val future = promise.future
+      val future  = promise.future
       doOrEnqueue { () ⇒
-        promise.completeWith(super.asyncWriteMessages(Seq(message)).map {
-          case Nil       ⇒ AsyncWriteJournal.successUnit
-          case head :: _ ⇒ head
-        })
+        promise.completeWith(
+            super
+              .asyncWriteMessages(Seq(message))
+              .map {
+            case Nil       ⇒ AsyncWriteJournal.successUnit
+            case head :: _ ⇒ head
+          })
         future.map(_ ⇒ ())
       }
       future
@@ -108,31 +114,41 @@ final class SteppingInmemJournal extends InmemJournal {
     Future.sequence(futures)
   }
 
-  override def asyncDeleteMessagesTo(persistenceId: String, toSequenceNr: Long): Future[Unit] = {
+  override def asyncDeleteMessagesTo(
+      persistenceId: String, toSequenceNr: Long): Future[Unit] = {
     val promise = Promise[Unit]()
-    val future = promise.future
+    val future  = promise.future
     doOrEnqueue { () ⇒
-      promise.completeWith(super.asyncDeleteMessagesTo(persistenceId, toSequenceNr))
+      promise.completeWith(
+          super.asyncDeleteMessagesTo(persistenceId, toSequenceNr))
       future
     }
     future
   }
 
-  override def asyncReadHighestSequenceNr(persistenceId: String, fromSequenceNr: Long): Future[Long] = {
+  override def asyncReadHighestSequenceNr(
+      persistenceId: String, fromSequenceNr: Long): Future[Long] = {
     val promise = Promise[Long]()
-    val future = promise.future
+    val future  = promise.future
     doOrEnqueue { () ⇒
-      promise.completeWith(super.asyncReadHighestSequenceNr(persistenceId, fromSequenceNr))
+      promise.completeWith(
+          super.asyncReadHighestSequenceNr(persistenceId, fromSequenceNr))
       future.map(_ ⇒ ())
     }
     future
   }
 
-  override def asyncReplayMessages(persistenceId: String, fromSequenceNr: Long, toSequenceNr: Long, max: Long)(recoveryCallback: (PersistentRepr) ⇒ Unit): Future[Unit] = {
+  override def asyncReplayMessages(persistenceId: String,
+                                   fromSequenceNr: Long,
+                                   toSequenceNr: Long,
+                                   max: Long)(
+      recoveryCallback: (PersistentRepr) ⇒ Unit): Future[Unit] = {
     val promise = Promise[Unit]()
-    val future = promise.future
+    val future  = promise.future
     doOrEnqueue { () ⇒
-      promise.completeWith(super.asyncReplayMessages(persistenceId, fromSequenceNr, toSequenceNr, max)(recoveryCallback))
+      promise.completeWith(super.asyncReplayMessages(
+              persistenceId, fromSequenceNr, toSequenceNr, max)(
+              recoveryCallback))
       future
     }
 
@@ -141,7 +157,7 @@ final class SteppingInmemJournal extends InmemJournal {
 
   private def doOrEnqueue(op: () ⇒ Future[Unit]): Unit = {
     if (queuedTokenRecipients.nonEmpty) {
-      val completed = op()
+      val completed              = op()
       val tokenRecipient +: rest = queuedTokenRecipients
       queuedTokenRecipients = rest
       completed.onComplete(_ ⇒ tokenRecipient ! TokenConsumed)

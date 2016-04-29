@@ -1,21 +1,21 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.http.impl.util
 
-import java.net.{ InetSocketAddress, InetAddress }
-import com.typesafe.config.{ ConfigFactory, Config }
+import java.net.{InetSocketAddress, InetAddress}
+import com.typesafe.config.{ConfigFactory, Config}
 import com.typesafe.config.ConfigFactory._
 import scala.util.control.NonFatal
 import scala.collection.immutable.ListMap
 import scala.collection.JavaConverters._
-import akka.actor.{ ActorRefFactory, ActorSystem }
+import akka.actor.{ActorRefFactory, ActorSystem}
 
 /**
  * INTERNAL API
  */
-private[http] abstract class SettingsCompanion[T](protected val prefix: String) {
+private[http] abstract class SettingsCompanion[
+    T](protected val prefix: String) {
   private final val MaxCached = 8
   private[this] var cache = ListMap.empty[ActorSystem, T]
 
@@ -39,12 +39,12 @@ private[http] abstract class SettingsCompanion[T](protected val prefix: String) 
     })
 
   def apply(configOverrides: String): T =
-    apply(parseString(configOverrides)
-      .withFallback(SettingsCompanion.configAdditions)
-      .withFallback(defaultReference(getClass.getClassLoader)))
+    apply(
+        parseString(configOverrides)
+          .withFallback(SettingsCompanion.configAdditions)
+          .withFallback(defaultReference(getClass.getClassLoader)))
 
-  def apply(config: Config): T =
-    fromSubConfig(config, config getConfig prefix)
+  def apply(config: Config): T = fromSubConfig(config, config getConfig prefix)
 
   def fromSubConfig(root: Config, c: Config): T
 }
@@ -52,8 +52,9 @@ private[http] abstract class SettingsCompanion[T](protected val prefix: String) 
 private[http] object SettingsCompanion {
   lazy val configAdditions: Config = {
     val localHostName =
-      try new InetSocketAddress(InetAddress.getLocalHost, 80).getHostString
-      catch { case NonFatal(_) ⇒ "" }
+      try new InetSocketAddress(InetAddress.getLocalHost, 80).getHostString catch {
+        case NonFatal(_) ⇒ ""
+      }
     ConfigFactory.parseMap(Map("akka.http.hostname" -> localHostName).asJava)
   }
 }

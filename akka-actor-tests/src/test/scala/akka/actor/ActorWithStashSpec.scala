@@ -69,7 +69,8 @@ object ActorWithStashSpec {
     def receive = Actor.emptyBehavior
   }
 
-  class TerminatedMessageStashingActor(probe: ActorRef) extends Actor with Stash {
+  class TerminatedMessageStashingActor(probe: ActorRef)
+      extends Actor with Stash {
     val watched = context.watch(context.actorOf(Props[WatchedActor]))
     var stashed = false
 
@@ -96,12 +97,13 @@ object ActorWithStashSpec {
   val testConf = """
     akka.actor.serialize-messages = off
     """
-
 }
 
 class JavaActorWithStashSpec extends StashJavaAPI with JUnitSuiteLike
 
-class ActorWithStashSpec extends AkkaSpec(ActorWithStashSpec.testConf) with DefaultTimeout with BeforeAndAfterEach {
+class ActorWithStashSpec
+    extends AkkaSpec(ActorWithStashSpec.testConf) with DefaultTimeout
+    with BeforeAndAfterEach {
   import ActorWithStashSpec._
 
   override def atStartup {
@@ -141,11 +143,12 @@ class ActorWithStashSpec extends AkkaSpec(ActorWithStashSpec.testConf) with Defa
     }
 
     "process stashed messages after restart" in {
-      val boss = system.actorOf(Props(new Supervisor(
-        OneForOneStrategy(maxNrOfRetries = 2, withinTimeRange = 1 second)(List(classOf[Throwable])))))
+      val boss = system.actorOf(Props(new Supervisor(OneForOneStrategy(
+                      maxNrOfRetries = 2, withinTimeRange = 1 second)(List(
+                          classOf[Throwable])))))
 
       val restartLatch = new TestLatch
-      val hasMsgLatch = new TestLatch
+      val hasMsgLatch  = new TestLatch
 
       val slaveProps = Props(new Actor with Stash {
         def receive = {
@@ -162,12 +165,12 @@ class ActorWithStashSpec extends AkkaSpec(ActorWithStashSpec.testConf) with Defa
         }
 
         override def preRestart(reason: Throwable, message: Option[Any]) = {
-          if (!restartLatch.isOpen)
-            restartLatch.open()
+          if (!restartLatch.isOpen) restartLatch.open()
           super.preRestart(reason, message)
         }
       })
-      val slave = Await.result((boss ? slaveProps).mapTo[ActorRef], timeout.duration)
+      val slave =
+        Await.result((boss ? slaveProps).mapTo[ActorRef], timeout.duration)
 
       slave ! "hello"
       slave ! "crash"
@@ -187,7 +190,8 @@ class ActorWithStashSpec extends AkkaSpec(ActorWithStashSpec.testConf) with Defa
 
     "allow using whenRestarted" in {
       import ActorDSL._
-      val a = actor(new ActWithStash {
+      val a = actor(
+          new ActWithStash {
         become {
           case "die" ⇒ throw new RuntimeException("dying")
         }
@@ -203,7 +207,8 @@ class ActorWithStashSpec extends AkkaSpec(ActorWithStashSpec.testConf) with Defa
 
     "allow using whenStopping" in {
       import ActorDSL._
-      val a = actor(new ActWithStash {
+      val a = actor(
+          new ActWithStash {
         whenStopping {
           testActor ! "stopping"
         }
@@ -211,6 +216,5 @@ class ActorWithStashSpec extends AkkaSpec(ActorWithStashSpec.testConf) with Defa
       a ! PoisonPill
       expectMsg("stopping")
     }
-
   }
 }

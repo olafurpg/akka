@@ -37,30 +37,37 @@ sealed trait Stage[-In, +Out]
 private[stream] object AbstractStage {
 
   private class PushPullGraphLogic[In, Out](
-    private val shape: FlowShape[In, Out],
-    val attributes: Attributes,
-    val stage: AbstractStage[In, Out, Directive, Directive, Context[Out], LifecycleContext])
-    extends GraphStageLogic(shape) with DetachedContext[Out] {
+      private val shape: FlowShape[In, Out],
+      val attributes: Attributes,
+      val stage: AbstractStage[
+          In, Out, Directive, Directive, Context[Out], LifecycleContext])
+      extends GraphStageLogic(shape) with DetachedContext[Out] {
 
     final override def materializer: Materializer = interpreter.materializer
 
     private def ctx: DetachedContext[Out] = this
 
-    private var currentStage: AbstractStage[In, Out, Directive, Directive, Context[Out], LifecycleContext] = stage
+    private var currentStage: AbstractStage[
+        In, Out, Directive, Directive, Context[Out], LifecycleContext] = stage
 
     {
       // No need to refer to the handle in a private val
       val handler = new InHandler with OutHandler {
         override def onPush(): Unit =
-          try { currentStage.onPush(grab(shape.in), ctx) } catch { case NonFatal(ex) ⇒ onSupervision(ex) }
+          try { currentStage.onPush(grab(shape.in), ctx) } catch {
+            case NonFatal(ex) ⇒ onSupervision(ex)
+          }
 
         override def onPull(): Unit = currentStage.onPull(ctx)
 
-        override def onUpstreamFinish(): Unit = currentStage.onUpstreamFinish(ctx)
+        override def onUpstreamFinish(): Unit =
+          currentStage.onUpstreamFinish(ctx)
 
-        override def onUpstreamFailure(ex: Throwable): Unit = currentStage.onUpstreamFailure(ex, ctx)
+        override def onUpstreamFailure(ex: Throwable): Unit =
+          currentStage.onUpstreamFailure(ex, ctx)
 
-        override def onDownstreamFinish(): Unit = currentStage.onDownstreamFinish(ctx)
+        override def onDownstreamFinish(): Unit =
+          currentStage.onDownstreamFinish(ctx)
       }
 
       setHandler(shape.in, handler)
@@ -76,7 +83,14 @@ private[stream] object AbstractStage {
         case Supervision.Restart ⇒
           resetAfterSupervise()
           currentStage.postStop()
-          currentStage = currentStage.restart().asInstanceOf[AbstractStage[In, Out, Directive, Directive, Context[Out], LifecycleContext]]
+          currentStage = currentStage
+            .restart()
+            .asInstanceOf[AbstractStage[In,
+                                        Out,
+                                        Directive,
+                                        Directive,
+                                        Context[Out],
+                                        LifecycleContext]]
           currentStage.preStart(ctx)
       }
     }
@@ -121,7 +135,8 @@ private[stream] object AbstractStage {
 
     final override def absorbTermination(): TerminationDirective = {
       if (isClosed(shape.out)) {
-        val ex = new UnsupportedOperationException("It is not allowed to call absorbTermination() from onDownstreamFinish.")
+        val ex = new UnsupportedOperationException(
+            "It is not allowed to call absorbTermination() from onDownstreamFinish.")
         // This MUST be logged here, since the downstream has cancelled, i.e. there is no one to send onError to, the
         // stage is just about to finish so no one will catch it anyway just the interpreter
 
@@ -150,7 +165,8 @@ private[stream] object AbstractStage {
 
     final override def isHoldingDownstream: Boolean = isAvailable(shape.out)
 
-    final override def isHoldingUpstream: Boolean = !(isClosed(shape.in) || hasBeenPulled(shape.in))
+    final override def isHoldingUpstream: Boolean =
+      !(isClosed(shape.in) || hasBeenPulled(shape.in))
 
     final override def holdDownstream(): DownstreamDirective = null
 
@@ -163,9 +179,9 @@ private[stream] object AbstractStage {
   }
 
   class PushPullGraphStageWithMaterializedValue[-In, +Out, Ext, +Mat](
-    val factory: (Attributes) ⇒ (Stage[In, Out], Mat),
-    stageAttributes: Attributes)
-    extends GraphStageWithMaterializedValue[FlowShape[In, Out], Mat] {
+      val factory: (Attributes) ⇒ (Stage[In, Out], Mat),
+      stageAttributes: Attributes)
+      extends GraphStageWithMaterializedValue[FlowShape[In, Out], Mat] {
 
     val name = stageAttributes.nameOrDefault()
     override def initialAttributes = stageAttributes
@@ -173,20 +189,32 @@ private[stream] object AbstractStage {
 
     override def toString = name
 
-    override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Mat) = {
+    override def createLogicAndMaterializedValue(
+        inheritedAttributes: Attributes): (GraphStageLogic, Mat) = {
       val stageAndMat = factory(inheritedAttributes)
-      val stage: AbstractStage[In, Out, Directive, Directive, Context[Out], LifecycleContext] =
-        stageAndMat._1.asInstanceOf[AbstractStage[In, Out, Directive, Directive, Context[Out], LifecycleContext]]
-      (new PushPullGraphLogic(shape, inheritedAttributes, stage), stageAndMat._2)
+      val stage: AbstractStage[
+          In, Out, Directive, Directive, Context[Out], LifecycleContext] =
+        stageAndMat._1.asInstanceOf[AbstractStage[
+                In, Out, Directive, Directive, Context[Out], LifecycleContext]]
+      (new PushPullGraphLogic(shape, inheritedAttributes, stage),
+       stageAndMat._2)
     }
   }
 
-  class PushPullGraphStage[-In, +Out, Ext](_factory: (Attributes) ⇒ Stage[In, Out], _stageAttributes: Attributes)
-    extends PushPullGraphStageWithMaterializedValue[In, Out, Ext, NotUsed]((att: Attributes) ⇒ (_factory(att), NotUsed), _stageAttributes)
+  class PushPullGraphStage[-In, +Out, Ext](
+      _factory: (Attributes) ⇒ Stage[In, Out], _stageAttributes: Attributes)
+      extends PushPullGraphStageWithMaterializedValue[In, Out, Ext, NotUsed](
+          (att: Attributes) ⇒ (_factory(att), NotUsed), _stageAttributes)
 }
 
 @deprecated("Please use GraphStage instead.", "2.4.2")
-abstract class AbstractStage[-In, Out, PushD <: Directive, PullD <: Directive, Ctx <: Context[Out], LifeCtx <: LifecycleContext] extends Stage[In, Out] {
+abstract class AbstractStage[-In,
+                             Out,
+                             PushD <: Directive,
+                             PullD <: Directive,
+                             Ctx <: Context[Out],
+                             LifeCtx <: LifecycleContext]
+    extends Stage[In, Out] {
 
   /**
    * INTERNAL API
@@ -258,7 +286,8 @@ abstract class AbstractStage[-In, Out, PushD <: Directive, PullD <: Directive, C
    * from [[#onPull]]. The stage will then be in finishing state, which can be checked
    * with [[akka.stream.stage.Context#isFinishing]].
    */
-  def onUpstreamFailure(cause: Throwable, ctx: Ctx): TerminationDirective = ctx.fail(cause)
+  def onUpstreamFailure(cause: Throwable, ctx: Ctx): TerminationDirective =
+    ctx.fail(cause)
 
   /**
    * User overridable callback.
@@ -333,13 +362,16 @@ abstract class AbstractStage[-In, Out, PushD <: Directive, PullD <: Directive, C
  * @see [[PushStage]]
  */
 @deprecated("Please use GraphStage instead.", "2.4.2")
-abstract class PushPullStage[In, Out] extends AbstractStage[In, Out, SyncDirective, SyncDirective, Context[Out], LifecycleContext]
+abstract class PushPullStage[In, Out]
+    extends AbstractStage[
+        In, Out, SyncDirective, SyncDirective, Context[Out], LifecycleContext]
 
 /**
  * `PushStage` is a [[PushPullStage]] that always perform transitive pull by calling `ctx.pull` from `onPull`.
  */
 @deprecated("Please use GraphStage instead.", "2.4.2")
 abstract class PushStage[In, Out] extends PushPullStage[In, Out] {
+
   /**
    * Always pulls from upstream.
    */
@@ -370,7 +402,12 @@ abstract class PushStage[In, Out] extends PushPullStage[In, Out] {
  */
 @deprecated("Please use GraphStage instead.", "2.4.2")
 abstract class DetachedStage[In, Out]
-  extends AbstractStage[In, Out, UpstreamDirective, DownstreamDirective, DetachedContext[Out], LifecycleContext] {
+    extends AbstractStage[In,
+                          Out,
+                          UpstreamDirective,
+                          DownstreamDirective,
+                          DetachedContext[Out],
+                          LifecycleContext] {
   private[stream] override def isDetached = true
 
   /**
@@ -416,7 +453,8 @@ private[akka] object StatefulStage {
  *
  * Use [[#terminationEmit]] to push final elements from [[#onUpstreamFinish]] or [[#onUpstreamFailure]].
  */
-@deprecated("StatefulStage is deprecated, please use GraphStage instead.", "2.0-M2")
+@deprecated(
+    "StatefulStage is deprecated, please use GraphStage instead.", "2.0-M2")
 abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
   import StatefulStage._
 
@@ -425,7 +463,7 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
    */
   abstract class State extends StageState[In, Out]
 
-  private[this] var emitting = false
+  private[this] var emitting                      = false
   private[this] var _current: StageState[In, Out] = _
   become(initial)
 
@@ -452,11 +490,14 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
   /**
    * Invokes current state.
    */
-  final override def onPush(elem: In, ctx: Context[Out]): SyncDirective = _current.onPush(elem, ctx)
+  final override def onPush(elem: In, ctx: Context[Out]): SyncDirective =
+    _current.onPush(elem, ctx)
+
   /**
    * Invokes current state.
    */
-  final override def onPull(ctx: Context[Out]): SyncDirective = _current.onPull(ctx)
+  final override def onPull(ctx: Context[Out]): SyncDirective =
+    _current.onPull(ctx)
 
   override def onUpstreamFinish(ctx: Context[Out]): TerminationDirective =
     if (emitting) ctx.absorbTermination()
@@ -466,13 +507,15 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
    * Scala API: Can be used from [[StageState#onPush]] or [[StageState#onPull]] to push more than one
    * element downstream.
    */
-  final def emit(iter: Iterator[Out], ctx: Context[Out]): SyncDirective = emit(iter, ctx, _current)
+  final def emit(iter: Iterator[Out], ctx: Context[Out]): SyncDirective =
+    emit(iter, ctx, _current)
 
   /**
    * Java API: Can be used from [[StageState#onPush]] or [[StageState#onPull]] to push more than one
    * element downstream.
    */
-  final def emit(iter: java.util.Iterator[Out], ctx: Context[Out]): SyncDirective = {
+  final def emit(
+      iter: java.util.Iterator[Out], ctx: Context[Out]): SyncDirective = {
     import scala.collection.JavaConverters._
     emit(iter.asScala, ctx)
   }
@@ -481,7 +524,9 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
    * Scala API: Can be used from [[StageState#onPush]] or [[StageState#onPull]] to push more than one
    * element downstream and after that change behavior.
    */
-  final def emit(iter: Iterator[Out], ctx: Context[Out], nextState: StageState[In, Out]): SyncDirective = {
+  final def emit(iter: Iterator[Out],
+                 ctx: Context[Out],
+                 nextState: StageState[In, Out]): SyncDirective = {
     if (emitting) throw new IllegalStateException("already in emitting state")
     if (iter.isEmpty) {
       become(nextState)
@@ -490,9 +535,11 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
       val elem = iter.next()
       if (iter.hasNext) {
         emitting = true
-        become(emittingState(iter, andThen = Become(nextState.asInstanceOf[StageState[Any, Any]])))
-      } else
-        become(nextState)
+        become(
+            emittingState(iter,
+                          andThen = Become(
+                                nextState.asInstanceOf[StageState[Any, Any]])))
+      } else become(nextState)
       ctx.push(elem)
     }
   }
@@ -501,7 +548,9 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
    * Java API: Can be used from [[StageState#onPush]] or [[StageState#onPull]] to push more than one
    * element downstream and after that change behavior.
    */
-  final def emit(iter: java.util.Iterator[Out], ctx: Context[Out], nextState: StageState[In, Out]): SyncDirective = {
+  final def emit(iter: java.util.Iterator[Out],
+                 ctx: Context[Out],
+                 nextState: StageState[In, Out]): SyncDirective = {
     import scala.collection.JavaConverters._
     emit(iter.asScala, ctx, nextState)
   }
@@ -510,18 +559,17 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
    * Scala API: Can be used from [[StageState#onPush]] or [[StageState#onPull]] to push more than one
    * element downstream and after that finish (complete downstreams, cancel upstreams).
    */
-  final def emitAndFinish(iter: Iterator[Out], ctx: Context[Out]): SyncDirective = {
+  final def emitAndFinish(
+      iter: Iterator[Out], ctx: Context[Out]): SyncDirective = {
     if (emitting) throw new IllegalStateException("already in emitting state")
-    if (iter.isEmpty)
-      ctx.finish()
+    if (iter.isEmpty) ctx.finish()
     else {
       val elem = iter.next()
       if (iter.hasNext) {
         emitting = true
         become(emittingState(iter, andThen = Finish))
         ctx.push(elem)
-      } else
-        ctx.pushAndFinish(elem)
+      } else ctx.pushAndFinish(elem)
     }
   }
 
@@ -529,7 +577,8 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
    * Java API: Can be used from [[StageState#onPush]] or [[StageState#onPull]] to push more than one
    * element downstream and after that finish (complete downstreams, cancel upstreams).
    */
-  final def emitAndFinish(iter: java.util.Iterator[Out], ctx: Context[Out]): SyncDirective = {
+  final def emitAndFinish(
+      iter: java.util.Iterator[Out], ctx: Context[Out]): SyncDirective = {
     import scala.collection.JavaConverters._
     emitAndFinish(iter.asScala, ctx)
   }
@@ -540,7 +589,8 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
    * [[#onUpstreamFailure]] the failure will be absorbed and the stream will be completed
    * successfully.
    */
-  final def terminationEmit(iter: Iterator[Out], ctx: Context[Out]): TerminationDirective = {
+  final def terminationEmit(
+      iter: Iterator[Out], ctx: Context[Out]): TerminationDirective = {
     if (iter.isEmpty) {
       if (emitting) ctx.absorbTermination()
       else ctx.finish()
@@ -558,50 +608,56 @@ abstract class StatefulStage[In, Out] extends PushPullStage[In, Out] {
    * Java API: Can be used from [[#onUpstreamFinish]] or [[#onUpstreamFailure]] to push final
    * elements downstream.
    */
-  final def terminationEmit(iter: java.util.Iterator[Out], ctx: Context[Out]): TerminationDirective = {
+  final def terminationEmit(iter: java.util.Iterator[Out],
+                            ctx: Context[Out]): TerminationDirective = {
     import scala.collection.JavaConverters._
     terminationEmit(iter.asScala, ctx)
   }
 
-  private def emittingState(iter: Iterator[Out], andThen: AndThen) = EmittingState(iter, andThen)
+  private def emittingState(iter: Iterator[Out], andThen: AndThen) =
+    EmittingState(iter, andThen)
 
-  private case class EmittingState(iter: Iterator[Out], andThen: AndThen) extends State {
-    override def onPush(elem: In, ctx: Context[Out]) = throw new IllegalStateException("onPush not allowed in emittingState")
+  private case class EmittingState(iter: Iterator[Out], andThen: AndThen)
+      extends State {
+    override def onPush(elem: In, ctx: Context[Out]) =
+      throw new IllegalStateException("onPush not allowed in emittingState")
     override def onPull(ctx: Context[Out]) = {
       if (iter.hasNext) {
         val elem = iter.next()
-        if (iter.hasNext)
-          ctx.push(elem)
+        if (iter.hasNext) ctx.push(elem)
         else if (!ctx.isFinishing) {
           emitting = false
           andThen match {
-            case Stay             ⇒ // ok
-            case Become(newState) ⇒ become(newState.asInstanceOf[StageState[In, Out]])
-            case Finish           ⇒ ctx.pushAndFinish(elem)
+            case Stay ⇒ // ok
+            case Become(newState) ⇒
+              become(newState.asInstanceOf[StageState[In, Out]])
+            case Finish ⇒ ctx.pushAndFinish(elem)
           }
           ctx.push(elem)
-        } else
-          ctx.pushAndFinish(elem)
+        } else ctx.pushAndFinish(elem)
       } else
-        throw new IllegalStateException("onPull with empty iterator is not expected in emittingState")
+        throw new IllegalStateException(
+            "onPull with empty iterator is not expected in emittingState")
     }
   }
-
 }
 
 /**
  * Return type from [[Context]] methods.
  */
 sealed trait Directive
-sealed trait AsyncDirective extends Directive
-sealed trait SyncDirective extends Directive
-sealed trait UpstreamDirective extends SyncDirective
-sealed trait DownstreamDirective extends SyncDirective
+sealed trait AsyncDirective       extends Directive
+sealed trait SyncDirective        extends Directive
+sealed trait UpstreamDirective    extends SyncDirective
+sealed trait DownstreamDirective  extends SyncDirective
 sealed trait TerminationDirective extends SyncDirective
 // never instantiated
-sealed abstract class FreeDirective private () extends UpstreamDirective with DownstreamDirective with TerminationDirective with AsyncDirective
+sealed abstract class FreeDirective private ()
+    extends UpstreamDirective with DownstreamDirective
+    with TerminationDirective with AsyncDirective
 
 trait LifecycleContext {
+
   /**
    * Returns the Materializer that was used to materialize this [[Stage]].
    * It can be used to materialize sub-flows.
@@ -616,27 +672,33 @@ trait LifecycleContext {
  * Passed to the callback methods of [[PushPullStage]] and [[StatefulStage]].
  */
 sealed trait Context[Out] extends LifecycleContext {
+
   /**
    * Push one element to downstreams.
    */
   def push(elem: Out): DownstreamDirective
+
   /**
    * Request for more elements from upstreams.
    */
   def pull(): UpstreamDirective
+
   /**
    * Cancel upstreams and complete downstreams successfully.
    */
   def finish(): FreeDirective
+
   /**
    * Push one element to downstream immediately followed by
    * cancel of upstreams and complete of downstreams.
    */
   def pushAndFinish(elem: Out): DownstreamDirective
+
   /**
    * Cancel upstreams and complete downstreams with failure.
    */
   def fail(cause: Throwable): FreeDirective
+
   /**
    * Puts the stage in a finishing state so that
    * final elements can be pushed from `onPull`.
@@ -647,7 +709,6 @@ sealed trait Context[Out] extends LifecycleContext {
    * This returns `true` after [[#absorbTermination]] has been used.
    */
   def isFinishing: Boolean
-
 }
 
 /**
@@ -674,5 +735,4 @@ trait DetachedContext[Out] extends Context[Out] {
   def isHoldingDownstream: Boolean
 
   def pushAndPull(elem: Out): FreeDirective
-
 }

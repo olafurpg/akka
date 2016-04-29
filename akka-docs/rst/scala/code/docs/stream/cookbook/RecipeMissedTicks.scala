@@ -14,20 +14,19 @@ class RecipeMissedTicks extends RecipeSpec {
     "work" in {
       type Tick = Unit
 
-      val pub = TestPublisher.probe[Tick]()
-      val sub = TestSubscriber.manualProbe[Int]()
+      val pub        = TestPublisher.probe[Tick]()
+      val sub        = TestSubscriber.manualProbe[Int]()
       val tickStream = Source.fromPublisher(pub)
-      val sink = Sink.fromSubscriber(sub)
+      val sink       = Sink.fromSubscriber(sub)
 
       //#missed-ticks
-      val missedTicks: Flow[Tick, Int, NotUsed] =
-        Flow[Tick].conflateWithSeed(seed = (_) => 0)(
-          (missedTicks, tick) => missedTicks + 1)
+      val missedTicks: Flow[Tick, Int, NotUsed] = Flow[Tick].conflateWithSeed(
+          seed = (_) => 0)((missedTicks, tick) => missedTicks + 1)
       //#missed-ticks
       val latch = TestLatch(3)
       val realMissedTicks: Flow[Tick, Int, NotUsed] =
-        Flow[Tick].conflateWithSeed(seed = (_) => 0)(
-          (missedTicks, tick) => { latch.countDown(); missedTicks + 1 })
+        Flow[Tick].conflateWithSeed(seed = (_) => 0)((missedTicks,
+            tick) => { latch.countDown(); missedTicks + 1 })
 
       tickStream.via(realMissedTicks).to(sink).run()
 
@@ -52,7 +51,5 @@ class RecipeMissedTicks extends RecipeSpec {
       subscription.request(1)
       sub.expectComplete()
     }
-
   }
-
 }

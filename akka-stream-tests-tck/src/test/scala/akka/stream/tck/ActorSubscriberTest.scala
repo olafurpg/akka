@@ -10,18 +10,21 @@ import akka.stream.actor.RequestStrategy
 import org.reactivestreams.Subscriber
 
 object ActorSubscriberOneByOneRequestTest {
-  class StrategySubscriber(val requestStrategy: RequestStrategy) extends ActorSubscriber {
+  class StrategySubscriber(val requestStrategy: RequestStrategy)
+      extends ActorSubscriber {
 
     override def receive: Receive = { case _ ⇒ }
   }
 }
 
-class ActorSubscriberOneByOneRequestTest extends AkkaSubscriberBlackboxVerification[Int] {
+class ActorSubscriberOneByOneRequestTest
+    extends AkkaSubscriberBlackboxVerification[Int] {
   import ActorSubscriberOneByOneRequestTest._
 
   override def createSubscriber(): Subscriber[Int] = {
     val props = Props(classOf[StrategySubscriber], OneByOneRequestStrategy)
-    ActorSubscriber(system.actorOf(props.withDispatcher("akka.test.stream-dispatcher")))
+    ActorSubscriber(
+        system.actorOf(props.withDispatcher("akka.test.stream-dispatcher")))
   }
 
   override def createElement(element: Int): Int = element

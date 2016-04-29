@@ -13,9 +13,10 @@ import akka.testkit.DefaultTimeout
 
 class IndexSpec extends AkkaSpec with Matchers with DefaultTimeout {
   implicit val ec = system.dispatcher
-  private def emptyIndex = new Index[String, Int](100, new Comparator[Int] {
-    override def compare(a: Int, b: Int): Int = Integer.compare(a, b)
-  })
+  private def emptyIndex =
+    new Index[String, Int](100, new Comparator[Int] {
+      override def compare(a: Int, b: Int): Int = Integer.compare(a, b)
+    })
 
   private def indexWithValues = {
     val index = emptyIndex
@@ -82,9 +83,10 @@ class IndexSpec extends AkkaSpec with Matchers with DefaultTimeout {
       val index = indexWithValues
 
       var valueCount = 0
-      index.foreach((key, value) ⇒ {
-        valueCount = valueCount + 1
-        index.findValue(key)(_ == value) should ===(Some(value))
+      index.foreach((key, value) ⇒
+            {
+          valueCount = valueCount + 1
+          index.findValue(key)(_ == value) should ===(Some(value))
       })
       valueCount should ===(6)
     }
@@ -98,12 +100,12 @@ class IndexSpec extends AkkaSpec with Matchers with DefaultTimeout {
       val index = new Index[Int, Int](100, new Comparator[Int] {
         override def compare(a: Int, b: Int): Int = Integer.compare(a, b)
       })
-      val nrOfTasks = 10000
-      val nrOfKeys = 10
+      val nrOfTasks  = 10000
+      val nrOfKeys   = 10
       val nrOfValues = 10
       //Fill index
-      for (key ← 0 until nrOfKeys; value ← 0 until nrOfValues)
-        index.put(key, value)
+      for (key ← 0 until nrOfKeys; value ← 0 until nrOfValues) index.put(key,
+                                                                         value)
       //Tasks to be executed in parallel
       def putTask() = Future {
         index.put(Random.nextInt(nrOfKeys), Random.nextInt(nrOfValues))
@@ -115,7 +117,7 @@ class IndexSpec extends AkkaSpec with Matchers with DefaultTimeout {
         index.remove(Random.nextInt(nrOfKeys / 2))
       }
       def readTask() = Future {
-        val key = Random.nextInt(nrOfKeys)
+        val key    = Random.nextInt(nrOfKeys)
         val values = index.valueIterator(key)
         if (key >= nrOfKeys / 2) {
           values.isEmpty should ===(false)

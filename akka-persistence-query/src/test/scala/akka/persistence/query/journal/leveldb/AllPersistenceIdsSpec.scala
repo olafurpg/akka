@@ -14,7 +14,8 @@ import akka.testkit.AkkaSpec
 import akka.testkit.ImplicitSender
 
 object AllPersistenceIdsSpec {
-  val config = """
+  val config =
+    """
     akka.loglevel = INFO
     akka.persistence.journal.plugin = "akka.persistence.journal.leveldb"
     akka.persistence.journal.leveldb.dir = "target/journal-AllPersistenceIdsSpec"
@@ -22,12 +23,14 @@ object AllPersistenceIdsSpec {
     """
 }
 
-class AllPersistenceIdsSpec extends AkkaSpec(AllPersistenceIdsSpec.config)
-  with Cleanup with ImplicitSender {
+class AllPersistenceIdsSpec
+    extends AkkaSpec(AllPersistenceIdsSpec.config) with Cleanup
+    with ImplicitSender {
 
   implicit val mat = ActorMaterializer()(system)
 
-  val queries = PersistenceQuery(system).readJournalFor[LeveldbReadJournal](LeveldbReadJournal.Identifier)
+  val queries = PersistenceQuery(system)
+    .readJournalFor[LeveldbReadJournal](LeveldbReadJournal.Identifier)
 
   "Leveldb query AllPersistenceIds" must {
 
@@ -43,12 +46,10 @@ class AllPersistenceIdsSpec extends AkkaSpec(AllPersistenceIdsSpec.config)
       system.actorOf(TestActor.props("c")) ! "c1"
       expectMsg("c1-done")
 
-      val src = queries.currentPersistenceIds()
+      val src   = queries.currentPersistenceIds()
       val probe = src.runWith(TestSink.probe[String])
       probe.within(10.seconds) {
-        probe.request(5)
-          .expectNextUnordered("a", "b", "c")
-          .expectComplete()
+        probe.request(5).expectNextUnordered("a", "b", "c").expectComplete()
       }
     }
 
@@ -57,11 +58,10 @@ class AllPersistenceIdsSpec extends AkkaSpec(AllPersistenceIdsSpec.config)
       system.actorOf(TestActor.props("d")) ! "d1"
       expectMsg("d1-done")
 
-      val src = queries.allPersistenceIds()
+      val src   = queries.allPersistenceIds()
       val probe = src.runWith(TestSink.probe[String])
       probe.within(10.seconds) {
-        probe.request(5)
-          .expectNextUnorderedN(List("a", "b", "c", "d"))
+        probe.request(5).expectNextUnorderedN(List("a", "b", "c", "d"))
 
         system.actorOf(TestActor.props("e")) ! "e1"
         probe.expectNext("e")
@@ -74,8 +74,6 @@ class AllPersistenceIdsSpec extends AkkaSpec(AllPersistenceIdsSpec.config)
         probe.request(100)
         probe.expectNextUnorderedN(more)
       }
-
     }
   }
-
 }

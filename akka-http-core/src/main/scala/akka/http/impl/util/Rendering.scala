@@ -1,18 +1,17 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.http.impl.util
 
 import java.nio.CharBuffer
 import java.nio.charset.Charset
-import java.text.{ DecimalFormatSymbols, DecimalFormat }
+import java.text.{DecimalFormatSymbols, DecimalFormat}
 import java.util.Locale
 import scala.annotation.tailrec
-import scala.collection.{ immutable, LinearSeq }
-import akka.parboiled2.{ CharPredicate, CharUtils }
+import scala.collection.{immutable, LinearSeq}
+import akka.parboiled2.{CharPredicate, CharUtils}
 import akka.http.impl.model.parser.CharacterClasses
-import akka.util.{ ByteStringBuilder, ByteString }
+import akka.util.{ByteStringBuilder, ByteString}
 
 /**
  * INTERNAL API
@@ -52,11 +51,12 @@ private[http] trait LazyValueBytesRenderable extends Renderable {
   // that a synchronization overhead or even @volatile reads
   private[this] var _valueBytes: Array[Byte] = _
   private def valueBytes =
-    if (_valueBytes != null) _valueBytes else { _valueBytes = value.asciiBytes; _valueBytes }
+    if (_valueBytes != null) _valueBytes
+    else { _valueBytes = value.asciiBytes; _valueBytes }
 
   def value: String
   def render[R <: Rendering](r: R): r.type = r ~~ valueBytes
-  override def toString = value
+  override def toString                    = value
 }
 
 /**
@@ -67,7 +67,7 @@ private[http] trait LazyValueBytesRenderable extends Renderable {
  */
 private[http] trait SingletonValueRenderable extends Product with Renderable {
   private[this] val valueBytes = value.asciiBytes
-  def value = productPrefix
+  def value                                = productPrefix
   def render[R <: Rendering](r: R): r.type = r ~~ valueBytes
 }
 
@@ -97,19 +97,27 @@ private[http] object Renderer {
     def render[R <: Rendering](r: R, value: Array[Char]): r.type = r ~~ value
   }
   object RenderableRenderer extends Renderer[Renderable] {
-    def render[R <: Rendering](r: R, value: Renderable): r.type = value.render(r)
+    def render[R <: Rendering](r: R, value: Renderable): r.type =
+      value.render(r)
   }
-  implicit def renderableRenderer[T <: Renderable]: Renderer[T] = RenderableRenderer
+  implicit def renderableRenderer[T <: Renderable]: Renderer[T] =
+    RenderableRenderer
 
-  def optionRenderer[D, T](defaultValue: D)(implicit sRenderer: Renderer[D], tRenderer: Renderer[T]): Renderer[Option[T]] =
-    new Renderer[Option[T]] {
-      def render[R <: Rendering](r: R, value: Option[T]): r.type =
-        if (value.isEmpty) sRenderer.render(r, defaultValue) else tRenderer.render(r, value.get)
-    }
+  def optionRenderer[D, T](defaultValue: D)(
+      implicit sRenderer: Renderer[D],
+      tRenderer: Renderer[T]): Renderer[Option[T]] = new Renderer[Option[T]] {
+    def render[R <: Rendering](r: R, value: Option[T]): r.type =
+      if (value.isEmpty) sRenderer.render(r, defaultValue)
+      else tRenderer.render(r, value.get)
+  }
 
-  def defaultSeqRenderer[T: Renderer] = genericSeqRenderer[Renderable, T](Rendering.`, `, Rendering.Empty)
-  def seqRenderer[T: Renderer](separator: String = ", ", empty: String = "") = genericSeqRenderer[String, T](separator, empty)
-  def genericSeqRenderer[S, T](separator: S, empty: S)(implicit sRenderer: Renderer[S], tRenderer: Renderer[T]): Renderer[immutable.Seq[T]] =
+  def defaultSeqRenderer[T : Renderer] =
+    genericSeqRenderer[Renderable, T](Rendering.`, `, Rendering.Empty)
+  def seqRenderer[T : Renderer](separator: String = ", ", empty: String = "") =
+    genericSeqRenderer[String, T](separator, empty)
+  def genericSeqRenderer[S, T](separator: S, empty: S)(
+      implicit sRenderer: Renderer[S],
+      tRenderer: Renderer[T]): Renderer[immutable.Seq[T]] =
     new Renderer[immutable.Seq[T]] {
       def render[R <: Rendering](r: R, value: immutable.Seq[T]): r.type = {
         @tailrec def recI(values: IndexedSeq[T], ix: Int = 0): r.type =
@@ -127,9 +135,9 @@ private[http] object Renderer {
           } else r
 
         value match {
-          case Nil              ⇒ r ~~ empty
-          case x: IndexedSeq[T] ⇒ recI(x)
-          case x: LinearSeq[T]  ⇒ recL(x)
+          case Nil               ⇒ r ~~ empty
+          case x: IndexedSeq [T] ⇒ recI(x)
+          case x: LinearSeq [T]  ⇒ recL(x)
         }
       }
     }
@@ -145,12 +153,13 @@ private[http] trait Rendering {
   def ~~(bytes: Array[Byte]): this.type
   def ~~(bytes: ByteString): this.type
 
-  def ~~(f: Float): this.type = this ~~ Rendering.floatFormat.format(f)
+  def ~~(f: Float): this.type  = this ~~ Rendering.floatFormat.format(f)
   def ~~(d: Double): this.type = this ~~ d.toString
 
   def ~~(i: Int): this.type = this ~~ i.toLong
 
-  def ~~(l: Long): this.type = if (l != 0) this ~~ CharUtils.signedDecimalChars(l) else this ~~ '0'
+  def ~~(l: Long): this.type =
+    if (l != 0) this ~~ CharUtils.signedDecimalChars(l) else this ~~ '0'
 
   /**
    * Renders the given Int in (lower case) hex notation.
@@ -171,7 +180,8 @@ private[http] trait Rendering {
 
   def ~~(string: String): this.type = {
     @tailrec def rec(ix: Int = 0): this.type =
-      if (ix < string.length) { this ~~ string.charAt(ix); rec(ix + 1) } else this
+      if (ix < string.length) { this ~~ string.charAt(ix); rec(ix + 1) } else
+        this
     rec()
   }
 
@@ -181,7 +191,8 @@ private[http] trait Rendering {
     rec()
   }
 
-  def ~~[T](value: T)(implicit ev: Renderer[T]): this.type = ev.render(this, value)
+  def ~~[T](value: T)(implicit ev: Renderer[T]): this.type =
+    ev.render(this, value)
 
   /**
    * Renders the given string either directly (if it only contains token chars)
@@ -195,7 +206,9 @@ private[http] trait Rendering {
    */
   def ~~#!(s: String): this.type = ~~('"').putEscaped(s) ~~ '"'
 
-  def putEscaped(s: String, escape: CharPredicate = Rendering.`\"`, escChar: Char = '\\'): this.type = {
+  def putEscaped(s: String,
+                 escape: CharPredicate = Rendering.`\"`,
+                 escChar: Char = '\\'): this.type = {
     @tailrec def rec(ix: Int = 0): this.type =
       if (ix < s.length) {
         val c = s.charAt(ix)
@@ -208,7 +221,8 @@ private[http] trait Rendering {
 }
 
 private[http] object Rendering {
-  val floatFormat = new DecimalFormat("0.0##", DecimalFormatSymbols.getInstance(Locale.ROOT))
+  val floatFormat = new DecimalFormat(
+      "0.0##", DecimalFormatSymbols.getInstance(Locale.ROOT))
   val `\"` = CharPredicate('\\', '"')
 
   case object `, ` extends SingletonValueRenderable // default separator
@@ -229,11 +243,13 @@ private[http] class StringRendering extends Rendering {
   def ~~(ch: Char): this.type = { sb.append(ch); this }
   def ~~(bytes: Array[Byte]): this.type = {
     @tailrec def rec(ix: Int = 0): this.type =
-      if (ix < bytes.length) { this ~~ bytes(ix).asInstanceOf[Char]; rec(ix + 1) } else this
+      if (ix < bytes.length) {
+        this ~~ bytes(ix).asInstanceOf[Char]; rec(ix + 1)
+      } else this
     rec()
   }
   def ~~(bytes: ByteString): this.type = this ~~ bytes.toArray[Byte]
-  def get: String = sb.toString
+  def get: String                      = sb.toString
 }
 
 /**
@@ -241,7 +257,7 @@ private[http] class StringRendering extends Rendering {
  */
 private[http] class ByteArrayRendering(sizeHint: Int) extends Rendering {
   private[this] var array = new Array[Byte](sizeHint)
-  private[this] var size = 0
+  private[this] var size  = 0
 
   def get: Array[Byte] =
     if (size == array.length) array
@@ -270,11 +286,14 @@ private[http] class ByteArrayRendering(sizeHint: Int) extends Rendering {
   }
 
   private def growBy(delta: Int): Int = {
-    val oldSize = size
+    val oldSize    = size
     val neededSize = oldSize.toLong + delta
     if (array.length < neededSize) {
-      require(neededSize < Int.MaxValue, "Cannot create byte array greater than 2GB in size")
-      val newLen = math.min(math.max(array.length.toLong << 1, neededSize), Int.MaxValue).toInt
+      require(neededSize < Int.MaxValue,
+              "Cannot create byte array greater than 2GB in size")
+      val newLen = math
+        .min(math.max(array.length.toLong << 1, neededSize), Int.MaxValue)
+        .toInt
       val newArray = new Array[Byte](newLen)
       System.arraycopy(array, 0, newArray, 0, array.length)
       array = newArray
@@ -312,9 +331,11 @@ private[http] class ByteStringRendering(sizeHint: Int) extends Rendering {
 /**
  * INTERNAL API
  */
-private[http] class CustomCharsetByteStringRendering(nioCharset: Charset, sizeHint: Int) extends Rendering {
+private[http] class CustomCharsetByteStringRendering(
+    nioCharset: Charset, sizeHint: Int)
+    extends Rendering {
   private[this] val charBuffer = CharBuffer.allocate(64)
-  private[this] val builder = new ByteStringBuilder
+  private[this] val builder    = new ByteStringBuilder
   builder.sizeHint(sizeHint)
 
   def get: ByteString = {

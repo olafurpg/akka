@@ -3,7 +3,7 @@
  */
 package akka.testkit
 
-import akka.actor.{ Props, Actor, ActorRef }
+import akka.actor.{Props, Actor, ActorRef}
 
 /**
  * A collection of common actor patterns used in tests.
@@ -32,5 +32,4 @@ object TestActors {
 
   val echoActorProps = Props[EchoActor]()
   def forwardActorProps(ref: ActorRef) = Props(classOf[ForwardActor], ref)
-
 }

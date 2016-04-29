@@ -22,7 +22,8 @@ private[akka] trait MetricsKitOps extends MetricKeyDSL {
   def counter(key: MetricKey): Counter = registry.counter(key.toString)
 
   /** Simple averaging Gauge, which exposes an arithmetic mean of the values added to it. */
-  def averageGauge(key: MetricKey): AveragingGauge = getOrRegister(key.toString, new AveragingGauge)
+  def averageGauge(key: MetricKey): AveragingGauge =
+    getOrRegister(key.toString, new AveragingGauge)
 
   /**
    * Used to measure timing of known number of operations over time.
@@ -31,7 +32,8 @@ private[akka] trait MetricsKitOps extends MetricKeyDSL {
    * Do not use for short running pieces of code.
    */
   def timedWithKnownOps[T](key: MetricKey, ops: Long)(run: ⇒ T): T = {
-    val c = getOrRegister(key.toString, new KnownOpsInTimespanTimer(expectedOps = ops))
+    val c = getOrRegister(
+        key.toString, new KnownOpsInTimespanTimer(expectedOps = ops))
     try run finally c.stop()
   }
 
@@ -42,8 +44,14 @@ private[akka] trait MetricsKitOps extends MetricKeyDSL {
    *
    * @param unitString just for human readable output, during console printing
    */
-  def hdrHistogram(key: MetricKey, highestTrackableValue: Long, numberOfSignificantValueDigits: Int, unitString: String = ""): HdrHistogram =
-    getOrRegister((key / "hdr-histogram").toString, new HdrHistogram(highestTrackableValue, numberOfSignificantValueDigits, unitString))
+  def hdrHistogram(key: MetricKey,
+                   highestTrackableValue: Long,
+                   numberOfSignificantValueDigits: Int,
+                   unitString: String = ""): HdrHistogram =
+    getOrRegister(
+        (key / "hdr-histogram").toString,
+        new HdrHistogram(
+            highestTrackableValue, numberOfSignificantValueDigits, unitString))
 
   /**
    * Use when measuring for 9x'th percentiles as well as min / max / mean values.
@@ -66,7 +74,8 @@ private[akka] trait MetricsKitOps extends MetricKeyDSL {
    *
    * Also allows to `MemoryUsageSnapshotting.getHeapSnapshot` to obtain memory usage numbers at given point in time.
    */
-  def measureMemory(key: MetricKey): MemoryUsageGaugeSet with MemoryUsageSnapshotting = {
+  def measureMemory(
+      key: MetricKey): MemoryUsageGaugeSet with MemoryUsageSnapshotting = {
     val gaugeSet = new jvm.MemoryUsageGaugeSet() with MemoryUsageSnapshotting {
       val prefix = key / "mem"
     }
@@ -77,12 +86,17 @@ private[akka] trait MetricsKitOps extends MetricKeyDSL {
 
   /** Enable GC measurements */
   def measureGc(key: MetricKey) =
-    registry.registerAll(new jvm.GarbageCollectorMetricSet() with MetricsPrefix { val prefix = key / "gc" })
+    registry.registerAll(
+        new jvm.GarbageCollectorMetricSet() with MetricsPrefix {
+      val prefix = key / "gc"
+    })
 
   /** Enable File Descriptor measurements */
   def measureFileDescriptors(key: MetricKey) =
-    registry.registerAll(new FileDescriptorMetricSet() with MetricsPrefix { val prefix = key / "file-descriptors" })
-
+    registry.registerAll(
+        new FileDescriptorMetricSet() with MetricsPrefix {
+      val prefix = key / "file-descriptors"
+    })
 }
 
 private[metrics] trait MetricsPrefix extends MetricSet {

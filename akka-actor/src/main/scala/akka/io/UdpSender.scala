@@ -6,7 +6,7 @@ package akka.io
 import java.nio.channels.DatagramChannel
 import scala.collection.immutable
 import scala.util.control.NonFatal
-import akka.dispatch.{ RequiresMessageQueue, UnboundedMessageQueueSemantics }
+import akka.dispatch.{RequiresMessageQueue, UnboundedMessageQueueSemantics}
 import akka.io.Inet.SocketOption
 import akka.io.Udp._
 import akka.actor._
@@ -18,7 +18,8 @@ private[io] class UdpSender(val udp: UdpExt,
                             channelRegistry: ChannelRegistry,
                             commander: ActorRef,
                             options: immutable.Traversable[SocketOption])
-  extends Actor with ActorLogging with WithUdpSend with RequiresMessageQueue[UnboundedMessageQueueSemantics] {
+    extends Actor with ActorLogging with WithUdpSend
+    with RequiresMessageQueue[UnboundedMessageQueueSemantics] {
 
   val channel = {
     val datagramChannel = DatagramChannel.open
@@ -42,10 +43,8 @@ private[io] class UdpSender(val udp: UdpExt,
 
   override def postStop(): Unit = if (channel.isOpen) {
     log.debug("Closing DatagramChannel after being stopped")
-    try channel.close()
-    catch {
+    try channel.close() catch {
       case NonFatal(e) ⇒ log.debug("Error closing DatagramChannel: {}", e)
     }
   }
 }
-

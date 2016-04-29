@@ -16,7 +16,9 @@ import language.implicitConversions
  * [[akka.event.EventStream]] on a best effort basis
  * (i.e. this delivery is not reliable).
  */
-abstract class ActorRef[-T] extends java.lang.Comparable[ActorRef[Any]] { this: ScalaActorRef[T] ⇒
+abstract class ActorRef[-T] extends java.lang.Comparable[ActorRef[Any]] {
+  this: ScalaActorRef[T] ⇒
+
   /**
    * INTERNAL API.
    *
@@ -36,7 +38,8 @@ abstract class ActorRef[-T] extends java.lang.Comparable[ActorRef[Any]] { this: 
    * provided to avoid having to use `asInstanceOf` on the full reference type,
    * which would unfortunately also work on non-ActorRefs.
    */
-  def upcast[U >: T @uncheckedVariance]: ActorRef[U] = this.asInstanceOf[ActorRef[U]]
+  def upcast[U >: T @uncheckedVariance]: ActorRef[U] =
+    this.asInstanceOf[ActorRef[U]]
 
   /**
    * The hierarchical path name of the referenced Actor. The lifecycle of the
@@ -48,24 +51,28 @@ abstract class ActorRef[-T] extends java.lang.Comparable[ActorRef[Any]] { this: 
 
   override def toString = untypedRef.toString
   override def equals(other: Any) = other match {
-    case a: ActorRef[_] ⇒ a.untypedRef == untypedRef
-    case _              ⇒ false
+    case a: ActorRef [_] ⇒ a.untypedRef == untypedRef
+    case _               ⇒ false
   }
   override def hashCode = untypedRef.hashCode
-  override def compareTo(other: ActorRef[Any]) = untypedRef.compareTo(other.untypedRef)
+  override def compareTo(other: ActorRef[Any]) =
+    untypedRef.compareTo(other.untypedRef)
 }
 
 /**
  * This trait is used to hide the `!` method from Java code.
  */
-trait ScalaActorRef[-T] { this: ActorRef[T] ⇒
+trait ScalaActorRef[-T] {
+  this: ActorRef[T] ⇒
   def !(msg: T): Unit = tell(msg)
 }
 
 object ActorRef {
-  private class Combined[T](val untypedRef: akka.actor.ActorRef) extends ActorRef[T] with ScalaActorRef[T]
+  private class Combined[T](val untypedRef: akka.actor.ActorRef)
+      extends ActorRef[T] with ScalaActorRef[T]
 
-  implicit def toScalaActorRef[T](ref: ActorRef[T]): ScalaActorRef[T] = ref.asInstanceOf[ScalaActorRef[T]]
+  implicit def toScalaActorRef[T](ref: ActorRef[T]): ScalaActorRef[T] =
+    ref.asInstanceOf[ScalaActorRef[T]]
 
   /**
    * Construct a typed ActorRef from an untyped one and a protocol definition

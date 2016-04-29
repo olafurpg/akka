@@ -4,11 +4,11 @@
 
 package docs.persistence
 
-import akka.actor.{ ExtendedActorSystem, Props }
-import akka.persistence.journal.{ EventAdapter, EventSeq }
-import akka.persistence.{ PersistentActor, RecoveryCompleted }
-import akka.testkit.{ AkkaSpec, TestProbe }
-import com.google.gson.{ Gson, JsonElement }
+import akka.actor.{ExtendedActorSystem, Props}
+import akka.persistence.journal.{EventAdapter, EventSeq}
+import akka.persistence.{PersistentActor, RecoveryCompleted}
+import akka.testkit.{AkkaSpec, TestProbe}
+import com.google.gson.{Gson, JsonElement}
 
 import scala.collection.immutable
 
@@ -73,7 +73,8 @@ class PersistenceEventAdapterDocSpec(config: String) extends AkkaSpec(config) {
 
       val props = Props(new PersistentActor {
         override def persistenceId: String = "json-actor"
-        override def journalPluginId: String = "akka.persistence.journal.auto-json-store"
+        override def journalPluginId: String =
+          "akka.persistence.journal.auto-json-store"
 
         override def receiveRecover: Receive = {
           case RecoveryCompleted => // ignore...
@@ -81,7 +82,10 @@ class PersistenceEventAdapterDocSpec(config: String) extends AkkaSpec(config) {
         }
 
         override def receiveCommand: Receive = {
-          case c => persist(c) { e => p.ref ! e }
+          case c =>
+            persist(c) { e =>
+              p.ref ! e
+            }
         }
       })
 
@@ -105,7 +109,8 @@ class PersistenceEventAdapterDocSpec(config: String) extends AkkaSpec(config) {
 
       val props = Props(new PersistentActor {
         override def persistenceId: String = "json-actor"
-        override def journalPluginId: String = "akka.persistence.journal.manual-json-store"
+        override def journalPluginId: String =
+          "akka.persistence.journal.manual-json-store"
 
         override def receiveRecover: Receive = {
           case RecoveryCompleted => // ignore...
@@ -113,7 +118,10 @@ class PersistenceEventAdapterDocSpec(config: String) extends AkkaSpec(config) {
         }
 
         override def receiveCommand: Receive = {
-          case c => persist(c) { e => p.ref ! e }
+          case c =>
+            persist(c) { e =>
+              p.ref ! e
+            }
         }
       })
 
@@ -134,7 +142,7 @@ class PersistenceEventAdapterDocSpec(config: String) extends AkkaSpec(config) {
 
 trait DomainEvent
 case class Person(name: String, age: Int) extends DomainEvent
-case class Box(length: Int) extends DomainEvent
+case class Box(length: Int)               extends DomainEvent
 
 case class MyTaggingJournalModel(payload: Any, tags: Set[String])
 
@@ -143,8 +151,7 @@ class MyEventAdapter(system: ExtendedActorSystem) extends EventAdapter {
   override def manifest(event: Any): String =
     "" // when no manifest needed, return ""
 
-  override def toJournal(event: Any): Any =
-    event // identity
+  override def toJournal(event: Any): Any = event // identity
 
   override def fromJournal(event: Any, manifest: String): EventSeq =
     EventSeq.single(event) // identity
@@ -155,24 +162,26 @@ class MyEventAdapter(system: ExtendedActorSystem) extends EventAdapter {
  * This is an example adapter which completely takes care of domain<->json translation.
  * It allows the journal to take care of the manifest handling, which is the FQN of the serialized class.
  */
-class MyAutoJsonEventAdapter(system: ExtendedActorSystem) extends EventAdapter {
+class MyAutoJsonEventAdapter(system: ExtendedActorSystem)
+    extends EventAdapter {
   private val gson = new Gson
 
-  override def manifest(event: Any): String =
-    event.getClass.getCanonicalName
+  override def manifest(event: Any): String = event.getClass.getCanonicalName
 
   override def toJournal(event: Any): Any = gson.toJsonTree(event)
 
-  override def fromJournal(event: Any, manifest: String): EventSeq = EventSeq.single {
-    event match {
-      case json: JsonElement =>
-        val clazz = system.dynamicAccess.getClassFor[Any](manifest).get
-        gson.fromJson(json, clazz)
+  override def fromJournal(event: Any, manifest: String): EventSeq =
+    EventSeq.single {
+      event match {
+        case json: JsonElement =>
+          val clazz = system.dynamicAccess.getClassFor[Any](manifest).get
+          gson.fromJson(json, clazz)
+      }
     }
-  }
 }
 
-class MyUpcastingEventAdapter(system: ExtendedActorSystem) extends EventAdapter {
+class MyUpcastingEventAdapter(system: ExtendedActorSystem)
+    extends EventAdapter {
   override def manifest(event: Any): String = ""
 
   override def toJournal(event: Any): Any = ???
@@ -185,7 +194,8 @@ class MyUpcastingEventAdapter(system: ExtendedActorSystem) extends EventAdapter 
  * It manually takes care of smuggling through the manifest even if the journal does not do anything in this regard,
  * which is the case in this example since we're persisting to the inmem journal, which does nothing in terms of manifest.
  */
-class MyManualJsonEventAdapter(system: ExtendedActorSystem) extends EventAdapter {
+class MyManualJsonEventAdapter(system: ExtendedActorSystem)
+    extends EventAdapter {
 
   private val gson = new Gson
 
@@ -213,15 +223,17 @@ class MyManualJsonEventAdapter(system: ExtendedActorSystem) extends EventAdapter
 class MyTaggingEventAdapter(system: ExtendedActorSystem) extends EventAdapter {
   override def manifest(event: Any): String = ""
 
-  override def fromJournal(event: Any, manifest: String): EventSeq = event match {
-    case j: MyTaggingJournalModel => EventSeq.single(j)
-  }
+  override def fromJournal(event: Any, manifest: String): EventSeq =
+    event match {
+      case j: MyTaggingJournalModel => EventSeq.single(j)
+    }
 
   override def toJournal(event: Any): Any = {
     event match {
-      case Person(_, age) if age >= 18 => MyTaggingJournalModel(event, tags = Set("adult"))
-      case Person(_, age)              => MyTaggingJournalModel(event, tags = Set("minor"))
-      case _                           => MyTaggingJournalModel(event, tags = Set.empty)
+      case Person(_, age) if age >= 18 =>
+        MyTaggingJournalModel(event, tags = Set("adult"))
+      case Person(_, age) => MyTaggingJournalModel(event, tags = Set("minor"))
+      case _              => MyTaggingJournalModel(event, tags = Set.empty)
     }
   }
 }

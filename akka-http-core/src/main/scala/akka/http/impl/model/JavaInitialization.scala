@@ -15,6 +15,7 @@ private[akka] object JavaInitialization {
 
   private[this] val u = Unsafe.instance
 
-  def initializeStaticFieldWith[T](value: T, f: java.lang.reflect.Field): Unit =
+  def initializeStaticFieldWith[T](
+      value: T, f: java.lang.reflect.Field): Unit =
     u.putObject(u.staticFieldBase(f), u.staticFieldOffset(f), value)
 }

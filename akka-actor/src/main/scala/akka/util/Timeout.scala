@@ -1,13 +1,12 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.util
 
 import language.implicitConversions
 
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 @SerialVersionUID(1L)
 case class Timeout(duration: FiniteDuration) {
@@ -33,5 +32,6 @@ object Timeout {
    */
   def apply(length: Long, unit: TimeUnit): Timeout = new Timeout(length, unit)
 
-  implicit def durationToTimeout(duration: FiniteDuration): Timeout = new Timeout(duration)
+  implicit def durationToTimeout(duration: FiniteDuration): Timeout =
+    new Timeout(duration)
 }

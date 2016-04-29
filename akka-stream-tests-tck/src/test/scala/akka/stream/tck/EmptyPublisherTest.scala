@@ -12,4 +12,3 @@ class EmptyPublisherTest extends AkkaPublisherVerification[Int] {
 
   override def maxElementsFromPublisher(): Long = 0
 }
-

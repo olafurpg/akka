@@ -6,7 +6,7 @@ package akka.http.scaladsl.server.directives
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.`Timeout-Access`
-import akka.http.scaladsl.server.{ Directive, Directive0 }
+import akka.http.scaladsl.server.{Directive, Directive0}
 
 import scala.concurrent.duration.Duration
 
@@ -19,8 +19,7 @@ trait TimeoutDirectives {
   /**
    * @group timeout
    */
-  def withoutRequestTimeout: Directive0 =
-    withRequestTimeout(Duration.Inf)
+  def withoutRequestTimeout: Directive0 = withRequestTimeout(Duration.Inf)
 
   /**
    * Tries to set a new request timeout and handler (if provided) at the same time.
@@ -43,7 +42,8 @@ trait TimeoutDirectives {
    *
    * @group timeout
    */
-  def withRequestTimeout(timeout: Duration, handler: HttpRequest ⇒ HttpResponse): Directive0 =
+  def withRequestTimeout(
+      timeout: Duration, handler: HttpRequest ⇒ HttpResponse): Directive0 =
     withRequestTimeout(timeout, Some(handler))
 
   /**
@@ -56,18 +56,21 @@ trait TimeoutDirectives {
    *
    * @group timeout
    */
-  def withRequestTimeout(timeout: Duration, handler: Option[HttpRequest ⇒ HttpResponse]): Directive0 =
-    Directive { inner ⇒
-      ctx ⇒
-        ctx.request.header[`Timeout-Access`] match {
-          case Some(t) ⇒
-            handler match {
-              case Some(h) ⇒ t.timeoutAccess.update(timeout, h)
-              case _       ⇒ t.timeoutAccess.updateTimeout(timeout)
-            }
-          case _ ⇒ ctx.log.warning("withRequestTimeout was used in route however no request-timeout is set!")
-        }
-        inner()(ctx)
+  def withRequestTimeout(
+      timeout: Duration,
+      handler: Option[HttpRequest ⇒ HttpResponse]): Directive0 =
+    Directive { inner ⇒ ctx ⇒
+      ctx.request.header[`Timeout-Access`] match {
+        case Some(t) ⇒
+          handler match {
+            case Some(h) ⇒ t.timeoutAccess.update(timeout, h)
+            case _       ⇒ t.timeoutAccess.updateTimeout(timeout)
+          }
+        case _ ⇒
+          ctx.log.warning(
+              "withRequestTimeout was used in route however no request-timeout is set!")
+      }
+      inner()(ctx)
     }
 
   /**
@@ -79,16 +82,17 @@ trait TimeoutDirectives {
    *
    * @group timeout
    */
-  def withRequestTimeoutResponse(handler: HttpRequest ⇒ HttpResponse): Directive0 =
-    Directive { inner ⇒
-      ctx ⇒
-        ctx.request.header[`Timeout-Access`] match {
-          case Some(t) ⇒ t.timeoutAccess.updateHandler(handler)
-          case _       ⇒ ctx.log.warning("withRequestTimeoutResponse was used in route however no request-timeout is set!")
-        }
-        inner()(ctx)
+  def withRequestTimeoutResponse(
+      handler: HttpRequest ⇒ HttpResponse): Directive0 =
+    Directive { inner ⇒ ctx ⇒
+      ctx.request.header[`Timeout-Access`] match {
+        case Some(t) ⇒ t.timeoutAccess.updateHandler(handler)
+        case _ ⇒
+          ctx.log.warning(
+              "withRequestTimeoutResponse was used in route however no request-timeout is set!")
+      }
+      inner()(ctx)
     }
-
 }
 
 object TimeoutDirectives extends TimeoutDirectives

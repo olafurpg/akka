@@ -6,53 +6,58 @@ package docs.http.scaladsl.server
 
 //#imports
 import java.io.InputStream
-import java.security.{ SecureRandom, KeyStore }
-import javax.net.ssl.{ SSLContext, TrustManagerFactory, KeyManagerFactory }
+import java.security.{SecureRandom, KeyStore}
+import javax.net.ssl.{SSLContext, TrustManagerFactory, KeyManagerFactory}
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.server.{ RouteResult, Route, Directives }
-import akka.http.scaladsl.{ ConnectionContext, HttpsConnectionContext, Http }
+import akka.http.scaladsl.server.{RouteResult, Route, Directives}
+import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext, Http}
 import akka.stream.ActorMaterializer
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 //#
 
 import docs.CompileOnlySpec
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.{Matchers, WordSpec}
 
-abstract class HttpsServerExampleSpec extends WordSpec with Matchers
-  with Directives with CompileOnlySpec {
+abstract class HttpsServerExampleSpec
+    extends WordSpec with Matchers with Directives with CompileOnlySpec {
 
   class HowToObtainSSLConfig {
     //#akka-ssl-config
     implicit val system = ActorSystem()
-    val sslConfig = AkkaSSLConfig()
+    val sslConfig       = AkkaSSLConfig()
     //#
   }
 
   "low level api" in compileOnlySpec {
     //#low-level-default
-    implicit val system = ActorSystem()
-    implicit val mat = ActorMaterializer()
+    implicit val system     = ActorSystem()
+    implicit val mat        = ActorMaterializer()
     implicit val dispatcher = system.dispatcher
 
     // Manual HTTPS configuration
 
-    val password: Array[Char] = ??? // do not store passwords in code, read them from somewhere safe!
+    val password: Array[Char] =
+      ??? // do not store passwords in code, read them from somewhere safe!
 
     val ks: KeyStore = KeyStore.getInstance("PKCS12")
-    val keystore: InputStream = getClass.getClassLoader.getResourceAsStream("server.p12")
+    val keystore: InputStream =
+      getClass.getClassLoader.getResourceAsStream("server.p12")
 
     require(keystore != null, "Keystore required!")
     ks.load(keystore, password)
 
-    val keyManagerFactory: KeyManagerFactory = KeyManagerFactory.getInstance("SunX509")
+    val keyManagerFactory: KeyManagerFactory =
+      KeyManagerFactory.getInstance("SunX509")
     keyManagerFactory.init(ks, password)
 
     val tmf: TrustManagerFactory = TrustManagerFactory.getInstance("SunX509")
     tmf.init(ks)
 
     val sslContext: SSLContext = SSLContext.getInstance("TLS")
-    sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, SecureRandom.getInstanceStrong)
+    sslContext.init(keyManagerFactory.getKeyManagers,
+                    tmf.getTrustManagers,
+                    SecureRandom.getInstanceStrong)
     val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
 
     // sets default context to HTTPS – all Http() bound servers for this ActorSystem will use HTTPS from now on
@@ -68,5 +73,4 @@ abstract class HttpsServerExampleSpec extends WordSpec with Matchers
     Http().bindAndHandle(routes, "127.0.0.1", 8080, connectionContext = https)
     //#
   }
-
 }

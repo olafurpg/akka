@@ -38,5 +38,6 @@ package akka
  * ask(actor, message);
  * }}}
  */
-package object pattern extends PipeToSupport with AskSupport with GracefulStopSupport with FutureTimeoutSupport
-
+package object pattern
+    extends PipeToSupport with AskSupport with GracefulStopSupport
+    with FutureTimeoutSupport

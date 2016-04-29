@@ -10,15 +10,19 @@ import akka.event.Logging
 /**
  * INTERNAL API
  */
-private[stream] trait FlowModule[In, Out, Mat] extends StreamLayout.AtomicModule {
+private[stream] trait FlowModule[In, Out, Mat]
+    extends StreamLayout.AtomicModule {
   override def replaceShape(s: Shape) =
-    if (s != shape) throw new UnsupportedOperationException("cannot replace the shape of a FlowModule")
+    if (s != shape)
+      throw new UnsupportedOperationException(
+          "cannot replace the shape of a FlowModule")
     else this
 
-  val inPort = Inlet[In]("Flow.in")
-  val outPort = Outlet[Out]("Flow.out")
+  val inPort         = Inlet[In]("Flow.in")
+  val outPort        = Outlet[Out]("Flow.out")
   override val shape = new FlowShape(inPort, outPort)
 
   protected def label: String = Logging.simpleName(this)
-  final override def toString: String = f"$label [${System.identityHashCode(this)}%08x]"
+  final override def toString: String =
+    f"$label [${System.identityHashCode(this)}%08x]"
 }

@@ -5,7 +5,7 @@ package akka.remote.testconductor
 
 import language.postfixOps
 import com.typesafe.config.ConfigFactory
-import akka.actor.{ Props, Actor, ActorIdentity, Identify, Deploy }
+import akka.actor.{Props, Actor, ActorIdentity, Identify, Deploy}
 import scala.concurrent.Await
 import scala.concurrent.Awaitable
 import scala.concurrent.duration._
@@ -13,14 +13,14 @@ import akka.testkit.ImplicitSender
 import akka.testkit.LongRunningTest
 import java.net.InetSocketAddress
 import java.net.InetAddress
-import akka.remote.testkit.{ STMultiNodeSpec, MultiNodeSpec, MultiNodeConfig }
+import akka.remote.testkit.{STMultiNodeSpec, MultiNodeSpec, MultiNodeConfig}
 import akka.remote.transport.ThrottlerTransportAdapter.Direction
 
 object TestConductorMultiJvmSpec extends MultiNodeConfig {
   commonConfig(debugConfig(on = false))
 
   val master = role("master")
-  val slave = role("slave")
+  val slave  = role("slave")
 
   testTransport(on = true)
 }
@@ -28,7 +28,9 @@ object TestConductorMultiJvmSpec extends MultiNodeConfig {
 class TestConductorMultiJvmNode1 extends TestConductorSpec
 class TestConductorMultiJvmNode2 extends TestConductorSpec
 
-class TestConductorSpec extends MultiNodeSpec(TestConductorMultiJvmSpec) with STMultiNodeSpec with ImplicitSender {
+class TestConductorSpec
+    extends MultiNodeSpec(TestConductorMultiJvmSpec) with STMultiNodeSpec
+    with ImplicitSender {
 
   import TestConductorMultiJvmSpec._
 
@@ -63,7 +65,9 @@ class TestConductorSpec extends MultiNodeSpec(TestConductorMultiJvmSpec) with ST
       expectMsg("start")
 
       runOn(master) {
-        testConductor.throttle(slave, master, Direction.Send, rateMBit = 0.01).await
+        testConductor
+          .throttle(slave, master, Direction.Send, rateMBit = 0.01)
+          .await
       }
 
       enterBarrier("throttled_send")
@@ -81,7 +85,9 @@ class TestConductorSpec extends MultiNodeSpec(TestConductorMultiJvmSpec) with ST
 
       runOn(master) {
         testConductor.throttle(slave, master, Direction.Send, -1).await
-        testConductor.throttle(slave, master, Direction.Receive, rateMBit = 0.01).await
+        testConductor
+          .throttle(slave, master, Direction.Receive, rateMBit = 0.01)
+          .await
       }
 
       enterBarrier("throttled_recv")
@@ -107,7 +113,5 @@ class TestConductorSpec extends MultiNodeSpec(TestConductorMultiJvmSpec) with ST
 
       enterBarrier("after")
     }
-
   }
-
 }

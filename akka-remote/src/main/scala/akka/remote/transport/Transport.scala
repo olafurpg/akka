@@ -3,8 +3,8 @@
  */
 package akka.remote.transport
 
-import scala.concurrent.{ Promise, Future }
-import akka.actor.{ NoSerializationVerificationNeeded, ActorRef, Address }
+import scala.concurrent.{Promise, Future}
+import akka.actor.{NoSerializationVerificationNeeded, ActorRef, Address}
 import akka.util.ByteString
 import akka.remote.transport.AssociationHandle.HandleEventListener
 import akka.AkkaException
@@ -20,7 +20,9 @@ object Transport {
    * hostname, etc.).
    */
   @SerialVersionUID(1L)
-  final case class InvalidAssociationException(msg: String, cause: Throwable = null) extends AkkaException(msg, cause) with NoStackTrace
+  final case class InvalidAssociationException(
+      msg: String, cause: Throwable = null)
+      extends AkkaException(msg, cause) with NoStackTrace
 
   /**
    * Message sent to a [[akka.remote.transport.Transport.AssociationEventListener]] registered to a transport
@@ -29,7 +31,8 @@ object Transport {
    * @param association
    *   The handle for the inbound association.
    */
-  final case class InboundAssociation(association: AssociationHandle) extends AssociationEvent
+  final case class InboundAssociation(association: AssociationHandle)
+      extends AssociationEvent
 
   /**
    * An interface that needs to be implemented by the user of a transport to listen to association events
@@ -48,10 +51,10 @@ object Transport {
    * forward event objects as messages to the provided ActorRef.
    * @param actor
    */
-  final case class ActorAssociationEventListener(actor: ActorRef) extends AssociationEventListener {
+  final case class ActorAssociationEventListener(actor: ActorRef)
+      extends AssociationEventListener {
     override def notify(ev: AssociationEvent): Unit = actor ! ev
   }
-
 }
 
 /**
@@ -140,8 +143,9 @@ trait Transport {
    * @param cmd Command message to the transport
    * @return Future that succeeds when the command was handled or dropped
    */
-  def managementCommand(cmd: Any): Future[Boolean] = { Future.successful(false) }
-
+  def managementCommand(cmd: Any): Future[Boolean] = {
+    Future.successful(false)
+  }
 }
 
 object AssociationHandle {
@@ -159,7 +163,8 @@ object AssociationHandle {
    *   The raw bytes that were sent by the remote endpoint.
    */
   final case class InboundPayload(payload: ByteString) extends HandleEvent {
-    override def toString: String = s"InboundPayload(size = ${payload.length} bytes)"
+    override def toString: String =
+      s"InboundPayload(size = ${payload.length} bytes)"
   }
 
   /**
@@ -168,15 +173,16 @@ object AssociationHandle {
    * @param info
    *   information about the reason of disassociation
    */
-  final case class Disassociated(info: DisassociateInfo) extends HandleEvent with DeadLetterSuppression
+  final case class Disassociated(info: DisassociateInfo)
+      extends HandleEvent with DeadLetterSuppression
 
   /**
    * Supertype of possible disassociation reasons
    */
   sealed trait DisassociateInfo
 
-  case object Unknown extends DisassociateInfo
-  case object Shutdown extends DisassociateInfo
+  case object Unknown     extends DisassociateInfo
+  case object Shutdown    extends DisassociateInfo
   case object Quarantined extends DisassociateInfo
 
   /**
@@ -184,6 +190,7 @@ object AssociationHandle {
    * to listen to association events.
    */
   trait HandleEventListener {
+
     /**
      * Called by the transport to notify the listener about a HandleEvent
      * @param ev The HandleEvent of the handle
@@ -196,7 +203,8 @@ object AssociationHandle {
    * forward event objects as messages to the provided ActorRef.
    * @param actor
    */
-  final case class ActorHandleEventListener(actor: ActorRef) extends HandleEventListener {
+  final case class ActorHandleEventListener(actor: ActorRef)
+      extends HandleEventListener {
     override def notify(ev: HandleEvent): Unit = actor ! ev
   }
 }
@@ -262,6 +270,4 @@ trait AssociationHandle {
    *
    */
   def disassociate(): Unit
-
 }
-

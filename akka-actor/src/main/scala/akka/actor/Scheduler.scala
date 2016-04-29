@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor
 
 import scala.concurrent.ExecutionContext
@@ -12,7 +11,8 @@ import scala.util.control.NoStackTrace
  * This exception is thrown by Scheduler.schedule* when scheduling is not
  * possible, e.g. after shutting down the Scheduler.
  */
-private final case class SchedulerException(msg: String) extends akka.AkkaException(msg) with NoStackTrace
+private final case class SchedulerException(msg: String)
+    extends akka.AkkaException(msg) with NoStackTrace
 
 // The Scheduler trait is included in the documentation. KEEP THE LINES SHORT!!!
 //#scheduler
@@ -32,6 +32,7 @@ private final case class SchedulerException(msg: String) extends akka.AkkaExcept
  *  3) a java.util.concurrent.ThreadFactory
  */
 trait Scheduler {
+
   /**
    * Schedules a message to be sent repeatedly with an initial delay and
    * frequency. E.g. if you would like a message to be sent immediately and
@@ -40,12 +41,12 @@ trait Scheduler {
    *
    * Java & Scala API
    */
-  final def schedule(
-    initialDelay: FiniteDuration,
-    interval: FiniteDuration,
-    receiver: ActorRef,
-    message: Any)(implicit executor: ExecutionContext,
-                  sender: ActorRef = Actor.noSender): Cancellable =
+  final def schedule(initialDelay: FiniteDuration,
+                     interval: FiniteDuration,
+                     receiver: ActorRef,
+                     message: Any)(
+      implicit executor: ExecutionContext,
+      sender: ActorRef = Actor.noSender): Cancellable =
     schedule(initialDelay, interval, new Runnable {
       def run = {
         receiver ! message
@@ -69,10 +70,8 @@ trait Scheduler {
    *
    * Scala API
    */
-  final def schedule(
-    initialDelay: FiniteDuration,
-    interval: FiniteDuration)(f: ⇒ Unit)(
-      implicit executor: ExecutionContext): Cancellable =
+  final def schedule(initialDelay: FiniteDuration, interval: FiniteDuration)(
+      f: ⇒ Unit)(implicit executor: ExecutionContext): Cancellable =
     schedule(initialDelay, interval, new Runnable { override def run = f })
 
   /**
@@ -91,10 +90,10 @@ trait Scheduler {
    *
    * Java API
    */
-  def schedule(
-    initialDelay: FiniteDuration,
-    interval: FiniteDuration,
-    runnable: Runnable)(implicit executor: ExecutionContext): Cancellable
+  def schedule(initialDelay: FiniteDuration,
+               interval: FiniteDuration,
+               runnable: Runnable)(
+      implicit executor: ExecutionContext): Cancellable
 
   /**
    * Schedules a message to be sent once with a delay, i.e. a time period that has
@@ -103,10 +102,9 @@ trait Scheduler {
    * Java & Scala API
    */
   final def scheduleOnce(
-    delay: FiniteDuration,
-    receiver: ActorRef,
-    message: Any)(implicit executor: ExecutionContext,
-                  sender: ActorRef = Actor.noSender): Cancellable =
+      delay: FiniteDuration, receiver: ActorRef, message: Any)(
+      implicit executor: ExecutionContext,
+      sender: ActorRef = Actor.noSender): Cancellable =
     scheduleOnce(delay, new Runnable {
       override def run = receiver ! message
     })
@@ -118,7 +116,7 @@ trait Scheduler {
    * Scala API
    */
   final def scheduleOnce(delay: FiniteDuration)(f: ⇒ Unit)(
-    implicit executor: ExecutionContext): Cancellable =
+      implicit executor: ExecutionContext): Cancellable =
     scheduleOnce(delay, new Runnable { override def run = f })
 
   /**
@@ -127,16 +125,14 @@ trait Scheduler {
    *
    * Java & Scala API
    */
-  def scheduleOnce(
-    delay: FiniteDuration,
-    runnable: Runnable)(implicit executor: ExecutionContext): Cancellable
+  def scheduleOnce(delay: FiniteDuration, runnable: Runnable)(
+      implicit executor: ExecutionContext): Cancellable
 
   /**
    * The maximum supported task frequency of this scheduler, i.e. the inverse
    * of the minimum time interval between executions of a recurring task, in Hz.
    */
   def maxFrequency: Double
-
 }
 //#scheduler
 
@@ -150,6 +146,7 @@ abstract class AbstractSchedulerBase extends Scheduler
  * but it should be good practice to make it so.
  */
 trait Cancellable {
+
   /**
    * Cancels this Cancellable and returns true if that was successful.
    * If this cancellable was (concurrently) cancelled already, then this method

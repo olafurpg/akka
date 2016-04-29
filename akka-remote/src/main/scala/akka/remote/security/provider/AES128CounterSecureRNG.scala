@@ -3,7 +3,7 @@
  */
 package akka.remote.security.provider
 
-import org.uncommons.maths.random.{ AESCounterRNG, SecureRandomSeedGenerator }
+import org.uncommons.maths.random.{AESCounterRNG, SecureRandomSeedGenerator}
 import SeedSize.Seed128
 
 /**
@@ -13,8 +13,10 @@ import SeedSize.Seed128
  * This RNG is good to use to prevent startup delay when you don't have Internet access to random.org
  */
 class AES128CounterSecureRNG extends java.security.SecureRandomSpi {
+
   /**Singleton instance. */
-  private final val Instance: SecureRandomSeedGenerator = new SecureRandomSeedGenerator
+  private final val Instance: SecureRandomSeedGenerator =
+    new SecureRandomSeedGenerator
 
   /**
    * Make sure the seed generator is provided by a SecureRandom singleton and not default 'Random'
@@ -31,7 +33,8 @@ class AES128CounterSecureRNG extends java.security.SecureRandomSpi {
    *
    * @param bytes the array to be filled in with random bytes.
    */
-  override protected def engineNextBytes(bytes: Array[Byte]): Unit = rng.nextBytes(bytes)
+  override protected def engineNextBytes(bytes: Array[Byte]): Unit =
+    rng.nextBytes(bytes)
 
   /**
    * Unused method
@@ -41,6 +44,6 @@ class AES128CounterSecureRNG extends java.security.SecureRandomSpi {
    * @param numBytes the number of seed bytes to generate.
    * @return the seed bytes.
    */
-  override protected def engineGenerateSeed(numBytes: Int): Array[Byte] = Instance.generateSeed(numBytes)
+  override protected def engineGenerateSeed(numBytes: Int): Array[Byte] =
+    Instance.generateSeed(numBytes)
 }
-

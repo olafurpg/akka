@@ -6,13 +6,14 @@ package akka.http.impl.server
 
 import scala.language.implicitConversions
 import scala.concurrent.Future
-import akka.http.javadsl.{ server ⇒ js }
-import akka.http.scaladsl.{ server ⇒ ss }
+import akka.http.javadsl.{server ⇒ js}
+import akka.http.scaladsl.{server ⇒ ss}
 
 /**
  * INTERNAL API
  */
-private[http] class RouteResultImpl(val underlying: Future[ss.RouteResult]) extends js.RouteResult
+private[http] class RouteResultImpl(val underlying: Future[ss.RouteResult])
+    extends js.RouteResult
 
 /**
  * INTERNAL API

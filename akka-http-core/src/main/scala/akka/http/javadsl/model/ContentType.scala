@@ -14,22 +14,19 @@ import java.util.Optional
 // https://issues.scala-lang.org/browse/SI-9621
 object ContentType {
 
-  trait Binary extends ContentType {
-  }
+  trait Binary extends ContentType {}
 
   trait NonBinary extends ContentType {
     def charset: HttpCharset
   }
 
-  trait WithFixedCharset extends NonBinary {
-  }
+  trait WithFixedCharset extends NonBinary {}
 
-  trait WithCharset extends NonBinary {
-  }
-
+  trait WithCharset extends NonBinary {}
 }
 
 trait ContentType {
+
   /**
    * The media-type of this content-type.
    */

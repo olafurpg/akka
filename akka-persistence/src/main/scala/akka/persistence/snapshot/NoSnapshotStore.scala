@@ -4,7 +4,7 @@
 
 package akka.persistence.snapshot
 
-import akka.persistence.{ SelectedSnapshot, SnapshotMetadata, SnapshotSelectionCriteria }
+import akka.persistence.{SelectedSnapshot, SnapshotMetadata, SnapshotSelectionCriteria}
 
 import scala.concurrent.Future
 
@@ -17,24 +17,25 @@ import scala.concurrent.Future
  */
 final class NoSnapshotStore extends SnapshotStore {
 
-  final class NoSnapshotStoreException extends RuntimeException("No snapshot store configured!")
+  final class NoSnapshotStoreException
+      extends RuntimeException("No snapshot store configured!")
 
   private val flop: Future[Nothing] =
     Future.failed(new NoSnapshotStoreException)
 
-  private val none: Future[Option[SelectedSnapshot]] =
-    Future.successful(None)
+  private val none: Future[Option[SelectedSnapshot]] = Future.successful(None)
 
-  override def loadAsync(persistenceId: String, criteria: SnapshotSelectionCriteria): Future[Option[SelectedSnapshot]] =
+  override def loadAsync(
+      persistenceId: String,
+      criteria: SnapshotSelectionCriteria): Future[Option[SelectedSnapshot]] =
     none
 
-  override def saveAsync(metadata: SnapshotMetadata, snapshot: Any): Future[Unit] =
-    flop
+  override def saveAsync(
+      metadata: SnapshotMetadata, snapshot: Any): Future[Unit] = flop
 
-  override def deleteAsync(metadata: SnapshotMetadata): Future[Unit] =
-    flop
+  override def deleteAsync(metadata: SnapshotMetadata): Future[Unit] = flop
 
-  override def deleteAsync(persistenceId: String, criteria: SnapshotSelectionCriteria): Future[Unit] =
+  override def deleteAsync(persistenceId: String,
+                           criteria: SnapshotSelectionCriteria): Future[Unit] =
     flop
-
 }

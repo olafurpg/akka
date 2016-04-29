@@ -16,35 +16,49 @@ import scala.collection.immutable
 abstract class Effect
 
 object Effect {
-  @SerialVersionUID(1L) final case class Spawned(childName: String) extends Effect
-  @SerialVersionUID(1L) final case class Stopped(childName: String) extends Effect
-  @SerialVersionUID(1L) final case class Watched[T](other: ActorRef[T]) extends Effect
-  @SerialVersionUID(1L) final case class Unwatched[T](other: ActorRef[T]) extends Effect
-  @SerialVersionUID(1L) final case class ReceiveTimeoutSet(d: Duration) extends Effect
-  @SerialVersionUID(1L) final case class Messaged[U](other: ActorRef[U], msg: U) extends Effect
-  @SerialVersionUID(1L) final case class Scheduled[U](delay: FiniteDuration, target: ActorRef[U], msg: U) extends Effect
-  @SerialVersionUID(1L) case object EmptyEffect extends Effect
+  @SerialVersionUID(1L)
+  final case class Spawned(childName: String) extends Effect
+  @SerialVersionUID(1L)
+  final case class Stopped(childName: String) extends Effect
+  @SerialVersionUID(1L)
+  final case class Watched[T](other: ActorRef[T]) extends Effect
+  @SerialVersionUID(1L)
+  final case class Unwatched[T](other: ActorRef[T]) extends Effect
+  @SerialVersionUID(1L)
+  final case class ReceiveTimeoutSet(d: Duration) extends Effect
+  @SerialVersionUID(1L)
+  final case class Messaged[U](other: ActorRef[U], msg: U) extends Effect
+  @SerialVersionUID(1L)
+  final case class Scheduled[U](
+      delay: FiniteDuration, target: ActorRef[U], msg: U)
+      extends Effect
+  @SerialVersionUID(1L)
+  case object EmptyEffect extends Effect
 }
 
 /**
  * An [[ActorContext]] for testing purposes that records the effects performed
  * on it and otherwise stubs them out like a [[StubbedActorContext]].
  */
-class EffectfulActorContext[T](_name: String, _props: Props[T], _system: ActorSystem[Nothing])
-  extends StubbedActorContext[T](_name, _props)(_system) {
-  import akka.{ actor ⇒ a }
+class EffectfulActorContext[T](
+    _name: String, _props: Props[T], _system: ActorSystem[Nothing])
+    extends StubbedActorContext[T](_name, _props)(_system) {
+  import akka.{actor ⇒ a}
   import Effect._
 
   private val effectQueue = new ConcurrentLinkedQueue[Effect]
   def getEffect(): Effect = effectQueue.poll() match {
-    case null ⇒ throw new NoSuchElementException(s"polling on an empty effect queue: $name")
-    case x    ⇒ x
+    case null ⇒
+      throw new NoSuchElementException(
+          s"polling on an empty effect queue: $name")
+    case x ⇒ x
   }
   def getAllEffects(): immutable.Seq[Effect] = {
-    @tailrec def rec(acc: List[Effect]): List[Effect] = effectQueue.poll() match {
-      case null ⇒ acc.reverse
-      case x    ⇒ rec(x :: acc)
-    }
+    @tailrec def rec(acc: List[Effect]): List[Effect] =
+      effectQueue.poll() match {
+        case null ⇒ acc.reverse
+        case x    ⇒ rec(x :: acc)
+      }
     rec(Nil)
   }
   def hasEffects: Boolean = effectQueue.peek() != null
@@ -54,8 +68,11 @@ class EffectfulActorContext[T](_name: String, _props: Props[T], _system: ActorSy
 
   def currentBehavior: Behavior[T] = current
 
-  def run(msg: T): Unit = current = Behavior.canonicalize(this, current.message(this, msg), current)
-  def signal(signal: Signal): Unit = current = Behavior.canonicalize(this, current.management(this, signal), current)
+  def run(msg: T): Unit =
+    current = Behavior.canonicalize(this, current.message(this, msg), current)
+  def signal(signal: Signal): Unit =
+    current = Behavior.canonicalize(
+        this, current.management(this, signal), current)
 
   override def spawnAnonymous[U](props: Props[U]): ActorRef[U] = {
     val ref = super.spawnAnonymous(props)
@@ -99,7 +116,8 @@ class EffectfulActorContext[T](_name: String, _props: Props[T], _system: ActorSy
     effectQueue.offer(ReceiveTimeoutSet(d))
     super.setReceiveTimeout(d)
   }
-  override def schedule[U](delay: FiniteDuration, target: ActorRef[U], msg: U): a.Cancellable = {
+  override def schedule[U](
+      delay: FiniteDuration, target: ActorRef[U], msg: U): a.Cancellable = {
     effectQueue.offer(Scheduled(delay, target, msg))
     super.schedule(delay, target, msg)
   }

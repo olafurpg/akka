@@ -13,11 +13,11 @@ import akka.stream.Materializer
 import akka.http.scaladsl.server
 import akka.http.javadsl.model.HttpRequest
 import akka.http.javadsl.model.headers.Host
-import akka.http.javadsl.server.{ HttpApp, AllDirectives, Route, Directives }
+import akka.http.javadsl.server.{HttpApp, AllDirectives, Route, Directives}
 import akka.http.impl.util.JavaMapping.Implicits._
 import akka.http.impl.server.RouteImplementation
 import akka.http.scaladsl.model.HttpResponse
-import akka.http.scaladsl.server.{ RouteResult, Route ⇒ ScalaRoute }
+import akka.http.scaladsl.server.{RouteResult, Route ⇒ ScalaRoute}
 import akka.actor.ActorSystem
 import akka.event.NoLogging
 import akka.http.impl.util._
@@ -37,31 +37,41 @@ abstract class RouteTest extends AllDirectives {
 
   protected def awaitDuration: FiniteDuration = 500.millis
 
-  protected def defaultHostInfo: DefaultHostInfo = DefaultHostInfo(Host.create("example.com"), false)
+  protected def defaultHostInfo: DefaultHostInfo =
+    DefaultHostInfo(Host.create("example.com"), false)
 
   def runRoute(route: Route, request: HttpRequest): TestResponse =
     runRoute(route, request, defaultHostInfo)
 
-  def runRoute(route: Route, request: HttpRequest, defaultHostInfo: DefaultHostInfo): TestResponse =
-    runScalaRoute(ScalaRoute.seal(RouteImplementation(route)), request, defaultHostInfo)
+  def runRoute(route: Route,
+               request: HttpRequest,
+               defaultHostInfo: DefaultHostInfo): TestResponse =
+    runScalaRoute(
+        ScalaRoute.seal(RouteImplementation(route)), request, defaultHostInfo)
 
   def runRouteUnSealed(route: Route, request: HttpRequest): TestResponse =
     runRouteUnSealed(route, request, defaultHostInfo)
 
-  def runRouteUnSealed(route: Route, request: HttpRequest, defaultHostInfo: DefaultHostInfo): TestResponse =
+  def runRouteUnSealed(route: Route,
+                       request: HttpRequest,
+                       defaultHostInfo: DefaultHostInfo): TestResponse =
     runScalaRoute(RouteImplementation(route), request, defaultHostInfo)
 
-  private def runScalaRoute(scalaRoute: ScalaRoute, request: HttpRequest, defaultHostInfo: DefaultHostInfo): TestResponse = {
-    val effectiveRequest = request.asScala
-      .withEffectiveUri(
+  private def runScalaRoute(scalaRoute: ScalaRoute,
+                            request: HttpRequest,
+                            defaultHostInfo: DefaultHostInfo): TestResponse = {
+    val effectiveRequest = request.asScala.withEffectiveUri(
         securedConnection = defaultHostInfo.isSecuredConnection(),
         defaultHostHeader = defaultHostInfo.getHost().asScala)
 
-    val result = scalaRoute(new server.RequestContextImpl(effectiveRequest, NoLogging, RoutingSettings(system)))
+    val result = scalaRoute(
+        new server.RequestContextImpl(
+            effectiveRequest, NoLogging, RoutingSettings(system)))
 
     result.awaitResult(awaitDuration) match {
       case RouteResult.Complete(response) ⇒ createTestResponse(response)
-      case RouteResult.Rejected(ex)       ⇒ throw new AssertionError("got unexpected rejection: " + ex)
+      case RouteResult.Rejected(ex) ⇒
+        throw new AssertionError("got unexpected rejection: " + ex)
     }
   }
 
@@ -69,12 +79,11 @@ abstract class RouteTest extends AllDirectives {
    * Wraps a list of route alternatives with testing support.
    */
   @varargs
-  def testRoute(first: Route, others: Route*): TestRoute =
-    new TestRoute {
-      val underlying: Route = Directives.route(first, others: _*)
+  def testRoute(first: Route, others: Route*): TestRoute = new TestRoute {
+    val underlying: Route = Directives.route(first, others: _*)
 
-      def run(request: HttpRequest): TestResponse = runRoute(underlying, request)
-    }
+    def run(request: HttpRequest): TestResponse = runRoute(underlying, request)
+  }
 
   /**
    * Creates a [[TestRoute]] for the main route of an [[akka.http.javadsl.server.HttpApp]].

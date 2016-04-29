@@ -3,12 +3,13 @@
  */
 package akka.testkit
 
-import org.scalatest.{ WordSpec, BeforeAndAfterAll }
+import org.scalatest.{WordSpec, BeforeAndAfterAll}
 import org.scalatest.Matchers
 import akka.actor.ActorSystem
 
 class DefaultTimeoutSpec
-  extends WordSpec with Matchers with BeforeAndAfterAll with TestKitBase with DefaultTimeout {
+    extends WordSpec with Matchers with BeforeAndAfterAll with TestKitBase
+    with DefaultTimeout {
 
   implicit lazy val system = ActorSystem("AkkaCustomSpec")
 

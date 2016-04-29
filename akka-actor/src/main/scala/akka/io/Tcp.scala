@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.io
 
 import java.net.InetSocketAddress
@@ -11,10 +10,10 @@ import com.typesafe.config.Config
 import scala.concurrent.duration._
 import scala.collection.immutable
 import scala.collection.JavaConverters._
-import akka.util.{ Helpers, ByteString }
+import akka.util.{Helpers, ByteString}
 import akka.util.Helpers.Requiring
 import akka.actor._
-import java.lang.{ Iterable ⇒ JIterable }
+import java.lang.{Iterable ⇒ JIterable}
 
 /**
  * TCP Extension for Akka’s IO layer.
@@ -34,7 +33,8 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
 
   override def lookup = Tcp
 
-  override def createExtension(system: ExtendedActorSystem): TcpExt = new TcpExt(system)
+  override def createExtension(system: ExtendedActorSystem): TcpExt =
+    new TcpExt(system)
 
   /**
    * Java API: retrieve the Tcp extension for the given system.
@@ -83,7 +83,6 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
     final case class TcpNoDelay(on: Boolean) extends SocketOption {
       override def afterConnect(s: Socket): Unit = s.setTcpNoDelay(on)
     }
-
   }
 
   /**
@@ -114,7 +113,8 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
                            localAddress: Option[InetSocketAddress] = None,
                            options: immutable.Traversable[SocketOption] = Nil,
                            timeout: Option[FiniteDuration] = None,
-                           pullMode: Boolean = false) extends Command
+                           pullMode: Boolean = false)
+      extends Command
 
   /**
    * The Bind message is send to the TCP manager actor, which is obtained via
@@ -139,7 +139,8 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
                         localAddress: InetSocketAddress,
                         backlog: Int = 100,
                         options: immutable.Traversable[SocketOption] = Nil,
-                        pullMode: Boolean = false) extends Command
+                        pullMode: Boolean = false)
+      extends Command
 
   /**
    * This message must be sent to a TCP connection actor after receiving the
@@ -159,7 +160,10 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    *                notification until `ResumeWriting` is received. This can
    *                be used to implement NACK-based write backpressure.
    */
-  final case class Register(handler: ActorRef, keepOpenOnPeerClosed: Boolean = false, useResumeWriting: Boolean = true) extends Command
+  final case class Register(handler: ActorRef,
+                            keepOpenOnPeerClosed: Boolean = false,
+                            useResumeWriting: Boolean = true)
+      extends Command
 
   /**
    * In order to close down a listening socket, send this message to that socket’s
@@ -172,6 +176,7 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * Common interface for all commands which aim to close down an open connection.
    */
   sealed trait CloseCommand extends Command with DeadLetterSuppression {
+
     /**
      * The corresponding event which is sent as an acknowledgment once the
      * close operation is finished.
@@ -186,6 +191,7 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * message.
    */
   case object Close extends CloseCommand {
+
     /**
      * The corresponding event which is sent as an acknowledgment once the
      * close operation is finished.
@@ -200,6 +206,7 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * once the socket is closed using a `ConfirmedClosed` message.
    */
   case object ConfirmedClose extends CloseCommand {
+
     /**
      * The corresponding event which is sent as an acknowledgment once the
      * close operation is finished.
@@ -215,6 +222,7 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * `Aborted` message.
    */
   case object Abort extends CloseCommand {
+
     /**
      * The corresponding event which is sent as an acknowledgment once the
      * close operation is finished.
@@ -240,11 +248,13 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * Common interface for all write commands.
    */
   sealed abstract class WriteCommand extends Command {
+
     /**
      * Prepends this command with another `Write` or `WriteFile` to form
      * a `CompoundWrite`.
      */
-    def +:(other: SimpleWriteCommand): CompoundWrite = CompoundWrite(other, this)
+    def +:(other: SimpleWriteCommand): CompoundWrite =
+      CompoundWrite(other, this)
 
     /**
      * Prepends this command with a number of other writes.
@@ -268,26 +278,31 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
      * The first element of the given Iterable becomes the first sub write of a potentially
      * created `CompoundWrite`.
      */
-    def prepend(writes: JIterable[WriteCommand]): WriteCommand = writes.asScala ++: this
+    def prepend(writes: JIterable[WriteCommand]): WriteCommand =
+      writes.asScala ++: this
   }
 
   object WriteCommand {
+
     /**
      * Combines the given number of write commands into one atomic `WriteCommand`.
      */
-    def apply(writes: Iterable[WriteCommand]): WriteCommand = writes ++: Write.empty
+    def apply(writes: Iterable[WriteCommand]): WriteCommand =
+      writes ++: Write.empty
 
     /**
      * Java API: combines the given number of write commands into one atomic `WriteCommand`.
      */
-    def create(writes: JIterable[WriteCommand]): WriteCommand = apply(writes.asScala)
+    def create(writes: JIterable[WriteCommand]): WriteCommand =
+      apply(writes.asScala)
   }
 
   /**
    * Common supertype of [[Write]] and [[WriteFile]].
    */
   sealed abstract class SimpleWriteCommand extends WriteCommand {
-    require(ack != null, "ack must be non-null. Use NoAck if you don't want acks.")
+    require(
+        ack != null, "ack must be non-null. Use NoAck if you don't want acks.")
 
     /**
      * The acknowledgment token associated with this write command.
@@ -316,8 +331,10 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * or have been sent!</b> Unfortunately there is no way to determine whether
    * a particular write has been sent by the O/S.
    */
-  final case class Write(data: ByteString, ack: Event) extends SimpleWriteCommand
+  final case class Write(data: ByteString, ack: Event)
+      extends SimpleWriteCommand
   object Write {
+
     /**
      * The empty Write doesn't write anything and isn't acknowledged.
      * It will, however, be denied and sent back with `CommandFailed` if the
@@ -343,7 +360,9 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * or have been sent!</b> Unfortunately there is no way to determine whether
    * a particular write has been sent by the O/S.
    */
-  final case class WriteFile(filePath: String, position: Long, count: Long, ack: Event) extends SimpleWriteCommand {
+  final case class WriteFile(
+      filePath: String, position: Long, count: Long, ack: Event)
+      extends SimpleWriteCommand {
     require(position >= 0, "WriteFile.position must be >= 0")
     require(count > 0, "WriteFile.count must be > 0")
   }
@@ -356,19 +375,19 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * If the sub commands contain `ack` requests they will be honored as soon as the
    * respective write has been written completely.
    */
-  final case class CompoundWrite(override val head: SimpleWriteCommand, tailCommand: WriteCommand) extends WriteCommand
-    with immutable.Iterable[SimpleWriteCommand] {
+  final case class CompoundWrite(
+      override val head: SimpleWriteCommand, tailCommand: WriteCommand)
+      extends WriteCommand with immutable.Iterable[SimpleWriteCommand] {
 
     def iterator: Iterator[SimpleWriteCommand] =
       new Iterator[SimpleWriteCommand] {
         private[this] var current: WriteCommand = CompoundWrite.this
         def hasNext: Boolean = current ne null
-        def next(): SimpleWriteCommand =
-          current match {
-            case null                  ⇒ Iterator.empty.next()
-            case CompoundWrite(h, t)   ⇒ { current = t; h }
-            case x: SimpleWriteCommand ⇒ { current = null; x }
-          }
+        def next(): SimpleWriteCommand = current match {
+          case null                  ⇒ Iterator.empty.next()
+          case CompoundWrite(h, t)   ⇒ { current = t; h }
+          case x: SimpleWriteCommand ⇒ { current = null; x }
+        }
       }
   }
 
@@ -419,7 +438,9 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * in the [[Bind]] message. The connection is characterized by the `remoteAddress`
    * and `localAddress` TCP endpoints.
    */
-  final case class Connected(remoteAddress: InetSocketAddress, localAddress: InetSocketAddress) extends Event
+  final case class Connected(
+      remoteAddress: InetSocketAddress, localAddress: InetSocketAddress)
+      extends Event
 
   /**
    * Whenever a command cannot be completed, the queried actor will reply with
@@ -456,41 +477,49 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * has been closed or half-closed.
    */
   sealed trait ConnectionClosed extends Event with DeadLetterSuppression {
+
     /**
      * `true` iff the connection has been closed in response to an `Abort` command.
      */
     def isAborted: Boolean = false
+
     /**
      * `true` iff the connection has been fully closed in response to a
      * `ConfirmedClose` command.
      */
     def isConfirmed: Boolean = false
+
     /**
      * `true` iff the connection has been closed by the peer; in case
      * `keepOpenOnPeerClosed` is in effect as per the [[Register]] command,
      * this connection’s reading half is now closed.
      */
     def isPeerClosed: Boolean = false
+
     /**
      * `true` iff the connection has been closed due to an IO error.
      */
     def isErrorClosed: Boolean = false
+
     /**
      * If `isErrorClosed` returns true, then the error condition can be
      * retrieved by this method.
      */
     def getErrorCause: String = null
   }
+
   /**
    * The connection has been closed normally in response to a `Close` command.
    */
   case object Closed extends ConnectionClosed
+
   /**
    * The connection has been aborted in response to an `Abort` command.
    */
   case object Aborted extends ConnectionClosed {
     override def isAborted = true
   }
+
   /**
    * The connection has been half-closed by us and then half-close by the peer
    * in response to a `ConfirmedClose` command.
@@ -498,12 +527,14 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
   case object ConfirmedClosed extends ConnectionClosed {
     override def isConfirmed = true
   }
+
   /**
    * The peer has closed its writing half of the connection.
    */
   case object PeerClosed extends ConnectionClosed {
     override def isPeerClosed = true
   }
+
   /**
    * The connection has been closed due to an IO error.
    */
@@ -516,35 +547,44 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
 class TcpExt(system: ExtendedActorSystem) extends IO.Extension {
 
   val Settings = new Settings(system.settings.config.getConfig("akka.io.tcp"))
-  class Settings private[TcpExt] (_config: Config) extends SelectionHandlerSettings(_config) {
+  class Settings private[TcpExt](_config: Config)
+      extends SelectionHandlerSettings(_config) {
     import akka.util.Helpers.ConfigOps
     import _config._
 
-    val NrOfSelectors: Int = getInt("nr-of-selectors") requiring (_ > 0, "nr-of-selectors must be > 0")
+    val NrOfSelectors: Int =
+      getInt("nr-of-selectors") requiring
+      (_ > 0, "nr-of-selectors must be > 0")
 
-    val BatchAcceptLimit: Int = getInt("batch-accept-limit") requiring (_ > 0, "batch-accept-limit must be > 0")
-    val DirectBufferSize: Int = getIntBytes("direct-buffer-size")
+    val BatchAcceptLimit: Int =
+      getInt("batch-accept-limit") requiring
+      (_ > 0, "batch-accept-limit must be > 0")
+    val DirectBufferSize: Int        = getIntBytes("direct-buffer-size")
     val MaxDirectBufferPoolSize: Int = getInt("direct-buffer-pool-limit")
     val RegisterTimeout: Duration = getString("register-timeout") match {
       case "infinite" ⇒ Duration.Undefined
       case x          ⇒ _config.getMillisDuration("register-timeout")
     }
-    val ReceivedMessageSizeLimit: Int = getString("max-received-message-size") match {
-      case "unlimited" ⇒ Int.MaxValue
-      case x           ⇒ getIntBytes("max-received-message-size")
-    }
+    val ReceivedMessageSizeLimit: Int =
+      getString("max-received-message-size") match {
+        case "unlimited" ⇒ Int.MaxValue
+        case x           ⇒ getIntBytes("max-received-message-size")
+      }
     val ManagementDispatcher: String = getString("management-dispatcher")
-    val FileIODispatcher: String = getString("file-io-dispatcher")
+    val FileIODispatcher: String     = getString("file-io-dispatcher")
     val TransferToLimit: Int = getString("file-io-transferTo-limit") match {
       case "unlimited" ⇒ Int.MaxValue
       case _           ⇒ getIntBytes("file-io-transferTo-limit")
     }
 
-    val MaxChannelsPerSelector: Int = if (MaxChannels == -1) -1 else math.max(MaxChannels / NrOfSelectors, 1)
-    val FinishConnectRetries: Int = getInt("finish-connect-retries") requiring (_ > 0,
-      "finish-connect-retries must be > 0")
+    val MaxChannelsPerSelector: Int =
+      if (MaxChannels == -1) -1 else math.max(MaxChannels / NrOfSelectors, 1)
+    val FinishConnectRetries: Int =
+      getInt("finish-connect-retries") requiring
+      (_ > 0, "finish-connect-retries must be > 0")
 
-    val WindowsConnectionAbortWorkaroundEnabled: Boolean = getString("windows-connection-abort-workaround-enabled") match {
+    val WindowsConnectionAbortWorkaroundEnabled: Boolean = getString(
+        "windows-connection-abort-workaround-enabled") match {
       case "auto" ⇒ Helpers.isWindows
       case _      ⇒ getBoolean("windows-connection-abort-workaround-enabled")
     }
@@ -561,9 +601,10 @@ class TcpExt(system: ExtendedActorSystem) extends IO.Extension {
    *
    */
   val manager: ActorRef = {
-    system.systemActorOf(
-      props = Props(classOf[TcpManager], this).withDispatcher(Settings.ManagementDispatcher).withDeploy(Deploy.local),
-      name = "IO-TCP")
+    system.systemActorOf(props = Props(classOf[TcpManager], this)
+                             .withDispatcher(Settings.ManagementDispatcher)
+                             .withDeploy(Deploy.local),
+                         name = "IO-TCP")
   }
 
   /**
@@ -571,7 +612,8 @@ class TcpExt(system: ExtendedActorSystem) extends IO.Extension {
    */
   def getManager: ActorRef = manager
 
-  val bufferPool: BufferPool = new DirectByteBufferPool(Settings.DirectBufferSize, Settings.MaxDirectBufferPoolSize)
+  val bufferPool: BufferPool = new DirectByteBufferPool(
+      Settings.DirectBufferSize, Settings.MaxDirectBufferPoolSize)
   val fileIoDispatcher = system.dispatchers.lookup(Settings.FileIODispatcher)
 }
 
@@ -628,13 +670,19 @@ object TcpMessage {
               localAddress: InetSocketAddress,
               options: JIterable[SocketOption],
               timeout: FiniteDuration,
-              pullMode: Boolean): Command = Connect(remoteAddress, Option(localAddress), options, Option(timeout), pullMode)
+              pullMode: Boolean): Command =
+    Connect(remoteAddress,
+            Option(localAddress),
+            options,
+            Option(timeout),
+            pullMode)
 
   /**
    * Connect to the given `remoteAddress` without binding to a local address and without
    * specifying options.
    */
-  def connect(remoteAddress: InetSocketAddress): Command = Connect(remoteAddress, None, Nil, None, pullMode = false)
+  def connect(remoteAddress: InetSocketAddress): Command =
+    Connect(remoteAddress, None, Nil, None, pullMode = false)
 
   /**
    * The Bind message is send to the TCP manager actor, which is obtained via
@@ -662,13 +710,15 @@ object TcpMessage {
            endpoint: InetSocketAddress,
            backlog: Int,
            options: JIterable[SocketOption],
-           pullMode: Boolean): Command = Bind(handler, endpoint, backlog, options, pullMode)
+           pullMode: Boolean): Command =
+    Bind(handler, endpoint, backlog, options, pullMode)
+
   /**
    * Open a listening socket without specifying options.
    */
-  def bind(handler: ActorRef,
-           endpoint: InetSocketAddress,
-           backlog: Int): Command = Bind(handler, endpoint, backlog, Nil)
+  def bind(
+      handler: ActorRef, endpoint: InetSocketAddress, backlog: Int): Command =
+    Bind(handler, endpoint, backlog, Nil)
 
   /**
    * This message must be sent to a TCP connection actor after receiving the
@@ -688,8 +738,11 @@ object TcpMessage {
    *                notification until [[Tcp]] `ResumeWriting` is received. This can
    *                be used to implement NACK-based write backpressure.
    */
-  def register(handler: ActorRef, keepOpenOnPeerClosed: Boolean, useResumeWriting: Boolean): Command =
+  def register(handler: ActorRef,
+               keepOpenOnPeerClosed: Boolean,
+               useResumeWriting: Boolean): Command =
     Register(handler, keepOpenOnPeerClosed, useResumeWriting)
+
   /**
    * The same as `register(handler, false, false)`.
    */
@@ -734,6 +787,7 @@ object TcpMessage {
    * to recognize which write failed when receiving a [[Tcp.CommandFailed]] message.
    */
   def noAck(token: AnyRef): NoAck = NoAck(token)
+
   /**
    * Default [[Tcp.NoAck]] instance which is used when no acknowledgment information is
    * explicitly provided. Its “token” is `null`.
@@ -751,6 +805,7 @@ object TcpMessage {
    * a particular write has been sent by the O/S.
    */
   def write(data: ByteString, ack: Event): Command = Write(data, ack)
+
   /**
    * The same as `write(data, noAck())`.
    */
@@ -766,7 +821,8 @@ object TcpMessage {
    * or have been sent!</b> Unfortunately there is no way to determine whether
    * a particular write has been sent by the O/S.
    */
-  def writeFile(filePath: String, position: Long, count: Long, ack: Event): Command =
+  def writeFile(
+      filePath: String, position: Long, count: Long, ack: Event): Command =
     WriteFile(filePath, position, count, ack)
 
   /**
@@ -798,7 +854,8 @@ object TcpMessage {
    */
   def resumeAccepting(batchSize: Int): Command = ResumeAccepting(batchSize)
 
-  implicit private def fromJava[T](coll: JIterable[T]): immutable.Traversable[T] = {
+  implicit private def fromJava[T](
+      coll: JIterable[T]): immutable.Traversable[T] = {
     akka.japi.Util.immutableSeq(coll)
   }
 }

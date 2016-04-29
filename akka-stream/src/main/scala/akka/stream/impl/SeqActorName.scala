@@ -21,8 +21,11 @@ object SeqActorName {
   def apply(prefix: String) = new SeqActorNameImpl(prefix, new AtomicLong(0))
 }
 
-private[akka] final class SeqActorNameImpl(val prefix: String, counter: AtomicLong) extends SeqActorName {
+private[akka] final class SeqActorNameImpl(
+    val prefix: String, counter: AtomicLong)
+    extends SeqActorName {
   def next(): String = prefix + '-' + counter.getAndIncrement()
 
-  def copy(newPrefix: String): SeqActorName = new SeqActorNameImpl(newPrefix, counter)
+  def copy(newPrefix: String): SeqActorName =
+    new SeqActorNameImpl(newPrefix, counter)
 }

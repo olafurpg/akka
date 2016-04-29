@@ -20,5 +20,4 @@ abstract class HostConnectionPool private[http] {
    * The produced [[CompletionStage]] is fulfilled when the shutdown has been completed.
    */
   def shutdown(ec: ExecutionContextExecutor): CompletionStage[Done]
-
 }

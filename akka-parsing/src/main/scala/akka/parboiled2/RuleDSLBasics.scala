@@ -45,7 +45,8 @@ trait RuleDSLBasics {
    * a successful match.
    */
   @compileTimeOnly("Calls to `valueMap` must be inside `rule` macro")
-  implicit def valueMap[T](m: Map[String, T])(implicit h: HListable[T]): RuleN[h.Out] = `n/a`
+  implicit def valueMap[T](m: Map[String, T])(
+      implicit h: HListable[T]): RuleN[h.Out] = `n/a`
 
   /**
    * Matches any single one of the given characters.
@@ -120,7 +121,8 @@ trait RuleDSLBasics {
    */
   def failX[I <: HList, O <: HList](expected: String): Rule[I, O] = `n/a`
 
-  @compileTimeOnly("Calls to `str2CharRangeSupport` must be inside `rule` macro")
+  @compileTimeOnly(
+      "Calls to `str2CharRangeSupport` must be inside `rule` macro")
   implicit def str2CharRangeSupport(s: String): CharRangeSupport = `n/a`
   sealed trait CharRangeSupport {
     def -(other: String): Rule0

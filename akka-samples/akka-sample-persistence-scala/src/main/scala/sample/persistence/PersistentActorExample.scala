@@ -9,8 +9,8 @@ case class Evt(data: String)
 
 case class ExampleState(events: List[String] = Nil) {
   def updated(evt: Evt): ExampleState = copy(evt.data :: events)
-  def size: Int = events.length
-  override def toString: String = events.reverse.toString
+  def size: Int                       = events.length
+  override def toString: String       = events.reverse.toString
 }
 
 class ExamplePersistentActor extends PersistentActor {
@@ -18,11 +18,9 @@ class ExamplePersistentActor extends PersistentActor {
 
   var state = ExampleState()
 
-  def updateState(event: Evt): Unit =
-    state = state.updated(event)
+  def updateState(event: Evt): Unit = state = state.updated(event)
 
-  def numEvents =
-    state.size
+  def numEvents = state.size
 
   val receiveRecover: Receive = {
     case evt: Evt                                 => updateState(evt)
@@ -39,14 +37,14 @@ class ExamplePersistentActor extends PersistentActor {
     case "snap"  => saveSnapshot(state)
     case "print" => println(state)
   }
-
 }
 //#persistent-actor-example
 
 object PersistentActorExample extends App {
 
   val system = ActorSystem("example")
-  val persistentActor = system.actorOf(Props[ExamplePersistentActor], "persistentActor-4-scala")
+  val persistentActor =
+    system.actorOf(Props[ExamplePersistentActor], "persistentActor-4-scala")
 
   persistentActor ! Cmd("foo")
   persistentActor ! Cmd("baz")

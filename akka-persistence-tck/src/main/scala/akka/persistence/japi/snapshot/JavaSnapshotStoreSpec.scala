@@ -3,7 +3,7 @@
  */
 package akka.persistence.japi.snapshot
 
-import akka.persistence.snapshot.{ SnapshotStoreSpec }
+import akka.persistence.snapshot.{SnapshotStoreSpec}
 import com.typesafe.config.Config
 
 /**

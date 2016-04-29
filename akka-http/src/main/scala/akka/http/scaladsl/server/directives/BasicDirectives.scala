@@ -5,11 +5,11 @@
 package akka.http.scaladsl.server
 package directives
 
-import scala.concurrent.{ Future, ExecutionContextExecutor }
+import scala.concurrent.{Future, ExecutionContextExecutor}
 import scala.collection.immutable
 import akka.event.LoggingAdapter
 import akka.stream.Materializer
-import akka.http.scaladsl.settings.{ RoutingSettings, ParserSettings }
+import akka.http.scaladsl.settings.{RoutingSettings, ParserSettings}
 import akka.http.scaladsl.server.util.Tuple
 import akka.http.scaladsl.util.FastFuture
 import akka.http.scaladsl.model._
@@ -24,14 +24,17 @@ trait BasicDirectives {
   /**
    * @group basic
    */
-  def mapInnerRoute(f: Route ⇒ Route): Directive0 =
-    Directive { inner ⇒ f(inner(())) }
+  def mapInnerRoute(f: Route ⇒ Route): Directive0 = Directive { inner ⇒
+    f(inner(()))
+  }
 
   /**
    * @group basic
    */
   def mapRequestContext(f: RequestContext ⇒ RequestContext): Directive0 =
-    mapInnerRoute { inner ⇒ ctx ⇒ inner(f(ctx)) }
+    mapInnerRoute { inner ⇒ ctx ⇒
+      inner(f(ctx))
+    }
 
   /**
    * @group basic
@@ -42,56 +45,72 @@ trait BasicDirectives {
   /**
    * @group basic
    */
-  def mapRouteResultFuture(f: Future[RouteResult] ⇒ Future[RouteResult]): Directive0 =
-    Directive { inner ⇒ ctx ⇒ f(inner(())(ctx)) }
+  def mapRouteResultFuture(
+      f: Future[RouteResult] ⇒ Future[RouteResult]): Directive0 =
+    Directive { inner ⇒ ctx ⇒
+      f(inner(())(ctx))
+    }
 
   /**
    * @group basic
    */
   def mapRouteResult(f: RouteResult ⇒ RouteResult): Directive0 =
-    Directive { inner ⇒ ctx ⇒ inner(())(ctx).fast.map(f)(ctx.executionContext) }
+    Directive { inner ⇒ ctx ⇒
+      inner(())(ctx).fast.map(f)(ctx.executionContext)
+    }
 
   /**
    * @group basic
    */
   def mapRouteResultWith(f: RouteResult ⇒ Future[RouteResult]): Directive0 =
-    Directive { inner ⇒ ctx ⇒ inner(())(ctx).fast.flatMap(f)(ctx.executionContext) }
+    Directive { inner ⇒ ctx ⇒
+      inner(())(ctx).fast.flatMap(f)(ctx.executionContext)
+    }
 
   /**
    * @group basic
    */
-  def mapRouteResultPF(f: PartialFunction[RouteResult, RouteResult]): Directive0 =
+  def mapRouteResultPF(
+      f: PartialFunction[RouteResult, RouteResult]): Directive0 =
     mapRouteResult(f.applyOrElse(_, conforms[RouteResult]))
 
   /**
    * @group basic
    */
-  def mapRouteResultWithPF(f: PartialFunction[RouteResult, Future[RouteResult]]): Directive0 =
+  def mapRouteResultWithPF(
+      f: PartialFunction[RouteResult, Future[RouteResult]]): Directive0 =
     mapRouteResultWith(f.applyOrElse(_, FastFuture.successful[RouteResult]))
 
   /**
    * @group basic
    */
-  def recoverRejections(f: immutable.Seq[Rejection] ⇒ RouteResult): Directive0 =
+  def recoverRejections(
+      f: immutable.Seq[Rejection] ⇒ RouteResult): Directive0 =
     mapRouteResultPF { case RouteResult.Rejected(rejections) ⇒ f(rejections) }
 
   /**
    * @group basic
    */
-  def recoverRejectionsWith(f: immutable.Seq[Rejection] ⇒ Future[RouteResult]): Directive0 =
-    mapRouteResultWithPF { case RouteResult.Rejected(rejections) ⇒ f(rejections) }
+  def recoverRejectionsWith(
+      f: immutable.Seq[Rejection] ⇒ Future[RouteResult]): Directive0 =
+    mapRouteResultWithPF {
+      case RouteResult.Rejected(rejections) ⇒ f(rejections)
+    }
 
   /**
    * @group basic
    */
-  def mapRejections(f: immutable.Seq[Rejection] ⇒ immutable.Seq[Rejection]): Directive0 =
+  def mapRejections(
+      f: immutable.Seq[Rejection] ⇒ immutable.Seq[Rejection]): Directive0 =
     recoverRejections(rejections ⇒ RouteResult.Rejected(f(rejections)))
 
   /**
    * @group basic
    */
   def mapResponse(f: HttpResponse ⇒ HttpResponse): Directive0 =
-    mapRouteResultPF { case RouteResult.Complete(response) ⇒ RouteResult.Complete(f(response)) }
+    mapRouteResultPF {
+      case RouteResult.Complete(response) ⇒ RouteResult.Complete(f(response))
+    }
 
   /**
    * @group basic
@@ -102,7 +121,8 @@ trait BasicDirectives {
   /**
    * @group basic
    */
-  def mapResponseHeaders(f: immutable.Seq[HttpHeader] ⇒ immutable.Seq[HttpHeader]): Directive0 =
+  def mapResponseHeaders(
+      f: immutable.Seq[HttpHeader] ⇒ immutable.Seq[HttpHeader]): Directive0 =
     mapResponse(_ mapHeaders f)
 
   /**
@@ -125,8 +145,7 @@ trait BasicDirectives {
    *
    * @group basic
    */
-  def tprovide[L: Tuple](values: L): Directive[L] =
-    Directive { _(values) }
+  def tprovide[L : Tuple](values: L): Directive[L] = Directive { _ (values) }
 
   /**
    * Extracts a single value using the given function.
@@ -141,8 +160,10 @@ trait BasicDirectives {
    *
    * @group basic
    */
-  def textract[L: Tuple](f: RequestContext ⇒ L): Directive[L] =
-    Directive { inner ⇒ ctx ⇒ inner(f(ctx))(ctx) }
+  def textract[L : Tuple](f: RequestContext ⇒ L): Directive[L] =
+    Directive { inner ⇒ ctx ⇒
+      inner(f(ctx))(ctx)
+    }
 
   /**
    * Adds a TransformationRejection cancelling all rejections equal to the given one
@@ -184,7 +205,8 @@ trait BasicDirectives {
    *
    * @group basic
    */
-  def extractUnmatchedPath: Directive1[Uri.Path] = BasicDirectives._extractUnmatchedPath
+  def extractUnmatchedPath: Directive1[Uri.Path] =
+    BasicDirectives._extractUnmatchedPath
 
   /**
    * Extracts the current [[HttpRequest]] instance.
@@ -213,7 +235,8 @@ trait BasicDirectives {
    *
    * @group basic
    */
-  def extractExecutionContext: Directive1[ExecutionContextExecutor] = BasicDirectives._extractExecutionContext
+  def extractExecutionContext: Directive1[ExecutionContextExecutor] =
+    BasicDirectives._extractExecutionContext
 
   /**
    * Runs its inner route with the given alternative [[akka.stream.Materializer]].
@@ -228,7 +251,8 @@ trait BasicDirectives {
    *
    * @group basic
    */
-  def extractMaterializer: Directive1[Materializer] = BasicDirectives._extractMaterializer
+  def extractMaterializer: Directive1[Materializer] =
+    BasicDirectives._extractMaterializer
 
   /**
    * Runs its inner route with the given alternative [[akka.event.LoggingAdapter]].
@@ -243,8 +267,7 @@ trait BasicDirectives {
    *
    * @group basic
    */
-  def extractLog: Directive1[LoggingAdapter] =
-    BasicDirectives._extractLog
+  def extractLog: Directive1[LoggingAdapter] = BasicDirectives._extractLog
 
   /**
    * Runs its inner route with the given alternative [[RoutingSettings]].
@@ -283,17 +306,24 @@ trait BasicDirectives {
    *
    * @group basic
    */
-  def extractRequestContext: Directive1[RequestContext] = BasicDirectives._extractRequestContext
+  def extractRequestContext: Directive1[RequestContext] =
+    BasicDirectives._extractRequestContext
 }
 
 object BasicDirectives extends BasicDirectives {
-  private val _extractUnmatchedPath: Directive1[Uri.Path] = extract(_.unmatchedPath)
+  private val _extractUnmatchedPath: Directive1[Uri.Path] = extract(
+      _.unmatchedPath)
   private val _extractRequest: Directive1[HttpRequest] = extract(_.request)
-  private val _extractUri: Directive1[Uri] = extract(_.request.uri)
-  private val _extractExecutionContext: Directive1[ExecutionContextExecutor] = extract(_.executionContext)
-  private val _extractMaterializer: Directive1[Materializer] = extract(_.materializer)
+  private val _extractUri: Directive1[Uri]             = extract(_.request.uri)
+  private val _extractExecutionContext: Directive1[ExecutionContextExecutor] =
+    extract(_.executionContext)
+  private val _extractMaterializer: Directive1[Materializer] = extract(
+      _.materializer)
   private val _extractLog: Directive1[LoggingAdapter] = extract(_.log)
-  private val _extractSettings: Directive1[RoutingSettings] = extract(_.settings)
-  private val _extractParserSettings: Directive1[ParserSettings] = extract(_.parserSettings)
-  private val _extractRequestContext: Directive1[RequestContext] = extract(conforms)
+  private val _extractSettings: Directive1[RoutingSettings] = extract(
+      _.settings)
+  private val _extractParserSettings: Directive1[ParserSettings] = extract(
+      _.parserSettings)
+  private val _extractRequestContext: Directive1[RequestContext] = extract(
+      conforms)
 }

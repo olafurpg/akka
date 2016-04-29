@@ -11,5 +11,4 @@ object Timeouts {
   def publisherShutdownTimeoutMillis: Int = 3000
 
   def defaultTimeoutMillis: Int = 800
-
 }

@@ -1,24 +1,23 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.camel.internal.component
 
-import java.util.{ Map ⇒ JMap }
+import java.util.{Map ⇒ JMap}
 import org.apache.camel._
-import org.apache.camel.impl.{ DefaultProducer, DefaultEndpoint, DefaultComponent }
+import org.apache.camel.impl.{DefaultProducer, DefaultEndpoint, DefaultComponent}
 import akka.actor._
 import akka.pattern._
 import scala.beans.BeanProperty
 import scala.concurrent.duration._
-import scala.concurrent.{ Future }
+import scala.concurrent.{Future}
 import scala.util.control.NonFatal
-import java.util.concurrent.{ TimeoutException, CountDownLatch }
+import java.util.concurrent.{TimeoutException, CountDownLatch}
 import akka.util.Timeout
 import akka.camel.internal.CamelExchangeAdapter
-import akka.camel.{ ActorNotRegisteredException, Camel, Ack, FailureResult, CamelMessage }
+import akka.camel.{ActorNotRegisteredException, Camel, Ack, FailureResult, CamelMessage}
 import support.TypeConverterSupport
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 /**
  * INTERNAL API
@@ -30,11 +29,15 @@ import scala.util.{ Failure, Success, Try }
  * Messages are sent to [[akka.camel.Consumer]] actors through a [[akka.camel.internal.component.ActorEndpoint]] that
  * this component provides.
  */
-private[camel] class ActorComponent(camel: Camel, system: ActorSystem) extends DefaultComponent {
+private[camel] class ActorComponent(camel: Camel, system: ActorSystem)
+    extends DefaultComponent {
+
   /**
    * @see org.apache.camel.Component
    */
-  def createEndpoint(uri: String, remaining: String, parameters: JMap[String, Object]): ActorEndpoint =
+  def createEndpoint(uri: String,
+                     remaining: String,
+                     parameters: JMap[String, Object]): ActorEndpoint =
     new ActorEndpoint(uri, this, ActorEndpointPath.fromCamelPath(uri), camel)
 }
 
@@ -52,7 +55,8 @@ private[camel] class ActorComponent(camel: Camel, system: ActorSystem) extends D
 private[camel] class ActorEndpoint(uri: String,
                                    comp: ActorComponent,
                                    val path: ActorEndpointPath,
-                                   val camel: Camel) extends DefaultEndpoint(uri, comp) with ActorEndpointConfig {
+                                   val camel: Camel)
+    extends DefaultEndpoint(uri, comp) with ActorEndpointConfig {
 
   /**
    * The ActorEndpoint only supports receiving messages from Camel.
@@ -98,13 +102,16 @@ private[camel] trait ActorEndpointConfig {
  * @see akka.camel.internal.component.ActorComponent
  * @see akka.camel.internal.component.ActorEndpoint
  */
-private[camel] class ActorProducer(val endpoint: ActorEndpoint, camel: Camel) extends DefaultProducer(endpoint) with AsyncProcessor {
+private[camel] class ActorProducer(val endpoint: ActorEndpoint, camel: Camel)
+    extends DefaultProducer(endpoint) with AsyncProcessor {
+
   /**
    * Processes the exchange.
    * Calls the synchronous version of the method and waits for the result (blocking).
    * @param exchange the exchange to process
    */
-  def process(exchange: Exchange): Unit = processExchangeAdapter(new CamelExchangeAdapter(exchange))
+  def process(exchange: Exchange): Unit =
+    processExchangeAdapter(new CamelExchangeAdapter(exchange))
 
   /**
    * Processes the message exchange. the caller supports having the exchange asynchronously processed.
@@ -116,16 +123,20 @@ private[camel] class ActorProducer(val endpoint: ActorEndpoint, camel: Camel) ex
    *        The callback should therefore be careful of starting recursive loop.
    * @return (doneSync) true to continue execute synchronously, false to continue being executed asynchronously
    */
-  def process(exchange: Exchange, callback: AsyncCallback): Boolean = processExchangeAdapter(new CamelExchangeAdapter(exchange), callback)
+  def process(exchange: Exchange, callback: AsyncCallback): Boolean =
+    processExchangeAdapter(new CamelExchangeAdapter(exchange), callback)
 
   /**
    * INTERNAL API
    * Processes the [[akka.camel.internal.CamelExchangeAdapter]]
    * @param exchange the [[akka.camel.internal.CamelExchangeAdapter]]
    */
-  private[camel] def processExchangeAdapter(exchange: CamelExchangeAdapter): Unit = {
+  private[camel] def processExchangeAdapter(
+      exchange: CamelExchangeAdapter): Unit = {
     val isDone = new CountDownLatch(1)
-    processExchangeAdapter(exchange, new AsyncCallback { def done(doneSync: Boolean) { isDone.countDown() } })
+    processExchangeAdapter(exchange, new AsyncCallback {
+      def done(doneSync: Boolean) { isDone.countDown() }
+    })
     isDone.await(endpoint.replyTimeout.length, endpoint.replyTimeout.unit)
   }
 
@@ -137,7 +148,8 @@ private[camel] class ActorProducer(val endpoint: ActorEndpoint, camel: Camel) ex
    * @param callback the callback
    * @return (doneSync) true to continue execute synchronously, false to continue being executed asynchronously
    */
-  private[camel] def processExchangeAdapter(exchange: CamelExchangeAdapter, callback: AsyncCallback): Boolean = {
+  private[camel] def processExchangeAdapter(
+      exchange: CamelExchangeAdapter, callback: AsyncCallback): Boolean = {
     if (!exchange.isOutCapable && endpoint.autoAck) {
       fireAndForget(messageFor(exchange), exchange)
       callback.done(true)
@@ -146,35 +158,58 @@ private[camel] class ActorProducer(val endpoint: ActorEndpoint, camel: Camel) ex
       val action: PartialFunction[Try[Any], Unit] =
         if (exchange.isOutCapable) {
           case Success(failure: FailureResult) ⇒ exchange.setFailure(failure)
-          case Success(msg)                    ⇒ exchange.setResponse(CamelMessage.canonicalize(msg))
-          case Failure(e: TimeoutException)    ⇒ exchange.setFailure(FailureResult(new TimeoutException("Failed to get response from the actor [%s] within timeout [%s]. Check replyTimeout and blocking settings [%s]" format (endpoint.path, endpoint.replyTimeout, endpoint))))
-          case Failure(throwable)              ⇒ exchange.setFailure(FailureResult(throwable))
+          case Success(msg) ⇒
+            exchange.setResponse(CamelMessage.canonicalize(msg))
+          case Failure(e: TimeoutException) ⇒
+            exchange.setFailure(FailureResult(new TimeoutException(
+                        "Failed to get response from the actor [%s] within timeout [%s]. Check replyTimeout and blocking settings [%s]" format
+                        (endpoint.path, endpoint.replyTimeout, endpoint))))
+          case Failure(throwable) ⇒
+            exchange.setFailure(FailureResult(throwable))
         } else {
           case Success(Ack)                    ⇒ () /* no response message to set */
           case Success(failure: FailureResult) ⇒ exchange.setFailure(failure)
-          case Success(msg)                    ⇒ exchange.setFailure(FailureResult(new IllegalArgumentException("Expected Ack or Failure message, but got: [%s] from actor [%s]" format (msg, endpoint.path))))
-          case Failure(e: TimeoutException)    ⇒ exchange.setFailure(FailureResult(new TimeoutException("Failed to get Ack or Failure response from the actor [%s] within timeout [%s]. Check replyTimeout and blocking settings [%s]" format (endpoint.path, endpoint.replyTimeout, endpoint))))
-          case Failure(throwable)              ⇒ exchange.setFailure(FailureResult(throwable))
+          case Success(msg) ⇒
+            exchange.setFailure(FailureResult(new IllegalArgumentException(
+                        "Expected Ack or Failure message, but got: [%s] from actor [%s]" format
+                        (msg, endpoint.path))))
+          case Failure(e: TimeoutException) ⇒
+            exchange.setFailure(FailureResult(new TimeoutException(
+                        "Failed to get Ack or Failure response from the actor [%s] within timeout [%s]. Check replyTimeout and blocking settings [%s]" format
+                        (endpoint.path, endpoint.replyTimeout, endpoint))))
+          case Failure(throwable) ⇒
+            exchange.setFailure(FailureResult(throwable))
         }
 
       // FIXME #3074 how do we solve this with actorSelection?
-      val async = try actorFor(endpoint.path).ask(messageFor(exchange))(Timeout(endpoint.replyTimeout)) catch { case NonFatal(e) ⇒ Future.failed(e) }
-      implicit val ec = camel.system.dispatcher // FIXME which ExecutionContext should be used here?
-      async.onComplete(action andThen { _ ⇒ callback.done(false) })
+      val async = try actorFor(endpoint.path)
+        .ask(messageFor(exchange))(Timeout(endpoint.replyTimeout)) catch {
+        case NonFatal(e) ⇒ Future.failed(e)
+      }
+      implicit val ec =
+        camel.system.dispatcher // FIXME which ExecutionContext should be used here?
+      async.onComplete(
+          action andThen { _ ⇒
+        callback.done(false)
+      })
       false
     }
-
   }
 
   // FIXME #3074 how do we solve this with actorSelection?
-  private def fireAndForget(message: CamelMessage, exchange: CamelExchangeAdapter): Unit =
-    try { actorFor(endpoint.path) ! message } catch { case NonFatal(e) ⇒ exchange.setFailure(new FailureResult(e)) }
+  private def fireAndForget(
+      message: CamelMessage, exchange: CamelExchangeAdapter): Unit =
+    try { actorFor(endpoint.path) ! message } catch {
+      case NonFatal(e) ⇒ exchange.setFailure(new FailureResult(e))
+    }
 
   private[this] def actorFor(path: ActorEndpointPath): ActorRef =
-    path.findActorIn(camel.system) getOrElse (throw new ActorNotRegisteredException(path.actorPath))
+    path.findActorIn(camel.system) getOrElse
+    (throw new ActorNotRegisteredException(path.actorPath))
 
   private[this] def messageFor(exchange: CamelExchangeAdapter) =
-    exchange.toRequestMessage(Map(CamelMessage.MessageExchangeId -> exchange.getExchangeId))
+    exchange.toRequestMessage(
+        Map(CamelMessage.MessageExchangeId -> exchange.getExchangeId))
 }
 
 /**
@@ -184,12 +219,15 @@ private[camel] class ActorProducer(val endpoint: ActorEndpoint, camel: Camel) ex
 private[camel] object DurationTypeConverter extends TypeConverterSupport {
 
   @throws(classOf[TypeConversionException])
-  def convertTo[T](valueType: Class[T], exchange: Exchange, value: AnyRef): T = valueType.cast(try {
-    val d = Duration(value.toString)
-    if (valueType.isInstance(d)) d else null
-  } catch {
-    case NonFatal(throwable) ⇒ throw new TypeConversionException(value, valueType, throwable)
-  })
+  def convertTo[T](valueType: Class[T], exchange: Exchange, value: AnyRef): T =
+    valueType.cast(
+        try {
+      val d = Duration(value.toString)
+      if (valueType.isInstance(d)) d else null
+    } catch {
+      case NonFatal(throwable) ⇒
+        throw new TypeConversionException(value, valueType, throwable)
+    })
 }
 
 /**
@@ -216,6 +254,7 @@ private[camel] case class ActorEndpointPath private (actorPath: String) {
  * The URI to the actor is exactly the same as the string representation of the ActorPath, except that it can also have optional URI parameters to configure the Consumer Actor.
  */
 object CamelPath {
+
   /**
    * Converts the actorRef to a Camel URI (string) which can be used in custom routes.
    * The created URI will have no parameters, it is purely the string representation of the actor's path.
@@ -234,7 +273,10 @@ object CamelPath {
    * @param replyTimeout parameter for a Consumer Actor, see [[akka.camel.ConsumerConfig]]
    * @return the Camel URI to the Consumer Actor, including the parameters for auto acknowledgement and replyTimeout.
    */
-  def toUri(actorRef: ActorRef, autoAck: Boolean, replyTimeout: Duration): String = "%s?autoAck=%s&replyTimeout=%s".format(actorRef.path.toString, autoAck, replyTimeout.toString)
+  def toUri(
+      actorRef: ActorRef, autoAck: Boolean, replyTimeout: Duration): String =
+    "%s?autoAck=%s&replyTimeout=%s".format(
+        actorRef.path.toString, autoAck, replyTimeout.toString)
 }
 
 /**
@@ -243,7 +285,8 @@ object CamelPath {
  */
 private[camel] case object ActorEndpointPath {
 
-  def apply(actorRef: ActorRef): ActorEndpointPath = new ActorEndpointPath(actorRef.path.toString)
+  def apply(actorRef: ActorRef): ActorEndpointPath =
+    new ActorEndpointPath(actorRef.path.toString)
 
   /**
    * Creates an [[akka.camel.internal.component.ActorEndpointPath]] from the uri
@@ -251,7 +294,10 @@ private[camel] case object ActorEndpointPath {
    * parameters can be optionally added to the actor path to indicate auto-acknowledgement and replyTimeout for a [[akka.camel.Consumer]] actor.
    */
   def fromCamelPath(camelPath: String): ActorEndpointPath = camelPath match {
-    case id if id startsWith "akka://" ⇒ new ActorEndpointPath(id.split('?')(0))
-    case _                             ⇒ throw new IllegalArgumentException("Invalid path: [%s] - should be an actorPath starting with 'akka://', optionally followed by options" format camelPath)
+    case id if id startsWith "akka://" ⇒
+      new ActorEndpointPath(id.split('?')(0))
+    case _ ⇒
+      throw new IllegalArgumentException(
+          "Invalid path: [%s] - should be an actorPath starting with 'akka://', optionally followed by options" format camelPath)
   }
 }

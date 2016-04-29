@@ -22,9 +22,9 @@ import akka.cluster.pubsub.DistributedPubSubMediator.Internal.Status
 import akka.cluster.pubsub.DistributedPubSubMediator.Internal.Delta
 
 object DistributedPubSubMediatorSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
   commonConfig(ConfigFactory.parseString("""
     akka.loglevel = INFO
@@ -49,14 +49,18 @@ object DistributedPubSubMediatorSpec extends MultiNodeConfig {
     import DistributedPubSubMediator._
 
     def receive = {
-      case Whisper(path, msg)        ⇒ mediator ! Send(path, msg, localAffinity = true)
-      case Talk(path, msg)           ⇒ mediator ! SendToAll(path, msg)
-      case TalkToOthers(path, msg)   ⇒ mediator ! SendToAll(path, msg, allButSelf = true)
+      case Whisper(path, msg) ⇒
+        mediator ! Send(path, msg, localAffinity = true)
+      case Talk(path, msg) ⇒ mediator ! SendToAll(path, msg)
+      case TalkToOthers(path, msg) ⇒
+        mediator ! SendToAll(path, msg, allButSelf = true)
       case Shout(topic, msg)         ⇒ mediator ! Publish(topic, msg)
       case ShoutToGroups(topic, msg) ⇒ mediator ! Publish(topic, msg, true)
-      case JoinGroup(topic, group)   ⇒ mediator ! Subscribe(topic, Some(group), self)
-      case ExitGroup(topic, group)   ⇒ mediator ! Unsubscribe(topic, Some(group), self)
-      case msg                       ⇒ testActor ! msg
+      case JoinGroup(topic, group) ⇒
+        mediator ! Subscribe(topic, Some(group), self)
+      case ExitGroup(topic, group) ⇒
+        mediator ! Unsubscribe(topic, Some(group), self)
+      case msg ⇒ testActor ! msg
     }
   }
 
@@ -76,7 +80,7 @@ object DistributedPubSubMediatorSpec extends MultiNodeConfig {
 
   //#subscriber
   class Subscriber extends Actor with ActorLogging {
-    import DistributedPubSubMediator.{ Subscribe, SubscribeAck }
+    import DistributedPubSubMediator.{Subscribe, SubscribeAck}
     val mediator = DistributedPubSub(context.system).mediator
     // subscribe to the topic named "content"
     mediator ! Subscribe("content", self)
@@ -99,7 +103,8 @@ object DistributedPubSubMediatorSpec extends MultiNodeConfig {
     def receive = {
       case in: String ⇒
         val out = in.toUpperCase
-        mediator ! Send(path = "/user/destination", msg = out, localAffinity = true)
+        mediator ! Send(
+            path = "/user/destination", msg = out, localAffinity = true)
     }
   }
   //#sender
@@ -117,14 +122,18 @@ object DistributedPubSubMediatorSpec extends MultiNodeConfig {
     }
   }
   //#send-destination
-
 }
 
-class DistributedPubSubMediatorMultiJvmNode1 extends DistributedPubSubMediatorSpec
-class DistributedPubSubMediatorMultiJvmNode2 extends DistributedPubSubMediatorSpec
-class DistributedPubSubMediatorMultiJvmNode3 extends DistributedPubSubMediatorSpec
+class DistributedPubSubMediatorMultiJvmNode1
+    extends DistributedPubSubMediatorSpec
+class DistributedPubSubMediatorMultiJvmNode2
+    extends DistributedPubSubMediatorSpec
+class DistributedPubSubMediatorMultiJvmNode3
+    extends DistributedPubSubMediatorSpec
 
-class DistributedPubSubMediatorSpec extends MultiNodeSpec(DistributedPubSubMediatorSpec) with STMultiNodeSpec with ImplicitSender {
+class DistributedPubSubMediatorSpec
+    extends MultiNodeSpec(DistributedPubSubMediatorSpec) with STMultiNodeSpec
+    with ImplicitSender {
   import DistributedPubSubMediatorSpec._
   import DistributedPubSubMediatorSpec.TestChatUser._
   import DistributedPubSubMediator._
@@ -140,12 +149,13 @@ class DistributedPubSubMediatorSpec extends MultiNodeSpec(DistributedPubSubMedia
   }
 
   def createMediator(): ActorRef = DistributedPubSub(system).mediator
-  def mediator: ActorRef = DistributedPubSub(system).mediator
+  def mediator: ActorRef         = DistributedPubSub(system).mediator
 
   var chatUsers: Map[String, ActorRef] = Map.empty
 
   def createChatUser(name: String): ActorRef = {
-    var a = system.actorOf(Props(classOf[TestChatUser], mediator, testActor), name)
+    var a =
+      system.actorOf(Props(classOf[TestChatUser], mediator, testActor), name)
     chatUsers += (name -> a)
     a
   }
@@ -380,7 +390,8 @@ class DistributedPubSubMediatorSpec extends MultiNodeSpec(DistributedPubSubMedia
     }
 
     "send-all to all other nodes" in within(15 seconds) {
-      runOn(first, second, third) { // create the user on all nodes
+      runOn(first, second, third) {
+        // create the user on all nodes
         val u11 = createChatUser("u11")
         mediator ! Put(u11)
       }
@@ -445,42 +456,46 @@ class DistributedPubSubMediatorSpec extends MultiNodeSpec(DistributedPubSubMedia
         expectMsg(UnsubscribeAck(Unsubscribe("topic2", Some("group2"), u13)))
       }
       enterBarrier("after-12")
-
     }
 
     "transfer delta correctly" in {
-      val firstAddress = node(first).address
+      val firstAddress  = node(first).address
       val secondAddress = node(second).address
-      val thirdAddress = node(third).address
+      val thirdAddress  = node(third).address
 
       runOn(first) {
         mediator ! Status(versions = Map.empty)
         val deltaBuckets = expectMsgType[Delta].buckets
         deltaBuckets.size should ===(3)
-        deltaBuckets.find(_.owner == firstAddress).get.content.size should ===(10)
-        deltaBuckets.find(_.owner == secondAddress).get.content.size should ===(9)
-        deltaBuckets.find(_.owner == thirdAddress).get.content.size should ===(2)
+        deltaBuckets.find(_.owner == firstAddress).get.content.size should ===(
+            10)
+        deltaBuckets.find(_.owner == secondAddress).get.content.size should ===(
+            9)
+        deltaBuckets.find(_.owner == thirdAddress).get.content.size should ===(
+            2)
       }
       enterBarrier("verified-initial-delta")
 
       // this test is configured with max-delta-elements = 500
       val many = 1010
       runOn(first) {
-        for (i ← 0 until many)
-          mediator ! Put(createChatUser("u" + (1000 + i)))
+        for (i ← 0 until many) mediator ! Put(createChatUser("u" + (1000 + i)))
 
         mediator ! Status(versions = Map.empty)
         val deltaBuckets1 = expectMsgType[Delta].buckets
         deltaBuckets1.map(_.content.size).sum should ===(500)
 
-        mediator ! Status(versions = deltaBuckets1.map(b ⇒ b.owner -> b.version).toMap)
+        mediator ! Status(
+            versions = deltaBuckets1.map(b ⇒ b.owner -> b.version).toMap)
         val deltaBuckets2 = expectMsgType[Delta].buckets
         deltaBuckets1.map(_.content.size).sum should ===(500)
 
-        mediator ! Status(versions = deltaBuckets2.map(b ⇒ b.owner -> b.version).toMap)
+        mediator ! Status(
+            versions = deltaBuckets2.map(b ⇒ b.owner -> b.version).toMap)
         val deltaBuckets3 = expectMsgType[Delta].buckets
 
-        deltaBuckets3.map(_.content.size).sum should ===(10 + 9 + 2 + many - 500 - 500)
+        deltaBuckets3.map(_.content.size).sum should ===(
+            10 + 9 + 2 + many - 500 - 500)
       }
 
       enterBarrier("verified-delta-with-many")
@@ -511,9 +526,9 @@ class DistributedPubSubMediatorSpec extends MultiNodeSpec(DistributedPubSubMedia
 
     "receive proper unsubscribeAck message" in within(15 seconds) {
       runOn(first) {
-        val user = createChatUser("u111")
+        val user  = createChatUser("u111")
         val topic = "sample-topic1"
-        val s1 = Subscribe(topic, user)
+        val s1    = Subscribe(topic, user)
         mediator ! s1
         expectMsg(SubscribeAck(s1))
         val uns = Unsubscribe(topic, user)
@@ -550,8 +565,9 @@ class DistributedPubSubMediatorSpec extends MultiNodeSpec(DistributedPubSubMedia
       runOn(first) {
         mediator ! GetTopics
         expectMsgPF() {
-          case CurrentTopics(topics) if topics.contains("topic_a1")
-            && topics.contains("topic_a2") ⇒ true
+          case CurrentTopics(topics)
+              if topics.contains("topic_a1") && topics.contains("topic_a2") ⇒
+            true
         }
       }
 
@@ -566,8 +582,6 @@ class DistributedPubSubMediatorSpec extends MultiNodeSpec(DistributedPubSubMedia
       }
 
       enterBarrier("after-get-topics")
-
     }
   }
-
 }

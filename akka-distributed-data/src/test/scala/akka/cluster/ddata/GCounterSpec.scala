@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster.ddata
 
 import akka.actor.Address
@@ -156,16 +155,15 @@ class GCounterSpec extends WordSpec with Matchers {
     }
 
     "have unapply extractor" in {
-      val c1 = GCounter.empty.increment(node1).increment(node2)
+      val c1               = GCounter.empty.increment(node1).increment(node2)
       val GCounter(value1) = c1
-      val value2: BigInt = value1
+      val value2: BigInt   = value1
       Changed(GCounterKey("key"))(c1) match {
         case c @ Changed(GCounterKey("key")) ⇒
           val GCounter(value3) = c.dataValue
-          val value4: BigInt = value3
+          val value4: BigInt   = value3
           value4 should be(2L)
       }
     }
-
   }
 }

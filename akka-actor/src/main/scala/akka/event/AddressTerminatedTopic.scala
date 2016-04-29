@@ -21,12 +21,15 @@ import akka.actor.ExtensionIdProvider
  * death watch publish `AddressTerminated` when a remote system is deemed
  * dead.
  */
-private[akka] object AddressTerminatedTopic extends ExtensionId[AddressTerminatedTopic] with ExtensionIdProvider {
-  override def get(system: ActorSystem): AddressTerminatedTopic = super.get(system)
+private[akka] object AddressTerminatedTopic
+    extends ExtensionId[AddressTerminatedTopic] with ExtensionIdProvider {
+  override def get(system: ActorSystem): AddressTerminatedTopic =
+    super.get(system)
 
   override def lookup = AddressTerminatedTopic
 
-  override def createExtension(system: ExtendedActorSystem): AddressTerminatedTopic =
+  override def createExtension(
+      system: ExtendedActorSystem): AddressTerminatedTopic =
     new AddressTerminatedTopic
 }
 
@@ -35,7 +38,8 @@ private[akka] object AddressTerminatedTopic extends ExtensionId[AddressTerminate
  */
 private[akka] final class AddressTerminatedTopic extends Extension {
 
-  private val subscribers = new AtomicReference[Set[ActorRef]](Set.empty[ActorRef])
+  private val subscribers =
+    new AtomicReference[Set[ActorRef]](Set.empty[ActorRef])
 
   @tailrec def subscribe(subscriber: ActorRef): Unit = {
     val current = subscribers.get
@@ -52,5 +56,4 @@ private[akka] final class AddressTerminatedTopic extends Extension {
   def publish(msg: AddressTerminated): Unit = {
     subscribers.get foreach { _.tell(msg, ActorRef.noSender) }
   }
-
 }

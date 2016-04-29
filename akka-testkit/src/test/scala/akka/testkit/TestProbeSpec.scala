@@ -3,7 +3,7 @@ package akka.testkit
 import language.postfixOps
 
 import akka.actor._
-import scala.concurrent.{ Await }
+import scala.concurrent.{Await}
 import scala.concurrent.duration._
 import akka.pattern.ask
 import scala.util.Try
@@ -13,7 +13,7 @@ class TestProbeSpec extends AkkaSpec with DefaultTimeout {
   "A TestProbe" must {
 
     "reply to futures" in {
-      val tk = TestProbe()
+      val tk     = TestProbe()
       val future = tk.ref ? "hello"
       tk.expectMsg(0 millis, "hello") // TestActor runs on CallingThreadDispatcher
       tk.lastMessage.sender ! "world"
@@ -45,7 +45,8 @@ class TestProbeSpec extends AkkaSpec with DefaultTimeout {
       } match {
         case scala.util.Failure(e: AssertionError) ⇒
           if (!(e.getMessage contains expectedHint))
-            fail(s"failure message did not contain hint! Was: ${e.getMessage}, expected to contain $expectedHint")
+            fail(
+                s"failure message did not contain hint! Was: ${e.getMessage}, expected to contain $expectedHint")
         case scala.util.Failure(oth) ⇒
           fail(s"expected AssertionError but got: $oth")
         case scala.util.Success(result) ⇒
@@ -55,7 +56,7 @@ class TestProbeSpec extends AkkaSpec with DefaultTimeout {
 
     "throw AssertionError containing hint in its message if max await time is exceeded" in {
       val probe = TestProbe()
-      val hint = "some hint"
+      val hint  = "some hint"
 
       assertFailureMessageContains(hint) {
         probe.expectMsg(0 millis, hint, "hello")
@@ -64,7 +65,7 @@ class TestProbeSpec extends AkkaSpec with DefaultTimeout {
 
     "throw AssertionError containing hint in its message if received message doesn't match" in {
       val probe = TestProbe()
-      val hint = "some hint"
+      val hint  = "some hint"
 
       assertFailureMessageContains(hint) {
         probe.ref ! "hello"
@@ -75,12 +76,12 @@ class TestProbeSpec extends AkkaSpec with DefaultTimeout {
     "have an AutoPilot" in {
       //#autopilot
       val probe = TestProbe()
-      probe.setAutoPilot(new TestActor.AutoPilot {
-        def run(sender: ActorRef, msg: Any): TestActor.AutoPilot =
-          msg match {
-            case "stop" ⇒ TestActor.NoAutoPilot
-            case x      ⇒ testActor.tell(x, sender); TestActor.KeepRunning
-          }
+      probe.setAutoPilot(
+          new TestActor.AutoPilot {
+        def run(sender: ActorRef, msg: Any): TestActor.AutoPilot = msg match {
+          case "stop" ⇒ TestActor.NoAutoPilot
+          case x      ⇒ testActor.tell(x, sender); TestActor.KeepRunning
+        }
       })
       //#autopilot
       probe.ref ! "hallo"
@@ -138,5 +139,4 @@ class TestProbeSpec extends AkkaSpec with DefaultTimeout {
       probe.ref.path.name should startWith("testProbe")
     }
   }
-
 }

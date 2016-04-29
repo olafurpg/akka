@@ -25,12 +25,13 @@ class BasicRouteSpecs extends RoutingSpec {
     "collect rejections from both sub routes" in {
       Delete() ~> {
         get { completeOk } ~ put { completeOk }
-      } ~> check { rejections shouldEqual Seq(MethodRejection(GET), MethodRejection(PUT)) }
+      } ~> check {
+        rejections shouldEqual Seq(MethodRejection(GET), MethodRejection(PUT))
+      }
     }
     "clear rejections that have already been 'overcome' by previous directives" in {
       Put() ~> {
-        put { parameter('yeah) { echoComplete } } ~
-          get { completeOk }
+        put { parameter('yeah) { echoComplete } } ~ get { completeOk }
       } ~> check { rejection shouldEqual MissingQueryParamRejection("yeah") }
     }
   }
@@ -43,42 +44,36 @@ class BasicRouteSpecs extends RoutingSpec {
     }
     "yield the first sub route if it succeeded" in {
       Get() ~> {
-        concat(
-          get { complete("first") },
-          get { complete("second") })
+        concat(get { complete("first") }, get { complete("second") })
       } ~> check { responseAs[String] shouldEqual "first" }
     }
     "yield the second sub route if the first did not succeed" in {
       Get() ~> {
-        concat(
-          post { complete("first") },
-          get { complete("second") })
+        concat(post { complete("first") }, get { complete("second") })
       } ~> check { responseAs[String] shouldEqual "second" }
     }
     "collect rejections from both sub routes" in {
       Delete() ~> {
-        concat(
-          get { completeOk },
-          put { completeOk })
-      } ~> check { rejections shouldEqual Seq(MethodRejection(GET), MethodRejection(PUT)) }
+        concat(get { completeOk }, put { completeOk })
+      } ~> check {
+        rejections shouldEqual Seq(MethodRejection(GET), MethodRejection(PUT))
+      }
     }
     "clear rejections that have already been 'overcome' by previous directives" in {
       Put() ~> {
-        concat(
-          put { parameter('yeah) { echoComplete } },
-          get { completeOk })
+        concat(put { parameter('yeah) { echoComplete } }, get { completeOk })
       } ~> check { rejection shouldEqual MissingQueryParamRejection("yeah") }
     }
   }
 
   "Route conjunction" should {
     val stringDirective = provide("The cat")
-    val intDirective = provide(42)
+    val intDirective    = provide(42)
     val doubleDirective = provide(23.0)
 
-    val dirStringInt = stringDirective & intDirective
-    val dirStringIntDouble = dirStringInt & doubleDirective
-    val dirDoubleStringInt = doubleDirective & dirStringInt
+    val dirStringInt          = stringDirective & intDirective
+    val dirStringIntDouble    = dirStringInt & doubleDirective
+    val dirDoubleStringInt    = doubleDirective & dirStringInt
     val dirStringIntStringInt = dirStringInt & dirStringInt
 
     "work for two elements" in {
@@ -149,7 +144,8 @@ class BasicRouteSpecs extends RoutingSpec {
     "extract two arguments" in {
       case class Person(name: String, age: Int)
 
-      val personPath = path("person" / Segment / IntNumber).as(Person)(echoComplete)
+      val personPath =
+        path("person" / Segment / IntNumber).as(Person)(echoComplete)
 
       Get("/person/john/38") ~> personPath ~> check {
         responseAs[String] shouldEqual "Person(john,38)"
@@ -171,7 +167,8 @@ class BasicRouteSpecs extends RoutingSpec {
     "re-execute inner routes every time" in {
       var a = ""
       val dynamicRoute = get { a += "x"; complete(a) }
-      def expect(route: Route, s: String) = Get() ~> route ~> check { responseAs[String] shouldEqual s }
+      def expect(route: Route, s: String) =
+        Get() ~> route ~> check { responseAs[String] shouldEqual s }
 
       expect(dynamicRoute, "x")
       expect(dynamicRoute, "xx")
@@ -182,7 +179,8 @@ class BasicRouteSpecs extends RoutingSpec {
 
   case object MyException extends RuntimeException
   "Route sealing" should {
-    "catch route execution exceptions" in EventFilter[MyException.type](occurrences = 1).intercept {
+    "catch route execution exceptions" in EventFilter[MyException.type](
+        occurrences = 1).intercept {
       Get("/abc") ~> Route.seal {
         get { ctx ⇒
           throw MyException
@@ -191,7 +189,8 @@ class BasicRouteSpecs extends RoutingSpec {
         status shouldEqual StatusCodes.InternalServerError
       }
     }
-    "catch route building exceptions" in EventFilter[MyException.type](occurrences = 1).intercept {
+    "catch route building exceptions" in EventFilter[MyException.type](
+        occurrences = 1).intercept {
       Get("/abc") ~> Route.seal {
         get {
           throw MyException
@@ -200,7 +199,8 @@ class BasicRouteSpecs extends RoutingSpec {
         status shouldEqual StatusCodes.InternalServerError
       }
     }
-    "convert all rejections to responses" in EventFilter[RuntimeException](occurrences = 1).intercept {
+    "convert all rejections to responses" in EventFilter[RuntimeException](
+        occurrences = 1).intercept {
       object MyRejection extends Rejection
       Get("/abc") ~> Route.seal {
         get {
@@ -212,16 +212,14 @@ class BasicRouteSpecs extends RoutingSpec {
     }
     "always prioritize MethodRejections over AuthorizationFailedRejections" in {
       Get("/abc") ~> Route.seal {
-        post { completeOk } ~
-          authorize(false) { completeOk }
+        post { completeOk } ~ authorize(false) { completeOk }
       } ~> check {
         status shouldEqual StatusCodes.MethodNotAllowed
         responseAs[String] shouldEqual "HTTP method not allowed, supported methods: POST"
       }
 
       Get("/abc") ~> Route.seal {
-        authorize(false) { completeOk } ~
-          post { completeOk }
+        authorize(false) { completeOk } ~ post { completeOk }
       } ~> check { status shouldEqual StatusCodes.MethodNotAllowed }
     }
   }

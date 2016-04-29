@@ -6,8 +6,8 @@ package akka.stream
 import akka.Done
 import akka.stream.stage._
 
-import scala.concurrent.{ Future, Promise }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success, Try}
 
 /**
  * Creates shared or single kill switches which can be used to control completion of graphs from the outside.
@@ -38,7 +38,8 @@ object KillSwitches {
    * For a Bidi version see [[KillSwitch#singleBidi]]
    */
   def single[T]: Graph[FlowShape[T, T], UniqueKillSwitch] =
-    UniqueKillSwitchStage.asInstanceOf[Graph[FlowShape[T, T], UniqueKillSwitch]]
+    UniqueKillSwitchStage
+      .asInstanceOf[Graph[FlowShape[T, T], UniqueKillSwitch]]
 
   /**
    * Creates a new [[Graph]] of [[FlowShape]] that materializes to an external switch that allows external completion
@@ -47,15 +48,20 @@ object KillSwitches {
    * For a Flow version see [[KillSwitch#single]]
    */
   def singleBidi[T1, T2]: Graph[BidiShape[T1, T1, T2, T2], UniqueKillSwitch] =
-    UniqueBidiKillSwitchStage.asInstanceOf[Graph[BidiShape[T1, T1, T2, T2], UniqueKillSwitch]]
+    UniqueBidiKillSwitchStage
+      .asInstanceOf[Graph[BidiShape[T1, T1, T2, T2], UniqueKillSwitch]]
 
-  abstract class KillableGraphStageLogic(val terminationSignal: Future[Done], _shape: Shape) extends GraphStageLogic(_shape) {
+  abstract class KillableGraphStageLogic(
+      val terminationSignal: Future[Done], _shape: Shape)
+      extends GraphStageLogic(_shape) {
     override def preStart(): Unit = {
       terminationSignal.value match {
         case Some(status) ⇒ onSwitch(status)
-        case _ ⇒
+        case _            ⇒
           // callback.invoke is a simple actor send, so it is fine to run on the invoking thread
-          terminationSignal.onComplete(getAsyncCallback[Try[Done]](onSwitch).invoke)(akka.dispatch.ExecutionContexts.sameThreadExecutionContext)
+          terminationSignal.onComplete(
+              getAsyncCallback[Try[Done]](onSwitch).invoke)(
+              akka.dispatch.ExecutionContexts.sameThreadExecutionContext)
       }
     }
 
@@ -65,16 +71,20 @@ object KillSwitches {
     }
   }
 
-  private[stream] object UniqueKillSwitchStage extends GraphStageWithMaterializedValue[FlowShape[Any, Any], UniqueKillSwitch] {
+  private[stream] object UniqueKillSwitchStage
+      extends GraphStageWithMaterializedValue[
+          FlowShape[Any, Any], UniqueKillSwitch] {
     override val initialAttributes = Attributes.name("breaker")
-    override val shape = FlowShape(Inlet[Any]("KillSwitch.in"), Outlet[Any]("KillSwitch.out"))
+    override val shape = FlowShape(
+        Inlet[Any]("KillSwitch.in"), Outlet[Any]("KillSwitch.out"))
     override def toString: String = "UniqueKillSwitchFlow"
 
     override def createLogicAndMaterializedValue(attr: Attributes) = {
       val promise = Promise[Done]
-      val switch = new UniqueKillSwitch(promise)
+      val switch  = new UniqueKillSwitch(promise)
 
-      val logic = new KillableGraphStageLogic(promise.future, shape) with InHandler with OutHandler {
+      val logic = new KillableGraphStageLogic(promise.future, shape)
+      with InHandler with OutHandler {
         override def onPush(): Unit = push(shape.out, grab(shape.in))
         override def onPull(): Unit = pull(shape.in)
         setHandler(shape.in, this)
@@ -85,45 +95,48 @@ object KillSwitches {
     }
   }
 
-  private[stream] object UniqueBidiKillSwitchStage extends GraphStageWithMaterializedValue[BidiShape[Any, Any, Any, Any], UniqueKillSwitch] {
+  private[stream] object UniqueBidiKillSwitchStage
+      extends GraphStageWithMaterializedValue[
+          BidiShape[Any, Any, Any, Any], UniqueKillSwitch] {
 
     override val initialAttributes = Attributes.name("breaker")
-    override val shape = BidiShape(
-      Inlet[Any]("KillSwitchBidi.in1"), Outlet[Any]("KillSwitchBidi .out1"),
-      Inlet[Any]("KillSwitchBidi.in2"), Outlet[Any]("KillSwitchBidi.out2"))
+    override val shape = BidiShape(Inlet[Any]("KillSwitchBidi.in1"),
+                                   Outlet[Any]("KillSwitchBidi .out1"),
+                                   Inlet[Any]("KillSwitchBidi.in2"),
+                                   Outlet[Any]("KillSwitchBidi.out2"))
     override def toString: String = "UniqueKillSwitchBidi"
 
     override def createLogicAndMaterializedValue(attr: Attributes) = {
       val promise = Promise[Done]
-      val switch = new UniqueKillSwitch(promise)
+      val switch  = new UniqueKillSwitch(promise)
 
       val logic = new KillableGraphStageLogic(promise.future, shape) {
 
         setHandler(shape.in1, new InHandler {
-          override def onPush(): Unit = push(shape.out1, grab(shape.in1))
+          override def onPush(): Unit           = push(shape.out1, grab(shape.in1))
           override def onUpstreamFinish(): Unit = complete(shape.out1)
-          override def onUpstreamFailure(ex: Throwable): Unit = fail(shape.out1, ex)
+          override def onUpstreamFailure(ex: Throwable): Unit =
+            fail(shape.out1, ex)
         })
         setHandler(shape.in2, new InHandler {
-          override def onPush(): Unit = push(shape.out2, grab(shape.in2))
+          override def onPush(): Unit           = push(shape.out2, grab(shape.in2))
           override def onUpstreamFinish(): Unit = complete(shape.out2)
-          override def onUpstreamFailure(ex: Throwable): Unit = fail(shape.out2, ex)
+          override def onUpstreamFailure(ex: Throwable): Unit =
+            fail(shape.out2, ex)
         })
         setHandler(shape.out1, new OutHandler {
-          override def onPull(): Unit = pull(shape.in1)
+          override def onPull(): Unit             = pull(shape.in1)
           override def onDownstreamFinish(): Unit = cancel(shape.in1)
         })
         setHandler(shape.out2, new OutHandler {
-          override def onPull(): Unit = pull(shape.in2)
+          override def onPull(): Unit             = pull(shape.in2)
           override def onDownstreamFinish(): Unit = cancel(shape.in2)
         })
-
       }
 
       (logic, switch)
     }
   }
-
 }
 
 /**
@@ -133,10 +146,12 @@ object KillSwitches {
  * this interface.
  */
 trait KillSwitch {
+
   /**
    * After calling [[KillSwitch#shutdown()]] the linked [[Graph]]s of [[FlowShape]] are completed normally.
    */
   def shutdown(): Unit
+
   /**
    * After calling [[KillSwitch#abort()]] the linked [[Graph]]s of [[FlowShape]] are failed.
    */
@@ -159,7 +174,8 @@ trait KillSwitch {
  * It is also possible to individually cancel, complete or fail upstream and downstream parts by calling the corresponding
  * methods.
  */
-final class UniqueKillSwitch private[stream] (private val promise: Promise[Done]) {
+final class UniqueKillSwitch private[stream](
+    private val promise: Promise[Done]) {
 
   /**
    * After calling [[UniqueKillSwitch#shutdown()]] the running instance of the [[Graph]] of [[FlowShape]] that materialized to the
@@ -200,9 +216,10 @@ final class UniqueKillSwitch private[stream] (private val promise: Promise[Done]
  *
  * This class is thread-safe, the instance can be passed safely among threads and its methods may be invoked concurrently.
  */
-final class SharedKillSwitch private[stream] (val name: String) {
+final class SharedKillSwitch private[stream](val name: String) {
   private[this] val shutdownPromise = Promise[Done]
-  private[this] val _flow: Graph[FlowShape[Any, Any], SharedKillSwitch] = new SharedKillSwitchFlow
+  private[this] val _flow: Graph[FlowShape[Any, Any], SharedKillSwitch] =
+    new SharedKillSwitchFlow
 
   /**
    * After calling [[SharedKillSwitch#shutdown()]] all materialized, running instances of all [[Graph]]s provided by the
@@ -233,27 +250,32 @@ final class SharedKillSwitch private[stream] (val name: String) {
    * @tparam T Type of the elements the Flow will forward
    * @return   A reusable [[Graph]] that is linked with the switch. The materialized value provided is this switch itself.
    */
-  def flow[T]: Graph[FlowShape[T, T], SharedKillSwitch] = _flow.asInstanceOf[Graph[FlowShape[T, T], SharedKillSwitch]]
+  def flow[T]: Graph[FlowShape[T, T], SharedKillSwitch] =
+    _flow.asInstanceOf[Graph[FlowShape[T, T], SharedKillSwitch]]
 
   override def toString: String = s"KillSwitch($name)"
 
-  private class SharedKillSwitchFlow extends GraphStageWithMaterializedValue[FlowShape[Any, Any], SharedKillSwitch] {
-    override val shape: FlowShape[Any, Any] = FlowShape(Inlet[Any]("KillSwitch.in"), Outlet[Any]("KillSwitch.out"))
+  private class SharedKillSwitchFlow
+      extends GraphStageWithMaterializedValue[
+          FlowShape[Any, Any], SharedKillSwitch] {
+    override val shape: FlowShape[Any, Any] = FlowShape(
+        Inlet[Any]("KillSwitch.in"), Outlet[Any]("KillSwitch.out"))
 
     override def toString: String = s"SharedKillSwitchFlow(switch: $name)"
 
-    override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, SharedKillSwitch) = {
-      val logic = new KillSwitches.KillableGraphStageLogic(shutdownPromise.future, shape) with InHandler with OutHandler {
+    override def createLogicAndMaterializedValue(
+        inheritedAttributes: Attributes
+    ): (GraphStageLogic, SharedKillSwitch) = {
+      val logic = new KillSwitches.KillableGraphStageLogic(
+          shutdownPromise.future, shape) with InHandler with OutHandler {
         setHandler(shape.in, this)
         setHandler(shape.out, this)
 
         override def onPush(): Unit = push(shape.out, grab(shape.in))
         override def onPull(): Unit = pull(shape.in)
-
       }
 
       (logic, SharedKillSwitch.this)
     }
-
   }
 }

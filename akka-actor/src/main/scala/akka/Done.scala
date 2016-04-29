@@ -11,6 +11,7 @@ package akka
 sealed abstract class Done
 
 case object Done extends Done {
+
   /**
    * Java API: the singleton instance
    */

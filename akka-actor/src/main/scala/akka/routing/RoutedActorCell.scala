@@ -24,29 +24,30 @@ import scala.concurrent.duration._
  * INTERNAL API
  */
 private[akka] object RoutedActorCell {
-  class RouterActorCreator(routerConfig: RouterConfig) extends IndirectActorProducer {
+  class RouterActorCreator(routerConfig: RouterConfig)
+      extends IndirectActorProducer {
     override def actorClass = classOf[RouterActor]
-    override def produce() = routerConfig.createRouterActor()
+    override def produce()  = routerConfig.createRouterActor()
   }
-
 }
 
 /**
  * INTERNAL API
  */
-private[akka] class RoutedActorCell(
-  _system: ActorSystemImpl,
-  _ref: InternalActorRef,
-  _routerProps: Props,
-  _routerDispatcher: MessageDispatcher,
-  val routeeProps: Props,
-  _supervisor: InternalActorRef)
-  extends ActorCell(_system, _ref, _routerProps, _routerDispatcher, _supervisor) {
+private[akka] class RoutedActorCell(_system: ActorSystemImpl,
+                                    _ref: InternalActorRef,
+                                    _routerProps: Props,
+                                    _routerDispatcher: MessageDispatcher,
+                                    val routeeProps: Props,
+                                    _supervisor: InternalActorRef)
+    extends ActorCell(
+        _system, _ref, _routerProps, _routerDispatcher, _supervisor) {
 
   private[akka] val routerConfig = _routerProps.routerConfig
 
   @volatile
-  private var _router: Router = null // initialized in start, and then only updated from the actor
+  private var _router: Router =
+    null // initialized in start, and then only updated from the actor
   def router: Router = _router
 
   def addRoutee(routee: Routee): Unit = addRoutees(List(routee))
@@ -68,9 +69,12 @@ private[akka] class RoutedActorCell(
    * Remove routees from the `Router`. Messages in flight may still be routed to
    * the old `Router` instance containing the old routees.
    */
-  def removeRoutees(routees: immutable.Iterable[Routee], stopChild: Boolean): Unit = {
+  def removeRoutees(
+      routees: immutable.Iterable[Routee], stopChild: Boolean): Unit = {
     val r = _router
-    val newRoutees = routees.foldLeft(r.routees) { (xs, x) ⇒ unwatch(x); xs.filterNot(_ == x) }
+    val newRoutees = routees.foldLeft(r.routees) { (xs, x) ⇒
+      unwatch(x); xs.filterNot(_ == x)
+    }
     _router = r.withRoutees(newRoutees)
     if (stopChild) routees foreach stopIfChild
   }
@@ -86,14 +90,16 @@ private[akka] class RoutedActorCell(
   }
 
   private def stopIfChild(routee: Routee): Unit = routee match {
-    case ActorRefRoutee(ref) ⇒ child(ref.path.name) match {
-      case Some(`ref`) ⇒
-        // The reason for the delay is to give concurrent
-        // messages a chance to be placed in mailbox before sending PoisonPill,
-        // best effort.
-        system.scheduler.scheduleOnce(100.milliseconds, ref, PoisonPill)(dispatcher)
-      case _ ⇒
-    }
+    case ActorRefRoutee(ref) ⇒
+      child(ref.path.name) match {
+        case Some(`ref`) ⇒
+          // The reason for the delay is to give concurrent
+          // messages a chance to be placed in mailbox before sending PoisonPill,
+          // best effort.
+          system.scheduler.scheduleOnce(100.milliseconds, ref, PoisonPill)(
+              dispatcher)
+        case _ ⇒
+      }
     case _ ⇒
   }
 
@@ -105,16 +111,21 @@ private[akka] class RoutedActorCell(
         // must not use pool.nrOfInstances(system) for old (not re-compiled) custom routers
         // for binary backwards compatibility reasons
         val deprecatedNrOfInstances = pool.nrOfInstances
-        val nrOfRoutees = if (deprecatedNrOfInstances < 0) pool.nrOfInstances(system) else deprecatedNrOfInstances
+        val nrOfRoutees =
+          if (deprecatedNrOfInstances < 0) pool.nrOfInstances(system)
+          else deprecatedNrOfInstances
         if (nrOfRoutees > 0)
-          addRoutees(Vector.fill(nrOfRoutees)(pool.newRoutee(routeeProps, this)))
+          addRoutees(
+              Vector.fill(nrOfRoutees)(pool.newRoutee(routeeProps, this)))
       case group: Group ⇒
         // must not use group.paths(system) for old (not re-compiled) custom routers
         // for binary backwards compatibility reasons
         val deprecatedPaths = group.paths
-        val paths = if (deprecatedPaths == null) group.paths(system) else deprecatedPaths
+        val paths =
+          if (deprecatedPaths == null) group.paths(system) else deprecatedPaths
         if (paths.nonEmpty)
-          addRoutees(paths.map(p ⇒ group.routeeFor(p, this))(collection.breakOut))
+          addRoutees(
+              paths.map(p ⇒ group.routeeFor(p, this))(collection.breakOut))
       case _ ⇒
     }
     preSuperStart()
@@ -137,10 +148,8 @@ private[akka] class RoutedActorCell(
   override def sendMessage(envelope: Envelope): Unit = {
     if (routerConfig.isManagementMessage(envelope.message))
       super.sendMessage(envelope)
-    else
-      router.route(envelope.message, envelope.sender)
+    else router.route(envelope.message, envelope.sender)
   }
-
 }
 
 /**
@@ -150,12 +159,16 @@ private[akka] class RouterActor extends Actor {
   val cell = context match {
     case x: RoutedActorCell ⇒ x
     case _ ⇒
-      throw ActorInitializationException("Router actor can only be used in RoutedActorRef, not in " + context.getClass)
+      throw ActorInitializationException(
+          "Router actor can only be used in RoutedActorRef, not in " +
+          context.getClass)
   }
 
-  val routingLogicController: Option[ActorRef] = cell.routerConfig.routingLogicController(
-    cell.router.logic).map(props ⇒ context.actorOf(props.withDispatcher(context.props.dispatcher),
-      name = "routingLogicController"))
+  val routingLogicController: Option[ActorRef] = cell.routerConfig
+    .routingLogicController(cell.router.logic)
+    .map(props ⇒
+          context.actorOf(props.withDispatcher(context.props.dispatcher),
+                          name = "routingLogicController"))
 
   def receive = {
     case GetRoutees ⇒
@@ -173,8 +186,8 @@ private[akka] class RouterActor extends Actor {
   }
 
   def stopIfAllRouteesRemoved(): Unit =
-    if (cell.router.routees.isEmpty && cell.routerConfig.stopRouterWhenAllRouteesRemoved)
-      context.stop(self)
+    if (cell.router.routees.isEmpty &&
+        cell.routerConfig.stopRouterWhenAllRouteesRemoved) context.stop(self)
 
   override def preRestart(cause: Throwable, msg: Option[Any]): Unit = {
     // do not scrap children
@@ -184,25 +197,28 @@ private[akka] class RouterActor extends Actor {
 /**
  * INTERNAL API
  */
-private[akka] class RouterPoolActor(override val supervisorStrategy: SupervisorStrategy) extends RouterActor {
+private[akka] class RouterPoolActor(
+    override val supervisorStrategy: SupervisorStrategy)
+    extends RouterActor {
 
   val pool = cell.routerConfig match {
     case x: Pool ⇒ x
     case other ⇒
-      throw ActorInitializationException("RouterPoolActor can only be used with Pool, not " + other.getClass)
+      throw ActorInitializationException(
+          "RouterPoolActor can only be used with Pool, not " + other.getClass)
   }
 
-  override def receive = ({
-    case AdjustPoolSize(change: Int) ⇒
-      if (change > 0) {
-        val newRoutees = Vector.fill(change)(pool.newRoutee(cell.routeeProps, context))
-        cell.addRoutees(newRoutees)
-      } else if (change < 0) {
-        val currentRoutees = cell.router.routees
-        val abandon = currentRoutees.drop(currentRoutees.length + change)
-        cell.removeRoutees(abandon, stopChild = true)
-      }
-  }: Actor.Receive) orElse super.receive
-
+  override def receive =
+    ({
+      case AdjustPoolSize(change: Int) ⇒
+        if (change > 0) {
+          val newRoutees =
+            Vector.fill(change)(pool.newRoutee(cell.routeeProps, context))
+          cell.addRoutees(newRoutees)
+        } else if (change < 0) {
+          val currentRoutees = cell.router.routees
+          val abandon        = currentRoutees.drop(currentRoutees.length + change)
+          cell.removeRoutees(abandon, stopChild = true)
+        }
+    }: Actor.Receive) orElse super.receive
 }
-

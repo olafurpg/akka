@@ -4,11 +4,13 @@
 package akka.cluster.ddata
 
 object Flag {
+
   /**
    * `Flag` that is initialized to `false`.
    */
   val empty = new Flag(false)
   def apply(): Flag = empty
+
   /**
    * Java API: `Flag` that is initialized to `false`.
    */
@@ -24,7 +26,8 @@ object Flag {
  * This class is immutable, i.e. "modifying" methods return a new instance.
  */
 @SerialVersionUID(1L)
-final case class Flag(enabled: Boolean) extends ReplicatedData with ReplicatedDataSerialization {
+final case class Flag(enabled: Boolean)
+    extends ReplicatedData with ReplicatedDataSerialization {
 
   type T = Flag
 
@@ -42,4 +45,5 @@ object FlagKey {
 }
 
 @SerialVersionUID(1L)
-final case class FlagKey(_id: String) extends Key[Flag](_id) with ReplicatedDataSerialization
+final case class FlagKey(_id: String)
+    extends Key[Flag](_id) with ReplicatedDataSerialization

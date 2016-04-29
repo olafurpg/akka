@@ -1,10 +1,9 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.remote
 
-import akka.actor.{ ActorContext, ActorSystem, ExtendedActorSystem }
+import akka.actor.{ActorContext, ActorSystem, ExtendedActorSystem}
 import com.typesafe.config.Config
 import akka.event.EventStream
 import akka.ConfigurationException
@@ -64,14 +63,22 @@ private[akka] object FailureDetectorLoader {
    * @param system ActorSystem to be used for loading the implementation
    * @return A configured instance of the given [[FailureDetector]] implementation
    */
-  def load(fqcn: String, config: Config, system: ActorSystem): FailureDetector = {
-    system.asInstanceOf[ExtendedActorSystem].dynamicAccess.createInstanceFor[FailureDetector](
-      fqcn, List(
-        classOf[Config] -> config,
-        classOf[EventStream] -> system.eventStream)).recover({
-        case e ⇒ throw new ConfigurationException(
-          s"Could not create custom failure detector [$fqcn] due to: ${e.toString}", e)
-      }).get
+  def load(
+      fqcn: String, config: Config, system: ActorSystem): FailureDetector = {
+    system
+      .asInstanceOf[ExtendedActorSystem]
+      .dynamicAccess
+      .createInstanceFor[FailureDetector](
+          fqcn,
+          List(classOf[Config]      -> config,
+               classOf[EventStream] -> system.eventStream))
+      .recover({
+        case e ⇒
+          throw new ConfigurationException(
+              s"Could not create custom failure detector [$fqcn] due to: ${e.toString}",
+              e)
+      })
+      .get
   }
 
   /**
@@ -84,6 +91,6 @@ private[akka] object FailureDetectorLoader {
    * @param config Configuration that will be passed to the implementation
    * @return
    */
-  def apply(fqcn: String, config: Config)(implicit ctx: ActorContext) = load(fqcn, config, ctx.system)
-
+  def apply(fqcn: String, config: Config)(implicit ctx: ActorContext) =
+    load(fqcn, config, ctx.system)
 }

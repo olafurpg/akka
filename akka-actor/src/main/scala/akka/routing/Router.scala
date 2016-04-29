@@ -17,6 +17,7 @@ import akka.actor.NoSerializationVerificationNeeded
  * The implementation must be thread safe.
  */
 trait RoutingLogic extends NoSerializationVerificationNeeded {
+
   /**
    * Pick the destination for a given message. Normally it picks one of the
    * passed `routees`, but in the end it is up to the implementation to
@@ -27,7 +28,6 @@ trait RoutingLogic extends NoSerializationVerificationNeeded {
    * from the `IndexedSeq`.
    */
   def select(message: Any, routees: immutable.IndexedSeq[Routee]): Routee
-
 }
 
 /**
@@ -48,7 +48,8 @@ final case class ActorRefRoutee(ref: ActorRef) extends Routee {
 /**
  * [[Routee]] that sends the messages to an [[akka.actor.ActorSelection]].
  */
-final case class ActorSelectionRoutee(selection: ActorSelection) extends Routee {
+final case class ActorSelectionRoutee(selection: ActorSelection)
+    extends Routee {
   override def send(message: Any, sender: ActorRef): Unit =
     selection.tell(message, sender)
 }
@@ -65,12 +66,14 @@ object NoRoutee extends Routee {
 /**
  * [[Routee]] that sends each message to all `routees`.
  */
-final case class SeveralRoutees(routees: immutable.IndexedSeq[Routee]) extends Routee {
+final case class SeveralRoutees(routees: immutable.IndexedSeq[Routee])
+    extends Routee {
 
   /**
    * Java API
    */
-  def this(rs: java.lang.Iterable[Routee]) = this(routees = immutableSeq(rs).toVector)
+  def this(rs: java.lang.Iterable[Routee]) =
+    this(routees = immutableSeq(rs).toVector)
 
   /**
    * Java API
@@ -92,7 +95,9 @@ final case class SeveralRoutees(routees: immutable.IndexedSeq[Routee]) extends R
  *
  * A `Router` is immutable and the [[RoutingLogic]] must be thread safe.
  */
-final case class Router(val logic: RoutingLogic, val routees: immutable.IndexedSeq[Routee] = Vector.empty) {
+final case class Router(
+    val logic: RoutingLogic,
+    val routees: immutable.IndexedSeq[Routee] = Vector.empty) {
 
   /**
    * Java API
@@ -102,7 +107,8 @@ final case class Router(val logic: RoutingLogic, val routees: immutable.IndexedS
   /**
    * Java API
    */
-  def this(logic: RoutingLogic, routees: java.lang.Iterable[Routee]) = this(logic, immutableSeq(routees).toVector)
+  def this(logic: RoutingLogic, routees: java.lang.Iterable[Routee]) =
+    this(logic, immutableSeq(routees).toVector)
 
   /**
    * Send the message to the destination [[Routee]] selected by the [[RoutingLogic]].
@@ -110,17 +116,20 @@ final case class Router(val logic: RoutingLogic, val routees: immutable.IndexedS
    * before sent to the destinations.
    * Messages wrapped in a [[Broadcast]] envelope are always sent to all `routees`.
    */
-  def route(message: Any, sender: ActorRef): Unit =
-    message match {
-      case akka.routing.Broadcast(msg) ⇒ SeveralRoutees(routees).send(msg, sender)
-      case msg                         ⇒ send(logic.select(msg, routees), message, sender)
-    }
+  def route(message: Any, sender: ActorRef): Unit = message match {
+    case akka.routing.Broadcast(msg) ⇒
+      SeveralRoutees(routees).send(msg, sender)
+    case msg ⇒ send(logic.select(msg, routees), message, sender)
+  }
 
   private def send(routee: Routee, msg: Any, sender: ActorRef): Unit = {
     if (routee == NoRoutee && sender.isInstanceOf[InternalActorRef])
-      sender.asInstanceOf[InternalActorRef].provider.deadLetters.tell(unwrap(msg), sender)
-    else
-      routee.send(unwrap(msg), sender)
+      sender
+        .asInstanceOf[InternalActorRef]
+        .provider
+        .deadLetters
+        .tell(unwrap(msg), sender)
+    else routee.send(unwrap(msg), sender)
   }
 
   private def unwrap(msg: Any): Any = msg match {
@@ -131,7 +140,8 @@ final case class Router(val logic: RoutingLogic, val routees: immutable.IndexedS
   /**
    * Create a new instance with the specified routees and the same [[RoutingLogic]].
    */
-  def withRoutees(rs: immutable.IndexedSeq[Routee]): Router = copy(routees = rs)
+  def withRoutees(rs: immutable.IndexedSeq[Routee]): Router =
+    copy(routees = rs)
 
   /**
    * Create a new instance with one more routee and the same [[RoutingLogic]].
@@ -148,12 +158,14 @@ final case class Router(val logic: RoutingLogic, val routees: immutable.IndexedS
    * Create a new instance with one more [[ActorSelectionRoutee]] for the
    * specified [[akka.actor.ActorSelection]] and the same [[RoutingLogic]].
    */
-  def addRoutee(sel: ActorSelection): Router = addRoutee(ActorSelectionRoutee(sel))
+  def addRoutee(sel: ActorSelection): Router =
+    addRoutee(ActorSelectionRoutee(sel))
 
   /**
    * Create a new instance without the specified routee.
    */
-  def removeRoutee(routee: Routee): Router = copy(routees = routees.filterNot(_ == routee))
+  def removeRoutee(routee: Routee): Router =
+    copy(routees = routees.filterNot(_ == routee))
 
   /**
    * Create a new instance without the [[ActorRefRoutee]] for the specified
@@ -165,8 +177,8 @@ final case class Router(val logic: RoutingLogic, val routees: immutable.IndexedS
    * Create a new instance without the [[ActorSelectionRoutee]] for the specified
    * [[akka.actor.ActorSelection]].
    */
-  def removeRoutee(sel: ActorSelection): Router = removeRoutee(ActorSelectionRoutee(sel))
-
+  def removeRoutee(sel: ActorSelection): Router =
+    removeRoutee(ActorSelectionRoutee(sel))
 }
 
 /**
@@ -184,4 +196,3 @@ final case class Broadcast(message: Any) extends RouterEnvelope
 trait RouterEnvelope {
   def message: Any
 }
-

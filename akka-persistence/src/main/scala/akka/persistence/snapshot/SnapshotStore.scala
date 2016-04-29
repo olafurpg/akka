@@ -2,7 +2,6 @@
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  * Copyright (C) 2012-2016 Eligotech BV.
  */
-
 package akka.persistence.snapshot
 
 import scala.concurrent.duration._
@@ -20,30 +19,35 @@ trait SnapshotStore extends Actor with ActorLogging {
   import context.dispatcher
 
   private val extension = Persistence(context.system)
-  private val publish = extension.settings.internal.publishPluginCommands
+  private val publish   = extension.settings.internal.publishPluginCommands
 
   private val breaker = {
-    val cfg = extension.configFor(self)
+    val cfg         = extension.configFor(self)
     val maxFailures = cfg.getInt("circuit-breaker.max-failures")
-    val callTimeout = cfg.getDuration("circuit-breaker.call-timeout", MILLISECONDS).millis
-    val resetTimeout = cfg.getDuration("circuit-breaker.reset-timeout", MILLISECONDS).millis
-    CircuitBreaker(context.system.scheduler, maxFailures, callTimeout, resetTimeout)
+    val callTimeout =
+      cfg.getDuration("circuit-breaker.call-timeout", MILLISECONDS).millis
+    val resetTimeout =
+      cfg.getDuration("circuit-breaker.reset-timeout", MILLISECONDS).millis
+    CircuitBreaker(
+        context.system.scheduler, maxFailures, callTimeout, resetTimeout)
   }
 
-  final def receive = receiveSnapshotStore.orElse[Any, Unit](receivePluginInternal)
+  final def receive =
+    receiveSnapshotStore.orElse[Any, Unit](receivePluginInternal)
 
   final val receiveSnapshotStore: Actor.Receive = {
     case LoadSnapshot(persistenceId, criteria, toSequenceNr) ⇒
-      breaker.withCircuitBreaker(loadAsync(persistenceId, criteria.limit(toSequenceNr))) map {
-        sso ⇒ LoadSnapshotResult(sso, toSequenceNr)
+      breaker.withCircuitBreaker(
+          loadAsync(persistenceId, criteria.limit(toSequenceNr))) map { sso ⇒
+        LoadSnapshotResult(sso, toSequenceNr)
       } recover {
         case e ⇒ LoadSnapshotResult(None, toSequenceNr)
       } pipeTo senderPersistentActor()
 
     case SaveSnapshot(metadata, snapshot) ⇒
       val md = metadata.copy(timestamp = System.currentTimeMillis)
-      breaker.withCircuitBreaker(saveAsync(md, snapshot)) map {
-        _ ⇒ SaveSnapshotSuccess(md)
+      breaker.withCircuitBreaker(saveAsync(md, snapshot)) map { _ ⇒
+        SaveSnapshotSuccess(md)
       } recover {
         case e ⇒ SaveSnapshotFailure(metadata, e)
       } to (self, senderPersistentActor())
@@ -57,13 +61,18 @@ trait SnapshotStore extends Actor with ActorLogging {
       } finally senderPersistentActor() ! evt // sender is persistentActor
 
     case d @ DeleteSnapshot(metadata) ⇒
-      breaker.withCircuitBreaker(deleteAsync(metadata)).map {
-        case _ ⇒ DeleteSnapshotSuccess(metadata)
-      }.recover {
-        case e ⇒ DeleteSnapshotFailure(metadata, e)
-      }.pipeTo(self)(senderPersistentActor()).onComplete {
-        case _ ⇒ if (publish) context.system.eventStream.publish(d)
-      }
+      breaker
+        .withCircuitBreaker(deleteAsync(metadata))
+        .map {
+          case _ ⇒ DeleteSnapshotSuccess(metadata)
+        }
+        .recover {
+          case e ⇒ DeleteSnapshotFailure(metadata, e)
+        }
+        .pipeTo(self)(senderPersistentActor())
+        .onComplete {
+          case _ ⇒ if (publish) context.system.eventStream.publish(d)
+        }
 
     case evt: DeleteSnapshotSuccess ⇒
       try tryReceivePluginInternal(evt) finally senderPersistentActor() ! evt
@@ -71,13 +80,18 @@ trait SnapshotStore extends Actor with ActorLogging {
       try tryReceivePluginInternal(evt) finally senderPersistentActor() ! evt
 
     case d @ DeleteSnapshots(persistenceId, criteria) ⇒
-      breaker.withCircuitBreaker(deleteAsync(persistenceId, criteria)).map {
-        case _ ⇒ DeleteSnapshotsSuccess(criteria)
-      }.recover {
-        case e ⇒ DeleteSnapshotsFailure(criteria, e)
-      }.pipeTo(self)(senderPersistentActor()).onComplete {
-        case _ ⇒ if (publish) context.system.eventStream.publish(d)
-      }
+      breaker
+        .withCircuitBreaker(deleteAsync(persistenceId, criteria))
+        .map {
+          case _ ⇒ DeleteSnapshotsSuccess(criteria)
+        }
+        .recover {
+          case e ⇒ DeleteSnapshotsFailure(criteria, e)
+        }
+        .pipeTo(self)(senderPersistentActor())
+        .onComplete {
+          case _ ⇒ if (publish) context.system.eventStream.publish(d)
+        }
 
     case evt: DeleteSnapshotsFailure ⇒
       try tryReceivePluginInternal(evt) finally senderPersistentActor() ! evt // sender is persistentActor
@@ -101,7 +115,9 @@ trait SnapshotStore extends Actor with ActorLogging {
    * @param persistenceId id of the persistent actor.
    * @param criteria selection criteria for loading.
    */
-  def loadAsync(persistenceId: String, criteria: SnapshotSelectionCriteria): Future[Option[SelectedSnapshot]]
+  def loadAsync(
+      persistenceId: String,
+      criteria: SnapshotSelectionCriteria): Future[Option[SelectedSnapshot]]
 
   /**
    * Plugin API: asynchronously saves a snapshot.
@@ -130,7 +146,8 @@ trait SnapshotStore extends Actor with ActorLogging {
    * @param persistenceId id of the persistent actor.
    * @param criteria selection criteria for deleting.
    */
-  def deleteAsync(persistenceId: String, criteria: SnapshotSelectionCriteria): Future[Unit]
+  def deleteAsync(
+      persistenceId: String, criteria: SnapshotSelectionCriteria): Future[Unit]
 
   /**
    * Plugin API

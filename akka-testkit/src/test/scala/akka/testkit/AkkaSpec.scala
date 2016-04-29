@@ -6,20 +6,21 @@ package akka.testkit
 import org.scalactic.Constraint
 
 import language.postfixOps
-import org.scalatest.{ WordSpecLike, BeforeAndAfterAll }
+import org.scalatest.{WordSpecLike, BeforeAndAfterAll}
 import org.scalatest.Matchers
 import akka.actor.ActorSystem
-import akka.event.{ Logging, LoggingAdapter }
+import akka.event.{Logging, LoggingAdapter}
 import scala.concurrent.duration._
 import scala.concurrent.Future
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 import akka.dispatch.Dispatchers
 import akka.testkit.TestEvent._
 import org.scalactic.ConversionCheckedTripleEquals
 import org.scalatest.concurrent.ScalaFutures
 
 object AkkaSpec {
-  val testConf: Config = ConfigFactory.parseString("""
+  val testConf: Config =
+    ConfigFactory.parseString("""
       akka {
         loggers = ["akka.testkit.TestEventListener"]
         loglevel = "WARNING"
@@ -51,23 +52,28 @@ object AkkaSpec {
     }
     reduced.head.replaceFirst(""".*\.""", "").replaceAll("[^a-zA-Z_0-9]", "_")
   }
-
 }
 
 abstract class AkkaSpec(_system: ActorSystem)
-    extends TestKit(_system) with WordSpecLike with Matchers with BeforeAndAfterAll with WatchedByCoroner
+    extends TestKit(_system) with WordSpecLike with Matchers
+    with BeforeAndAfterAll with WatchedByCoroner
     with ConversionCheckedTripleEquals with ScalaFutures {
 
-  implicit val patience = PatienceConfig(testKitSettings.DefaultTimeout.duration)
+  implicit val patience = PatienceConfig(
+      testKitSettings.DefaultTimeout.duration)
 
-  def this(config: Config) = this(ActorSystem(AkkaSpec.getCallerName(getClass),
-    ConfigFactory.load(config.withFallback(AkkaSpec.testConf))))
+  def this(config: Config) =
+    this(
+        ActorSystem(
+            AkkaSpec.getCallerName(getClass),
+            ConfigFactory.load(config.withFallback(AkkaSpec.testConf))))
 
   def this(s: String) = this(ConfigFactory.parseString(s))
 
   def this(configMap: Map[String, _]) = this(AkkaSpec.mapToConfig(configMap))
 
-  def this() = this(ActorSystem(AkkaSpec.getCallerName(getClass), AkkaSpec.testConf))
+  def this() =
+    this(ActorSystem(AkkaSpec.getCallerName(getClass), AkkaSpec.testConf))
 
   val log: LoggingAdapter = Logging(system, this.getClass)
 
@@ -91,18 +97,20 @@ abstract class AkkaSpec(_system: ActorSystem)
 
   protected def afterTermination() {}
 
-  def spawn(dispatcherId: String = Dispatchers.DefaultDispatcherId)(body: ⇒ Unit): Unit =
+  def spawn(dispatcherId: String = Dispatchers.DefaultDispatcherId)(
+      body: ⇒ Unit): Unit =
     Future(body)(system.dispatchers.lookup(dispatcherId))
 
   override def expectedTestDuration: FiniteDuration = 60 seconds
 
-  def muteDeadLetters(messageClasses: Class[_]*)(sys: ActorSystem = system): Unit =
-    if (!sys.log.isDebugEnabled) {
-      def mute(clazz: Class[_]): Unit =
-        sys.eventStream.publish(Mute(DeadLettersFilter(clazz)(occurrences = Int.MaxValue)))
-      if (messageClasses.isEmpty) mute(classOf[AnyRef])
-      else messageClasses foreach mute
-    }
+  def muteDeadLetters(messageClasses: Class[_]*)(
+      sys: ActorSystem = system): Unit = if (!sys.log.isDebugEnabled) {
+    def mute(clazz: Class[_]): Unit =
+      sys.eventStream.publish(
+          Mute(DeadLettersFilter(clazz)(occurrences = Int.MaxValue)))
+    if (messageClasses.isEmpty) mute(classOf[AnyRef])
+    else messageClasses foreach mute
+  }
 
   // for ScalaTest === compare of Class objects
   implicit def classEqualityConstraint[A, B]: Constraint[Class[A], Class[B]] =
@@ -110,8 +118,8 @@ abstract class AkkaSpec(_system: ActorSystem)
       def areEqual(a: Class[A], b: Class[B]) = a == b
     }
 
-  implicit def setEqualityConstraint[A, T <: Set[_ <: A]]: Constraint[Set[A], T] =
-    new Constraint[Set[A], T] {
-      def areEqual(a: Set[A], b: T) = a == b
-    }
+  implicit def setEqualityConstraint[A, T <: Set[_ <: A]]: Constraint[
+      Set[A], T] = new Constraint[Set[A], T] {
+    def areEqual(a: Set[A], b: T) = a == b
+  }
 }

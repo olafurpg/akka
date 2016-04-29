@@ -7,13 +7,14 @@ package akka.http.scaladsl.server
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers._
 
-import scala.util.{ Success, Failure, Try }
+import scala.util.{Success, Failure, Try}
 
 object ModeledCustomHeaderSpec {
 
   //#modeled-api-key-custom-header
-  final class ApiTokenHeader(token: String) extends ModeledCustomHeader[ApiTokenHeader] {
-    override def renderInRequests = false
+  final class ApiTokenHeader(token: String)
+      extends ModeledCustomHeader[ApiTokenHeader] {
+    override def renderInRequests  = false
     override def renderInResponses = false
     override val companion = ApiTokenHeader
     override def value: String = token
@@ -24,19 +25,21 @@ object ModeledCustomHeaderSpec {
   }
   //#modeled-api-key-custom-header
 
-  final class DifferentHeader(token: String) extends ModeledCustomHeader[DifferentHeader] {
-    override def renderInRequests = false
+  final class DifferentHeader(token: String)
+      extends ModeledCustomHeader[DifferentHeader] {
+    override def renderInRequests  = false
     override def renderInResponses = false
     override val companion = DifferentHeader
     override def value = token
   }
-  object DifferentHeader extends ModeledCustomHeaderCompanion[DifferentHeader] {
+  object DifferentHeader
+      extends ModeledCustomHeaderCompanion[DifferentHeader] {
     override val name = "different"
     override def parse(value: String) =
-      if (value contains " ") Failure(new Exception("Contains illegal whitespace!"))
+      if (value contains " ")
+        Failure(new Exception("Contains illegal whitespace!"))
       else Success(new DifferentHeader(value))
   }
-
 }
 
 class ModeledCustomHeaderSpec extends RoutingSpec {
@@ -129,9 +132,9 @@ class ModeledCustomHeaderSpec extends RoutingSpec {
         DifferentHeader("Hello world") // illegal " "
       }
 
-      ex.getMessage should ===("Unable to construct custom header by parsing: 'Hello world'")
+      ex.getMessage should ===(
+          "Unable to construct custom header by parsing: 'Hello world'")
       ex.getCause.getMessage should include("whitespace")
     }
   }
-
 }

@@ -3,7 +3,7 @@
  */
 package akka.remote.security.provider
 
-import org.uncommons.maths.random.{ AESCounterRNG }
+import org.uncommons.maths.random.{AESCounterRNG}
 import SeedSize.Seed256
 
 /**
@@ -27,7 +27,8 @@ class AES256CounterInetRNG extends java.security.SecureRandomSpi {
    *
    * @param bytes the array to be filled in with random bytes.
    */
-  override protected def engineNextBytes(bytes: Array[Byte]): Unit = rng.nextBytes(bytes)
+  override protected def engineNextBytes(bytes: Array[Byte]): Unit =
+    rng.nextBytes(bytes)
 
   /**
    * Unused method
@@ -37,6 +38,6 @@ class AES256CounterInetRNG extends java.security.SecureRandomSpi {
    * @param numBytes the number of seed bytes to generate.
    * @return the seed bytes.
    */
-  override protected def engineGenerateSeed(numBytes: Int): Array[Byte] = InternetSeedGenerator.getInstance.generateSeed(numBytes)
+  override protected def engineGenerateSeed(numBytes: Int): Array[Byte] =
+    InternetSeedGenerator.getInstance.generateSeed(numBytes)
 }
-

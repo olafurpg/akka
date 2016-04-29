@@ -6,7 +6,7 @@ package akka.http.impl.util
 import java.util.concurrent.atomic.AtomicInteger
 import akka.NotUsed
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
+import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.testkit.Utils._
 import akka.stream.testkit._
 import org.scalactic.ConversionCheckedTripleEquals
@@ -28,22 +28,28 @@ class One2OneBidiFlowSpec extends AkkaSpec {
     }
 
     "be fully transparent to errors" in {
-      val f = One2OneBidiFlow[Int, Int](-1) join Flow[Int].map(x ⇒ 10 / (x - 2))
-      an[ArithmeticException] should be thrownBy Await.result(test(f), 1.second)
+      val f =
+        One2OneBidiFlow[Int, Int](-1) join Flow[Int].map(x ⇒ 10 / (x - 2))
+      an[ArithmeticException] should be thrownBy Await.result(test(f),
+                                                              1.second)
     }
 
     "trigger an `OutputTruncationException` if the wrapped stream completes early" in assertAllStagesStopped {
-      val flowInProbe = TestSubscriber.probe[Int]()
+      val flowInProbe  = TestSubscriber.probe[Int]()
       val flowOutProbe = TestPublisher.probe[Int]()
 
-      val testSetup = One2OneBidiFlow[Int, Int](-1) join Flow.fromSinkAndSource(
-        Sink.fromSubscriber(flowInProbe),
-        Source.fromPublisher(flowOutProbe))
+      val testSetup =
+        One2OneBidiFlow[Int, Int](-1) join Flow.fromSinkAndSource(
+            Sink.fromSubscriber(flowInProbe),
+            Source.fromPublisher(flowOutProbe))
 
-      val upstreamProbe = TestPublisher.probe[Int]()
+      val upstreamProbe   = TestPublisher.probe[Int]()
       val downstreamProbe = TestSubscriber.probe[Int]()
 
-      Source.fromPublisher(upstreamProbe).via(testSetup).runWith(Sink.fromSubscriber(downstreamProbe))
+      Source
+        .fromPublisher(upstreamProbe)
+        .via(testSetup)
+        .runWith(Sink.fromSubscriber(downstreamProbe))
 
       upstreamProbe.ensureSubscription()
       downstreamProbe.ensureSubscription()
@@ -97,12 +103,14 @@ class One2OneBidiFlowSpec extends AkkaSpec {
     "backpressure the input side if the maximum number of pending output elements has been reached" in assertAllStagesStopped {
       val MAX_PENDING = 24
 
-      val out = TestPublisher.probe[Int]()
+      val out  = TestPublisher.probe[Int]()
       val seen = new AtomicInteger
 
       Source(1 to 1000)
         .log("", seen.set)
-        .via(One2OneBidiFlow[Int, Int](MAX_PENDING) join Flow.fromSinkAndSourceMat(Sink.ignore, Source.fromPublisher(out))(Keep.left))
+        .via(One2OneBidiFlow[Int, Int](MAX_PENDING) join Flow
+              .fromSinkAndSourceMat(Sink.ignore, Source.fromPublisher(out))(
+                Keep.left))
         .runWith(Sink.ignore)
 
       Thread.sleep(50)
@@ -116,11 +124,16 @@ class One2OneBidiFlowSpec extends AkkaSpec {
   }
 
   class Test(maxPending: Int = -1) {
-    val inIn = TestPublisher.probe[Int]()
-    val inOut = TestSubscriber.probe[Int]()
-    val outIn = TestPublisher.probe[Int]()
+    val inIn   = TestPublisher.probe[Int]()
+    val inOut  = TestSubscriber.probe[Int]()
+    val outIn  = TestPublisher.probe[Int]()
     val outOut = TestSubscriber.probe[Int]()
 
-    Source.fromPublisher(inIn).via(One2OneBidiFlow[Int, Int](maxPending) join Flow.fromSinkAndSourceMat(Sink.fromSubscriber(inOut), Source.fromPublisher(outIn))(Keep.left)).runWith(Sink.fromSubscriber(outOut))
+    Source
+      .fromPublisher(inIn)
+      .via(One2OneBidiFlow[Int, Int](maxPending) join Flow
+            .fromSinkAndSourceMat(Sink.fromSubscriber(inOut),
+                                  Source.fromPublisher(outIn))(Keep.left))
+      .runWith(Sink.fromSubscriber(outOut))
   }
 }

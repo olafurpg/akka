@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor
 
 /**
@@ -51,10 +50,12 @@ abstract class UntypedActorWithStash extends UntypedActor with Stash
  * manually, and the mailbox should extend the [[akka.dispatch.DequeBasedMessageQueueSemantics]] marker trait.
  * See [[akka.actor.UntypedActorWithStash]] for details on how `Stash` works.
  */
-abstract class UntypedActorWithUnboundedStash extends UntypedActor with UnboundedStash
+abstract class UntypedActorWithUnboundedStash
+    extends UntypedActor with UnboundedStash
 
 /**
  * Actor base class with `Stash` that does not enforce any mailbox type. The mailbox of the actor has to be configured
  * manually. See [[akka.actor.UntypedActorWithStash]] for details on how `Stash` works.
  */
-abstract class UntypedActorWithUnrestrictedStash extends UntypedActor with UnrestrictedStash
+abstract class UntypedActorWithUnrestrictedStash
+    extends UntypedActor with UnrestrictedStash

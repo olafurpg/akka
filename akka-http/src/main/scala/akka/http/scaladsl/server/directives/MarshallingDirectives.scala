@@ -6,9 +6,9 @@ package akka.http.scaladsl.server
 package directives
 
 import scala.concurrent.Promise
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
-import akka.http.scaladsl.unmarshalling.{ Unmarshaller, FromRequestUnmarshaller }
+import akka.http.scaladsl.unmarshalling.{Unmarshaller, FromRequestUnmarshaller}
 import akka.http.impl.util._
 
 /**
@@ -33,12 +33,18 @@ trait MarshallingDirectives {
       import ctx.materializer
       onComplete(um(ctx.request)) flatMap {
         case Success(value) ⇒ provide(value)
-        case Failure(Unmarshaller.NoContentException) ⇒ reject(RequestEntityExpectedRejection)
-        case Failure(Unmarshaller.UnsupportedContentTypeException(x)) ⇒ reject(UnsupportedRequestContentTypeRejection(x))
-        case Failure(x: IllegalArgumentException) ⇒ reject(ValidationRejection(x.getMessage.nullAsEmpty, Some(x)))
-        case Failure(x) ⇒ reject(MalformedRequestContentRejection(x.getMessage.nullAsEmpty, Option(x.getCause)))
+        case Failure(Unmarshaller.NoContentException) ⇒
+          reject(RequestEntityExpectedRejection)
+        case Failure(Unmarshaller.UnsupportedContentTypeException(x)) ⇒
+          reject(UnsupportedRequestContentTypeRejection(x))
+        case Failure(x: IllegalArgumentException) ⇒
+          reject(ValidationRejection(x.getMessage.nullAsEmpty, Some(x)))
+        case Failure(x) ⇒
+          reject(MalformedRequestContentRejection(x.getMessage.nullAsEmpty,
+                                                  Option(x.getCause)))
       }
-    } & cancelRejections(RequestEntityExpectedRejection.getClass, classOf[UnsupportedRequestContentTypeRejection])
+    } & cancelRejections(RequestEntityExpectedRejection.getClass,
+                         classOf[UnsupportedRequestContentTypeRejection])
 
   /**
    * Returns the in-scope [[FromRequestUnmarshaller]] for the given type.
@@ -53,22 +59,23 @@ trait MarshallingDirectives {
    *
    * @group marshalling
    */
-  def completeWith[T](marshaller: ToResponseMarshaller[T])(inner: (T ⇒ Unit) ⇒ Unit): Route =
-    extractRequestContext { ctx ⇒
-      implicit val m = marshaller
-      complete {
-        val promise = Promise[T]()
-        inner(promise.success(_))
-        promise.future
-      }
+  def completeWith[T](marshaller: ToResponseMarshaller[T])(
+      inner: (T ⇒ Unit) ⇒ Unit): Route = extractRequestContext { ctx ⇒
+    implicit val m = marshaller
+    complete {
+      val promise = Promise[T]()
+      inner(promise.success(_))
+      promise.future
     }
+  }
 
   /**
    * Returns the in-scope Marshaller for the given type.
    *
    * @group marshalling
    */
-  def instanceOf[T](implicit m: ToResponseMarshaller[T]): ToResponseMarshaller[T] = m
+  def instanceOf[T](
+      implicit m: ToResponseMarshaller[T]): ToResponseMarshaller[T] = m
 
   /**
    * Completes the request using the given function. The input to the function is produced with the in-scope
@@ -76,8 +83,11 @@ trait MarshallingDirectives {
    *
    * @group marshalling
    */
-  def handleWith[A, B](f: A ⇒ B)(implicit um: FromRequestUnmarshaller[A], m: ToResponseMarshaller[B]): Route =
-    entity(um) { a ⇒ complete(f(a)) }
+  def handleWith[A, B](f: A ⇒ B)(implicit um: FromRequestUnmarshaller[A],
+                                 m: ToResponseMarshaller[B]): Route =
+    entity(um) { a ⇒
+      complete(f(a))
+    }
 }
 
 object MarshallingDirectives extends MarshallingDirectives

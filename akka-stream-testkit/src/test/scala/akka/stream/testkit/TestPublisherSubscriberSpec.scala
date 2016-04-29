@@ -3,35 +3,40 @@
  */
 package akka.stream.testkit
 
-import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.testkit.TestPublisher._
 import akka.stream.testkit.TestSubscriber._
 import akka.stream.testkit.Utils._
-import akka.stream.{ ActorMaterializer, ActorMaterializerSettings }
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import org.reactivestreams.Subscription
 import akka.testkit.AkkaSpec
 
 class TestPublisherSubscriberSpec extends AkkaSpec {
 
-  val settings = ActorMaterializerSettings(system)
-    .withInputBuffer(initialSize = 2, maxSize = 2)
+  val settings = ActorMaterializerSettings(system).withInputBuffer(
+      initialSize = 2, maxSize = 2)
 
   implicit val materializer = ActorMaterializer(settings)
 
   "TestPublisher and TestSubscriber" must {
 
     "have all events accessible from manual probes" in assertAllStagesStopped {
-      val upstream = TestPublisher.manualProbe[Int]()
+      val upstream   = TestPublisher.manualProbe[Int]()
       val downstream = TestSubscriber.manualProbe[Int]()
-      Source.fromPublisher(upstream).runWith(Sink.asPublisher(false))(materializer).subscribe(downstream)
+      Source
+        .fromPublisher(upstream)
+        .runWith(Sink.asPublisher(false))(materializer)
+        .subscribe(downstream)
 
       val upstreamSubscription = upstream.expectSubscription()
-      val downstreamSubscription: Subscription = downstream.expectEventPF { case OnSubscribe(sub) ⇒ sub }
+      val downstreamSubscription: Subscription = downstream.expectEventPF {
+        case OnSubscribe(sub) ⇒ sub
+      }
 
       upstreamSubscription.sendNext(1)
       downstreamSubscription.request(1)
       upstream.expectEventPF { case RequestMore(_, e) ⇒ e } should ===(1)
-      downstream.expectEventPF { case OnNext(e) ⇒ e } should ===(1)
+      downstream.expectEventPF { case OnNext(e)       ⇒ e } should ===(1)
 
       upstreamSubscription.sendNext(1)
       downstreamSubscription.request(1)
@@ -45,19 +50,27 @@ class TestPublisherSubscriberSpec extends AkkaSpec {
     }
 
     "handle gracefully partial function that is not suitable" in assertAllStagesStopped {
-      val upstream = TestPublisher.manualProbe[Int]()
+      val upstream   = TestPublisher.manualProbe[Int]()
       val downstream = TestSubscriber.manualProbe[Int]()
-      Source.fromPublisher(upstream).runWith(Sink.asPublisher(false))(materializer).subscribe(downstream)
+      Source
+        .fromPublisher(upstream)
+        .runWith(Sink.asPublisher(false))(materializer)
+        .subscribe(downstream)
       val upstreamSubscription = upstream.expectSubscription()
-      val downstreamSubscription: Subscription = downstream.expectEventPF { case OnSubscribe(sub) ⇒ sub }
+      val downstreamSubscription: Subscription = downstream.expectEventPF {
+        case OnSubscribe(sub) ⇒ sub
+      }
 
       upstreamSubscription.sendNext(1)
       downstreamSubscription.request(1)
-      an[AssertionError] should be thrownBy upstream.expectEventPF { case Subscribe(e) ⇒ e }
-      an[AssertionError] should be thrownBy downstream.expectNextPF[String] { case e: String ⇒ e }
+      an[AssertionError] should be thrownBy upstream.expectEventPF {
+        case Subscribe(e) ⇒ e
+      }
+      an[AssertionError] should be thrownBy downstream.expectNextPF[String] {
+        case e: String ⇒ e
+      }
 
       upstreamSubscription.sendComplete()
     }
-
   }
 }

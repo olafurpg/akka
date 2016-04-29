@@ -3,7 +3,6 @@
  */
 package akka.typed
 
-
 /**
  * The behavior of an actor defines how it reacts to the messages that it
  * receives. The message may either be of the type that the Actor declares
@@ -16,6 +15,7 @@ package akka.typed
  * in the [[ScalaDSL$]] object.
  */
 abstract class Behavior[T] {
+
   /**
    * Process an incoming [[Signal]] and return the next behavior. This means
    * that all lifecycle hooks, ReceiveTimeout, Terminated and Failed messages
@@ -71,12 +71,14 @@ abstract class Behavior[T] {
  * Actor messages).
  */
 sealed trait Signal
+
 /**
  * Lifecycle signal that is fired upon creation of the Actor. This will be the
  * first message that the actor processes.
  */
 @SerialVersionUID(1L)
 final case object PreStart extends Signal
+
 /**
  * Lifecycle signal that is fired upon restart of the Actor before replacing
  * the behavior with the fresh one (i.e. this signal is received within the
@@ -84,6 +86,7 @@ final case object PreStart extends Signal
  */
 @SerialVersionUID(1L)
 final case class PreRestart(failure: Throwable) extends Signal
+
 /**
  * Lifecycle signal that is fired upon restart of the Actor after replacing
  * the behavior with the fresh one (i.e. this signal is received within the
@@ -91,6 +94,7 @@ final case class PreRestart(failure: Throwable) extends Signal
  */
 @SerialVersionUID(1L)
 final case class PostRestart(failure: Throwable) extends Signal
+
 /**
  * Lifecycle signal that is fired after this actor and all its child actors
  * (transitively) have terminated. The [[Terminated]] signal is only sent to
@@ -102,6 +106,7 @@ final case class PostRestart(failure: Throwable) extends Signal
  */
 @SerialVersionUID(1L)
 final case object PostStop extends Signal
+
 /**
  * Lifecycle signal that is fired when a direct child actor fails. The child
  * actor will be suspended until its fate has been decided. The decision is
@@ -110,7 +115,8 @@ final case object PostStop extends Signal
  * failing this actor with the same exception that the child actor failed with.
  */
 @SerialVersionUID(1L)
-final case class Failed(cause: Throwable, child: ActorRef[Nothing]) extends Signal {
+final case class Failed(cause: Throwable, child: ActorRef[Nothing])
+    extends Signal {
   import Failed._
 
   private[this] var _decision: Decision = _
@@ -120,6 +126,7 @@ final case class Failed(cause: Throwable, child: ActorRef[Nothing]) extends Sign
     case x    ⇒ x
   }
 }
+
 /**
  * The actor can register for a notification in case no message is received
  * within a given time window, and the signal that is raised in this case is
@@ -127,6 +134,7 @@ final case class Failed(cause: Throwable, child: ActorRef[Nothing]) extends Sign
  */
 @SerialVersionUID(1L)
 final case object ReceiveTimeout extends Signal
+
 /**
  * Lifecycle signal that is fired when an Actor that was watched has terminated.
  * Watching is performed by invoking the
@@ -196,7 +204,6 @@ object Failed {
    */
   @SerialVersionUID(1L)
   case object Escalate extends Decision
-
 }
 
 object Behavior {
@@ -206,8 +213,11 @@ object Behavior {
    */
   @SerialVersionUID(1L)
   private[akka] object emptyBehavior extends Behavior[Any] {
-    override def management(ctx: ActorContext[Any], msg: Signal): Behavior[Any] = ScalaDSL.Unhandled
-    override def message(ctx: ActorContext[Any], msg: Any): Behavior[Any] = ScalaDSL.Unhandled
+    override def management(
+        ctx: ActorContext[Any], msg: Signal): Behavior[Any] =
+      ScalaDSL.Unhandled
+    override def message(ctx: ActorContext[Any], msg: Any): Behavior[Any] =
+      ScalaDSL.Unhandled
     override def toString = "Empty"
   }
 
@@ -216,8 +226,10 @@ object Behavior {
    */
   @SerialVersionUID(1L)
   private[akka] object ignoreBehavior extends Behavior[Any] {
-    override def management(ctx: ActorContext[Any], msg: Signal): Behavior[Any] = ScalaDSL.Same
-    override def message(ctx: ActorContext[Any], msg: Any): Behavior[Any] = ScalaDSL.Same
+    override def management(
+        ctx: ActorContext[Any], msg: Signal): Behavior[Any] = ScalaDSL.Same
+    override def message(ctx: ActorContext[Any], msg: Any): Behavior[Any] =
+      ScalaDSL.Same
     override def toString = "Ignore"
   }
 
@@ -226,8 +238,12 @@ object Behavior {
    */
   @SerialVersionUID(1L)
   private[akka] object unhandledBehavior extends Behavior[Nothing] {
-    override def management(ctx: ActorContext[Nothing], msg: Signal): Behavior[Nothing] = throw new UnsupportedOperationException("Not Implemented")
-    override def message(ctx: ActorContext[Nothing], msg: Nothing): Behavior[Nothing] = throw new UnsupportedOperationException("Not Implemented")
+    override def management(
+        ctx: ActorContext[Nothing], msg: Signal): Behavior[Nothing] =
+      throw new UnsupportedOperationException("Not Implemented")
+    override def message(
+        ctx: ActorContext[Nothing], msg: Nothing): Behavior[Nothing] =
+      throw new UnsupportedOperationException("Not Implemented")
     override def toString = "Unhandled"
   }
 
@@ -236,8 +252,12 @@ object Behavior {
    */
   @SerialVersionUID(1L)
   private[akka] object sameBehavior extends Behavior[Nothing] {
-    override def management(ctx: ActorContext[Nothing], msg: Signal): Behavior[Nothing] = throw new UnsupportedOperationException("Not Implemented")
-    override def message(ctx: ActorContext[Nothing], msg: Nothing): Behavior[Nothing] = throw new UnsupportedOperationException("Not Implemented")
+    override def management(
+        ctx: ActorContext[Nothing], msg: Signal): Behavior[Nothing] =
+      throw new UnsupportedOperationException("Not Implemented")
+    override def message(
+        ctx: ActorContext[Nothing], msg: Nothing): Behavior[Nothing] =
+      throw new UnsupportedOperationException("Not Implemented")
     override def toString = "Same"
   }
 
@@ -246,11 +266,15 @@ object Behavior {
    */
   @SerialVersionUID(1L)
   private[akka] object stoppedBehavior extends Behavior[Nothing] {
-    override def management(ctx: ActorContext[Nothing], msg: Signal): Behavior[Nothing] = {
-      assert(msg == PostStop, s"stoppedBehavior received $msg (only PostStop is expected)")
+    override def management(
+        ctx: ActorContext[Nothing], msg: Signal): Behavior[Nothing] = {
+      assert(msg == PostStop,
+             s"stoppedBehavior received $msg (only PostStop is expected)")
       this
     }
-    override def message(ctx: ActorContext[Nothing], msg: Nothing): Behavior[Nothing] = throw new UnsupportedOperationException("Not Implemented")
+    override def message(
+        ctx: ActorContext[Nothing], msg: Nothing): Behavior[Nothing] =
+      throw new UnsupportedOperationException("Not Implemented")
     override def toString = "Stopped"
   }
 
@@ -260,15 +284,16 @@ object Behavior {
    * behavior) this method unwraps the behavior such that the innermost behavior
    * is returned, i.e. it removes the decorations.
    */
-  def canonicalize[T](ctx: ActorContext[T], behavior: Behavior[T], current: Behavior[T]): Behavior[T] =
-    behavior match {
-      case `sameBehavior`      ⇒ current
-      case `unhandledBehavior` ⇒ current
-      case other               ⇒ other
-    }
+  def canonicalize[T](ctx: ActorContext[T],
+                      behavior: Behavior[T],
+                      current: Behavior[T]): Behavior[T] = behavior match {
+    case `sameBehavior`      ⇒ current
+    case `unhandledBehavior` ⇒ current
+    case other               ⇒ other
+  }
 
   def isAlive[T](behavior: Behavior[T]): Boolean = behavior ne stoppedBehavior
 
-  def isUnhandled[T](behavior: Behavior[T]): Boolean = behavior eq unhandledBehavior
+  def isUnhandled[T](behavior: Behavior[T]): Boolean =
+    behavior eq unhandledBehavior
 }
-

@@ -40,22 +40,29 @@ object Receptionist {
    * The set of commands accepted by a Receptionist.
    */
   sealed trait Command
+
   /**
    * Associate the given [[akka.typed.ActorRef]] with the given [[ServiceKey]]. Multiple
    * registrations can be made for the same key. Unregistration is implied by
    * the end of the referenced Actor’s lifecycle.
    */
-  final case class Register[T](key: ServiceKey[T], address: ActorRef[T])(val replyTo: ActorRef[Registered[T]]) extends Command
+  final case class Register[T](key: ServiceKey[T], address: ActorRef[T])(
+      val replyTo: ActorRef[Registered[T]])
+      extends Command
+
   /**
    * Query the Receptionist for a list of all Actors implementing the given
    * protocol.
    */
-  final case class Find[T](key: ServiceKey[T])(val replyTo: ActorRef[Listing[T]]) extends Command
+  final case class Find[T](key: ServiceKey[T])(
+      val replyTo: ActorRef[Listing[T]])
+      extends Command
 
   /**
    * Confirmation that the given [[akka.typed.ActorRef]] has been associated with the [[ServiceKey]].
    */
   final case class Registered[T](key: ServiceKey[T], address: ActorRef[T])
+
   /**
    * Current listing of all Actors that implement the protocol given by the [[ServiceKey]].
    */
@@ -68,16 +75,18 @@ object Receptionist {
    * val receptionist: ActorRef[Receptionist.Command] = ctx.spawn(Props(Receptionist.behavior), "receptionist")
    * }}}
    */
-  val behavior: Behavior[Command] = behavior(TypedMultiMap.empty[AbstractServiceKey, KV])
+  val behavior: Behavior[Command] = behavior(
+      TypedMultiMap.empty[AbstractServiceKey, KV])
 
   private type KV[K <: AbstractServiceKey] = ActorRef[K#Type]
 
-  private def behavior(map: TypedMultiMap[AbstractServiceKey, KV]): Behavior[Command] = Full {
-    case Msg(ctx, r: Register[t]) ⇒
+  private def behavior(
+      map: TypedMultiMap[AbstractServiceKey, KV]): Behavior[Command] = Full {
+    case Msg(ctx, r: Register [t]) ⇒
       ctx.watch(r.address)
       r.replyTo ! Registered(r.key, r.address)
       behavior(map.inserted(r.key)(r.address))
-    case Msg(ctx, f: Find[t]) ⇒
+    case Msg(ctx, f: Find [t]) ⇒
       val set = map get f.key
       f.replyTo ! Listing(f.key, set)
       Same

@@ -1,15 +1,14 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.routing
 
-import akka.actor.{ Actor, ActorRef }
-import java.util.{ Set, TreeSet }
+import akka.actor.{Actor, ActorRef}
+import java.util.{Set, TreeSet}
 
 sealed trait ListenerMessage
-final case class Listen(listener: ActorRef) extends ListenerMessage
-final case class Deafen(listener: ActorRef) extends ListenerMessage
+final case class Listen(listener: ActorRef)          extends ListenerMessage
+final case class Deafen(listener: ActorRef)          extends ListenerMessage
 final case class WithListeners(f: (ActorRef) ⇒ Unit) extends ListenerMessage
 
 /**
@@ -45,7 +44,8 @@ trait Listeners { self: Actor ⇒
    * @param msg
    * @param sender
    */
-  protected def gossip(msg: Any)(implicit sender: ActorRef = Actor.noSender): Unit = {
+  protected def gossip(msg: Any)(
+      implicit sender: ActorRef = Actor.noSender): Unit = {
     val i = listeners.iterator
     while (i.hasNext) i.next ! msg
   }

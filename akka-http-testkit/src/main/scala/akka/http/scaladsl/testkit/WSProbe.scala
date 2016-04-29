@@ -13,11 +13,11 @@ import akka.util.ByteString
 import akka.actor.ActorSystem
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Keep, Source, Sink, Flow }
-import akka.stream.testkit.{ TestPublisher, TestSubscriber }
+import akka.stream.scaladsl.{Keep, Source, Sink, Flow}
+import akka.stream.testkit.{TestPublisher, TestSubscriber}
 
 import akka.http.impl.util._
-import akka.http.scaladsl.model.ws.{ BinaryMessage, TextMessage, Message }
+import akka.http.scaladsl.model.ws.{BinaryMessage, TextMessage, Message}
 
 /**
  * A WSProbe is a probe that implements a `Flow[Message, Message, Unit]` for testing
@@ -96,40 +96,54 @@ trait WSProbe {
 }
 
 object WSProbe {
+
   /**
    * Creates a WSProbe to use in tests against websocket handlers.
    *
    * @param maxChunks The maximum number of chunks to collect for streamed messages.
    * @param maxChunkCollectionMills The maximum time in milliseconds to collect chunks for streamed messages.
    */
-  def apply(maxChunks: Int = 1000, maxChunkCollectionMills: Long = 5000)(implicit system: ActorSystem, materializer: Materializer): WSProbe =
+  def apply(maxChunks: Int = 1000, maxChunkCollectionMills: Long = 5000)(
+      implicit system: ActorSystem, materializer: Materializer): WSProbe =
     new WSProbe {
       val subscriber = TestSubscriber.probe[Message]()
-      val publisher = TestPublisher.probe[Message]()
+      val publisher  = TestPublisher.probe[Message]()
 
-      def flow: Flow[Message, Message, NotUsed] = Flow.fromSinkAndSourceMat(Sink.fromSubscriber(subscriber), Source.fromPublisher(publisher))(Keep.none)
+      def flow: Flow[Message, Message, NotUsed] =
+        Flow.fromSinkAndSourceMat(Sink.fromSubscriber(subscriber),
+                                  Source.fromPublisher(publisher))(Keep.none)
 
       def sendMessage(message: Message): Unit = publisher.sendNext(message)
-      def sendMessage(text: String): Unit = sendMessage(TextMessage(text))
-      def sendMessage(bytes: ByteString): Unit = sendMessage(BinaryMessage(bytes))
+      def sendMessage(text: String): Unit     = sendMessage(TextMessage(text))
+      def sendMessage(bytes: ByteString): Unit =
+        sendMessage(BinaryMessage(bytes))
       def sendCompletion(): Unit = publisher.sendComplete()
 
       def expectMessage(): Message = subscriber.requestNext()
       def expectMessage(text: String): Unit = expectMessage() match {
         case t: TextMessage ⇒
           val collectedMessage = collect(t.textStream)(_ + _)
-          assert(collectedMessage == text, s"""Expected TextMessage("$text") but got TextMessage("$collectedMessage")""")
-        case _ ⇒ throw new AssertionError(s"""Expected TextMessage("$text") but got BinaryMessage""")
+          assert(
+              collectedMessage == text,
+              s"""Expected TextMessage("$text") but got TextMessage("$collectedMessage")""")
+        case _ ⇒
+          throw new AssertionError(
+              s"""Expected TextMessage("$text") but got BinaryMessage""")
       }
       def expectMessage(bytes: ByteString): Unit = expectMessage() match {
         case t: BinaryMessage ⇒
           val collectedMessage = collect(t.dataStream)(_ ++ _)
-          assert(collectedMessage == bytes, s"""Expected BinaryMessage("$bytes") but got BinaryMessage("$collectedMessage")""")
-        case _ ⇒ throw new AssertionError(s"""Expected BinaryMessage("$bytes") but got TextMessage""")
+          assert(
+              collectedMessage == bytes,
+              s"""Expected BinaryMessage("$bytes") but got BinaryMessage("$collectedMessage")""")
+        case _ ⇒
+          throw new AssertionError(
+              s"""Expected BinaryMessage("$bytes") but got TextMessage""")
       }
 
       def expectNoMessage(): Unit = subscriber.expectNoMsg()
-      def expectNoMessage(max: FiniteDuration): Unit = subscriber.expectNoMsg(max)
+      def expectNoMessage(max: FiniteDuration): Unit =
+        subscriber.expectNoMsg(max)
 
       def expectCompletion(): Unit = subscriber.expectComplete()
 
@@ -137,7 +151,8 @@ object WSProbe {
       def outProbe: TestPublisher.Probe[Message] = publisher
 
       private def collect[T](stream: Source[T, Any])(reduce: (T, T) ⇒ T): T =
-        stream.grouped(maxChunks)
+        stream
+          .grouped(maxChunks)
           .runWith(Sink.head)
           .awaitResult(maxChunkCollectionMills.millis)
           .reduce(reduce)

@@ -1,10 +1,9 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster
 
-import akka.actor.{ Address, AddressFromURIString }
+import akka.actor.{Address, AddressFromURIString}
 import org.scalatest.Matchers
 import org.scalatest.WordSpec
 import scala.collection.immutable.SortedSet
@@ -15,21 +14,26 @@ class MemberOrderingSpec extends WordSpec with Matchers {
   import Member.addressOrdering
   import MemberStatus._
 
-  def m(address: Address, status: MemberStatus): Member = TestMember(address, status)
+  def m(address: Address, status: MemberStatus): Member =
+    TestMember(address, status)
 
   "An Ordering[Member]" must {
 
     "order members by host:port" in {
-      val members = SortedSet.empty[Member] +
+      val members =
+        SortedSet.empty[Member] +
         m(AddressFromURIString("akka://sys@darkstar:1112"), Up) +
         m(AddressFromURIString("akka://sys@darkstar:1113"), Joining) +
         m(AddressFromURIString("akka://sys@darkstar:1111"), Up)
 
       val seq = members.toSeq
       seq.size should ===(3)
-      seq(0) should ===(m(AddressFromURIString("akka://sys@darkstar:1111"), Up))
-      seq(1) should ===(m(AddressFromURIString("akka://sys@darkstar:1112"), Up))
-      seq(2) should ===(m(AddressFromURIString("akka://sys@darkstar:1113"), Joining))
+      seq(0) should ===(
+          m(AddressFromURIString("akka://sys@darkstar:1111"), Up))
+      seq(1) should ===(
+          m(AddressFromURIString("akka://sys@darkstar:1112"), Up))
+      seq(2) should ===(
+          m(AddressFromURIString("akka://sys@darkstar:1113"), Joining))
     }
 
     "be sorted by address correctly" in {
@@ -49,11 +53,11 @@ class MemberOrderingSpec extends WordSpec with Matchers {
 
     "have stable equals and hashCode" in {
       val address = Address("akka.tcp", "sys1", "host1", 9000)
-      val m1 = m(address, Joining)
-      val m11 = Member(UniqueAddress(address, -3), Set.empty)
-      val m2 = m1.copy(status = Up)
-      val m22 = m11.copy(status = Up)
-      val m3 = m(address.copy(port = Some(10000)), Up)
+      val m1      = m(address, Joining)
+      val m11     = Member(UniqueAddress(address, -3), Set.empty)
+      val m2      = m1.copy(status = Up)
+      val m22     = m11.copy(status = Up)
+      val m3      = m(address.copy(port = Some(10000)), Up)
 
       m1 should ===(m2)
       m1.hashCode should ===(m2.hashCode)
@@ -84,7 +88,6 @@ class MemberOrderingSpec extends WordSpec with Matchers {
       val b = Member(UniqueAddress(address1, -3), Set.empty)
       Member.ordering.compare(a, b) should ===(1)
       Member.ordering.compare(b, a) should ===(-1)
-
     }
 
     "work with SortedSet" in {
@@ -92,19 +95,23 @@ class MemberOrderingSpec extends WordSpec with Matchers {
       val address2 = address1.copy(port = Some(9002))
       val address3 = address1.copy(port = Some(9003))
 
-      (SortedSet(m(address1, Joining)) - m(address1, Up)) should ===(SortedSet.empty[Member])
-      (SortedSet(m(address1, Exiting)) - m(address1, Removed)) should ===(SortedSet.empty[Member])
-      (SortedSet(m(address1, Up)) - m(address1, Exiting)) should ===(SortedSet.empty[Member])
-      (SortedSet(m(address2, Up), m(address3, Joining), m(address1, Exiting)) - m(address1, Removed)) should ===(
-        SortedSet(m(address2, Up), m(address3, Joining)))
+      (SortedSet(m(address1, Joining)) - m(address1, Up)) should ===(
+          SortedSet.empty[Member])
+      (SortedSet(m(address1, Exiting)) -
+          m(address1, Removed)) should ===(SortedSet.empty[Member])
+      (SortedSet(m(address1, Up)) -
+          m(address1, Exiting)) should ===(SortedSet.empty[Member])
+      (SortedSet(m(address2, Up), m(address3, Joining), m(address1, Exiting)) -
+          m(address1, Removed)) should ===(
+          SortedSet(m(address2, Up), m(address3, Joining)))
     }
-
   }
 
   "An Ordering[Address]" must {
 
     "order addresses by port" in {
-      val addresses = SortedSet.empty[Address] +
+      val addresses =
+        SortedSet.empty[Address] +
         AddressFromURIString("akka://sys@darkstar:1112") +
         AddressFromURIString("akka://sys@darkstar:1113") +
         AddressFromURIString("akka://sys@darkstar:1110") +
@@ -119,7 +126,8 @@ class MemberOrderingSpec extends WordSpec with Matchers {
     }
 
     "order addresses by hostname" in {
-      val addresses = SortedSet.empty[Address] +
+      val addresses =
+        SortedSet.empty[Address] +
         AddressFromURIString("akka://sys@darkstar2:1110") +
         AddressFromURIString("akka://sys@darkstar1:1110") +
         AddressFromURIString("akka://sys@darkstar3:1110") +
@@ -134,7 +142,8 @@ class MemberOrderingSpec extends WordSpec with Matchers {
     }
 
     "order addresses by hostname and port" in {
-      val addresses = SortedSet.empty[Address] +
+      val addresses =
+        SortedSet.empty[Address] +
         AddressFromURIString("akka://sys@darkstar2:1110") +
         AddressFromURIString("akka://sys@darkstar0:1111") +
         AddressFromURIString("akka://sys@darkstar2:1111") +
@@ -152,15 +161,15 @@ class MemberOrderingSpec extends WordSpec with Matchers {
   "Leader status ordering" must {
 
     "order members with status Joining, Exiting and Down last" in {
-      val address = Address("akka.tcp", "sys1", "host1", 5000)
-      val m1 = m(address, Joining)
-      val m2 = m(address.copy(port = Some(7000)), Joining)
-      val m3 = m(address.copy(port = Some(3000)), Exiting)
-      val m4 = m(address.copy(port = Some(6000)), Exiting)
-      val m5 = m(address.copy(port = Some(2000)), Down)
-      val m6 = m(address.copy(port = Some(4000)), Down)
-      val m7 = m(address.copy(port = Some(8000)), Up)
-      val m8 = m(address.copy(port = Some(9000)), Up)
+      val address  = Address("akka.tcp", "sys1", "host1", 5000)
+      val m1       = m(address, Joining)
+      val m2       = m(address.copy(port = Some(7000)), Joining)
+      val m3       = m(address.copy(port = Some(3000)), Exiting)
+      val m4       = m(address.copy(port = Some(6000)), Exiting)
+      val m5       = m(address.copy(port = Some(2000)), Down)
+      val m6       = m(address.copy(port = Some(4000)), Down)
+      val m7       = m(address.copy(port = Some(8000)), Up)
+      val m8       = m(address.copy(port = Some(9000)), Up)
       val expected = IndexedSeq(m7, m8, m1, m2, m3, m4, m5, m6)
       val shuffled = Random.shuffle(expected)
       shuffled.sorted(Member.leaderStatusOrdering) should ===(expected)

@@ -9,9 +9,9 @@ import java.nio.channels.SelectionKey._
 
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
-import akka.actor.{ Actor, ActorLogging, ActorRef }
-import akka.dispatch.{ RequiresMessageQueue, UnboundedMessageQueueSemantics }
-import akka.util.{ ByteString, Helpers }
+import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.dispatch.{RequiresMessageQueue, UnboundedMessageQueueSemantics}
+import akka.util.{ByteString, Helpers}
 import akka.io.Inet.DatagramChannelCreator
 import akka.io.SelectionHandler._
 import akka.io.Udp._
@@ -23,7 +23,8 @@ private[io] class UdpListener(val udp: UdpExt,
                               channelRegistry: ChannelRegistry,
                               bindCommander: ActorRef,
                               bind: Bind)
-  extends Actor with ActorLogging with WithUdpSend with RequiresMessageQueue[UnboundedMessageQueueSemantics] {
+    extends Actor with ActorLogging with WithUdpSend
+    with RequiresMessageQueue[UnboundedMessageQueueSemantics] {
 
   import udp.bufferPool
   import udp.settings._
@@ -37,33 +38,38 @@ private[io] class UdpListener(val udp: UdpExt,
   }.getOrElse(DatagramChannelCreator()).create()
   channel.configureBlocking(false)
 
-  val localAddress =
-    try {
-      val socket = channel.socket
-      bind.options.foreach(_.beforeDatagramBind(socket))
-      socket.bind(bind.localAddress)
-      val ret = socket.getLocalSocketAddress match {
-        case isa: InetSocketAddress ⇒ isa
-        case x                      ⇒ throw new IllegalArgumentException(s"bound to unknown SocketAddress [$x]")
-      }
-      channelRegistry.register(channel, OP_READ)
-      log.debug("Successfully bound to [{}]", ret)
-      bind.options.foreach {
-        case o: Inet.SocketOptionV2 ⇒ o.afterBind(channel.socket)
-        case _                      ⇒
-      }
-      ret
-    } catch {
-      case NonFatal(e) ⇒
-        bindCommander ! CommandFailed(bind)
-        log.error(e, "Failed to bind UDP channel to endpoint [{}]", bind.localAddress)
-        context.stop(self)
+  val localAddress = try {
+    val socket = channel.socket
+    bind.options.foreach(_.beforeDatagramBind(socket))
+    socket.bind(bind.localAddress)
+    val ret = socket.getLocalSocketAddress match {
+      case isa: InetSocketAddress ⇒ isa
+      case x ⇒
+        throw new IllegalArgumentException(
+            s"bound to unknown SocketAddress [$x]")
     }
+    channelRegistry.register(channel, OP_READ)
+    log.debug("Successfully bound to [{}]", ret)
+    bind.options.foreach {
+      case o: Inet.SocketOptionV2 ⇒ o.afterBind(channel.socket)
+      case _                      ⇒
+    }
+    ret
+  } catch {
+    case NonFatal(e) ⇒
+      bindCommander ! CommandFailed(bind)
+      log.error(
+          e, "Failed to bind UDP channel to endpoint [{}]", bind.localAddress)
+      context.stop(self)
+  }
 
   def receive: Receive = {
     case registration: ChannelRegistration ⇒
-      bindCommander ! Bound(channel.socket.getLocalSocketAddress.asInstanceOf[InetSocketAddress])
-      context.become(readHandlers(registration) orElse sendHandlers(registration), discardOld = true)
+      bindCommander ! Bound(
+          channel.socket.getLocalSocketAddress.asInstanceOf[InetSocketAddress])
+      context.become(
+          readHandlers(registration) orElse sendHandlers(registration),
+          discardOld = true)
   }
 
   def readHandlers(registration: ChannelRegistration): Receive = {
@@ -77,12 +83,14 @@ private[io] class UdpListener(val udp: UdpExt,
         channel.close()
         if (Helpers.isWindows) registration.enableInterest(OP_READ)
         sender() ! Unbound
-        log.debug("Unbound endpoint [{}], stopping listener", bind.localAddress)
+        log.debug(
+            "Unbound endpoint [{}], stopping listener", bind.localAddress)
       } finally context.stop(self)
   }
 
   def doReceive(registration: ChannelRegistration, handler: ActorRef): Unit = {
-    @tailrec def innerReceive(readsLeft: Int, buffer: ByteBuffer) {
+    @tailrec
+    def innerReceive(readsLeft: Int, buffer: ByteBuffer) {
       buffer.clear()
       buffer.limit(DirectBufferSize)
 
@@ -105,8 +113,7 @@ private[io] class UdpListener(val udp: UdpExt,
   override def postStop(): Unit = {
     if (channel.isOpen) {
       log.debug("Closing DatagramChannel after being stopped")
-      try channel.close()
-      catch {
+      try channel.close() catch {
         case NonFatal(e) ⇒ log.debug("Error closing DatagramChannel: {}", e)
       }
     }

@@ -6,7 +6,7 @@ package akka.persistence
 import scala.collection.breakOut
 import scala.collection.immutable
 import scala.concurrent.duration.FiniteDuration
-import akka.actor.{ ActorSelection, ActorPath, NotInfluenceReceiveTimeout }
+import akka.actor.{ActorSelection, ActorPath, NotInfluenceReceiveTimeout}
 import akka.persistence.serialization.Message
 import akka.actor.Cancellable
 
@@ -19,8 +19,10 @@ object AtLeastOnceDelivery {
    * with [[AtLeastOnceDeliveryLike#setDeliverySnapshot]].
    */
   @SerialVersionUID(1L)
-  case class AtLeastOnceDeliverySnapshot(currentDeliveryId: Long, unconfirmedDeliveries: immutable.Seq[UnconfirmedDelivery])
-    extends Message {
+  case class AtLeastOnceDeliverySnapshot(
+      currentDeliveryId: Long,
+      unconfirmedDeliveries: immutable.Seq[UnconfirmedDelivery])
+      extends Message {
 
     /**
      * Java API
@@ -29,14 +31,15 @@ object AtLeastOnceDelivery {
       import scala.collection.JavaConverters._
       unconfirmedDeliveries.asJava
     }
-
   }
 
   /**
    * @see [[AtLeastOnceDeliveryLike#warnAfterNumberOfUnconfirmedAttempts]]
    */
   @SerialVersionUID(1L)
-  case class UnconfirmedWarning(unconfirmedDeliveries: immutable.Seq[UnconfirmedDelivery]) {
+  case class UnconfirmedWarning(
+      unconfirmedDeliveries: immutable.Seq[UnconfirmedDelivery]) {
+
     /**
      * Java API
      */
@@ -50,7 +53,9 @@ object AtLeastOnceDelivery {
    * Information about a message that has not been confirmed. Included in [[UnconfirmedWarning]]
    * and [[AtLeastOnceDeliverySnapshot]].
    */
-  case class UnconfirmedDelivery(deliveryId: Long, destination: ActorPath, message: Any) {
+  case class UnconfirmedDelivery(
+      deliveryId: Long, destination: ActorPath, message: Any) {
+
     /**
      * Java API
      */
@@ -60,16 +65,17 @@ object AtLeastOnceDelivery {
   /**
    * @see [[AtLeastOnceDeliveryLike#maxUnconfirmedMessages]]
    */
-  class MaxUnconfirmedMessagesExceededException(message: String) extends RuntimeException(message)
+  class MaxUnconfirmedMessagesExceededException(message: String)
+      extends RuntimeException(message)
 
   /**
    * INTERNAL API
    */
   private[akka] object Internal {
-    case class Delivery(destination: ActorPath, message: Any, timestamp: Long, attempt: Int)
+    case class Delivery(
+        destination: ActorPath, message: Any, timestamp: Long, attempt: Int)
     case object RedeliveryTick extends NotInfluenceReceiveTimeout
   }
-
 }
 
 /**
@@ -124,8 +130,8 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
    */
   def redeliverInterval: FiniteDuration = defaultRedeliverInterval
 
-  private val defaultRedeliverInterval: FiniteDuration =
-    Persistence(context.system).settings.atLeastOnceDelivery.redeliverInterval
+  private val defaultRedeliverInterval: FiniteDuration = Persistence(
+      context.system).settings.atLeastOnceDelivery.redeliverInterval
 
   /**
    * Maximum number of unconfirmed messages that will be sent at each redelivery burst
@@ -152,10 +158,11 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
    * configuration key. This method can be overridden by implementation classes to return
    * non-default values.
    */
-  def warnAfterNumberOfUnconfirmedAttempts: Int = defaultWarnAfterNumberOfUnconfirmedAttempts
+  def warnAfterNumberOfUnconfirmedAttempts: Int =
+    defaultWarnAfterNumberOfUnconfirmedAttempts
 
-  private val defaultWarnAfterNumberOfUnconfirmedAttempts: Int =
-    Persistence(context.system).settings.atLeastOnceDelivery.warnAfterNumberOfUnconfirmedAttempts
+  private val defaultWarnAfterNumberOfUnconfirmedAttempts: Int = Persistence(
+      context.system).settings.atLeastOnceDelivery.warnAfterNumberOfUnconfirmedAttempts
 
   /**
    * Maximum number of unconfirmed messages that this actor is allowed to hold in memory.
@@ -176,12 +183,13 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
   private var redeliverTask: Option[Cancellable] = None
 
   private var deliverySequenceNr = 0L
-  private var unconfirmed = immutable.SortedMap.empty[Long, Delivery]
+  private var unconfirmed        = immutable.SortedMap.empty[Long, Delivery]
 
   private def startRedeliverTask(): Unit = {
     val interval = redeliverInterval / 2
     redeliverTask = Some(
-      context.system.scheduler.schedule(interval, interval, self, RedeliveryTick)(context.dispatcher))
+        context.system.scheduler.schedule(
+            interval, interval, self, RedeliveryTick)(context.dispatcher))
   }
 
   private def nextDeliverySequenceNr(): Long = {
@@ -212,16 +220,17 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
   def deliver(destination: ActorPath)(deliveryIdToMessage: Long ⇒ Any): Unit = {
     if (unconfirmed.size >= maxUnconfirmedMessages)
       throw new MaxUnconfirmedMessagesExceededException(
-        s"Too many unconfirmed messages, maximum allowed is [$maxUnconfirmedMessages]")
+          s"Too many unconfirmed messages, maximum allowed is [$maxUnconfirmedMessages]")
 
     val deliveryId = nextDeliverySequenceNr()
-    val now = if (recoveryRunning) { System.nanoTime() - redeliverInterval.toNanos } else System.nanoTime()
-    val d = Delivery(destination, deliveryIdToMessage(deliveryId), now, attempt = 0)
+    val now =
+      if (recoveryRunning) { System.nanoTime() - redeliverInterval.toNanos } else
+        System.nanoTime()
+    val d = Delivery(
+        destination, deliveryIdToMessage(deliveryId), now, attempt = 0)
 
-    if (recoveryRunning)
-      unconfirmed = unconfirmed.updated(deliveryId, d)
-    else
-      send(deliveryId, d, now)
+    if (recoveryRunning) unconfirmed = unconfirmed.updated(deliveryId, d)
+    else send(deliveryId, d, now)
   }
 
   /**
@@ -244,12 +253,16 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
    * This method will throw [[AtLeastOnceDelivery.MaxUnconfirmedMessagesExceededException]]
    * if [[#numberOfUnconfirmed]] is greater than or equal to [[#maxUnconfirmedMessages]].
    */
-  def deliver(destination: ActorSelection)(deliveryIdToMessage: Long ⇒ Any): Unit = {
+  def deliver(destination: ActorSelection)(
+      deliveryIdToMessage: Long ⇒ Any): Unit = {
     val isWildcardSelection = destination.pathString.contains("*")
-    require(!isWildcardSelection, "Delivering to wildcard actor selections is not supported by AtLeastOnceDelivery. " +
-      "Introduce an mediator Actor which this AtLeastOnceDelivery Actor will deliver the messages to," +
-      "and will handle the logic of fan-out and collecting individual confirmations, until it can signal confirmation back to this Actor.")
-    deliver(ActorPath.fromString(destination.toSerializationFormat))(deliveryIdToMessage)
+    require(
+        !isWildcardSelection,
+        "Delivering to wildcard actor selections is not supported by AtLeastOnceDelivery. " +
+        "Introduce an mediator Actor which this AtLeastOnceDelivery Actor will deliver the messages to," +
+        "and will handle the logic of fan-out and collecting individual confirmations, until it can signal confirmation back to this Actor.")
+    deliver(ActorPath.fromString(destination.toSerializationFormat))(
+        deliveryIdToMessage)
   }
 
   /**
@@ -271,29 +284,28 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
   def numberOfUnconfirmed: Int = unconfirmed.size
 
   private def redeliverOverdue(): Unit = {
-    val now = System.nanoTime()
+    val now      = System.nanoTime()
     val deadline = now - redeliverInterval.toNanos
     var warnings = Vector.empty[UnconfirmedDelivery]
 
-    unconfirmed
-      .iterator
-      .filter { case (_, delivery) ⇒ delivery.timestamp <= deadline }
-      .take(redeliveryBurstLimit)
-      .foreach {
-        case (deliveryId, delivery) ⇒
-          send(deliveryId, delivery, now)
+    unconfirmed.iterator.filter {
+      case (_, delivery) ⇒ delivery.timestamp <= deadline
+    }.take(redeliveryBurstLimit).foreach {
+      case (deliveryId, delivery) ⇒
+        send(deliveryId, delivery, now)
 
-          if (delivery.attempt == warnAfterNumberOfUnconfirmedAttempts)
-            warnings :+= UnconfirmedDelivery(deliveryId, delivery.destination, delivery.message)
-      }
+        if (delivery.attempt == warnAfterNumberOfUnconfirmedAttempts)
+          warnings :+= UnconfirmedDelivery(
+              deliveryId, delivery.destination, delivery.message)
+    }
 
-    if (warnings.nonEmpty)
-      self ! UnconfirmedWarning(warnings)
+    if (warnings.nonEmpty) self ! UnconfirmedWarning(warnings)
   }
 
   private def send(deliveryId: Long, d: Delivery, timestamp: Long): Unit = {
     context.actorSelection(d.destination) ! d.message
-    unconfirmed = unconfirmed.updated(deliveryId, d.copy(timestamp = timestamp, attempt = d.attempt + 1))
+    unconfirmed = unconfirmed.updated(
+        deliveryId, d.copy(timestamp = timestamp, attempt = d.attempt + 1))
   }
 
   /**
@@ -308,8 +320,10 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
    * as a blob in your custom snapshot.
    */
   def getDeliverySnapshot: AtLeastOnceDeliverySnapshot =
-    AtLeastOnceDeliverySnapshot(deliverySequenceNr,
-      unconfirmed.map { case (deliveryId, d) ⇒ UnconfirmedDelivery(deliveryId, d.destination, d.message) }(breakOut))
+    AtLeastOnceDeliverySnapshot(deliverySequenceNr, unconfirmed.map {
+      case (deliveryId, d) ⇒
+        UnconfirmedDelivery(deliveryId, d.destination, d.message)
+    }(breakOut))
 
   /**
    * If snapshot from [[#getDeliverySnapshot]] was saved it will be received during recovery
@@ -319,13 +333,14 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
     deliverySequenceNr = snapshot.currentDeliveryId
     val now = System.nanoTime()
     unconfirmed = snapshot.unconfirmedDeliveries.map(d ⇒
-      d.deliveryId -> Delivery(d.destination, d.message, now, 0))(breakOut)
+          d.deliveryId -> Delivery(d.destination, d.message, now, 0))(breakOut)
   }
 
   /**
    * INTERNAL API
    */
-  override protected[akka] def aroundPreRestart(reason: Throwable, message: Option[Any]): Unit = {
+  override protected[akka] def aroundPreRestart(
+      reason: Throwable, message: Option[Any]): Unit = {
     redeliverTask.foreach(_.cancel())
     super.aroundPreRestart(reason, message)
   }
@@ -347,14 +362,14 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
   /**
    * INTERNAL API
    */
-  override protected[akka] def aroundReceive(receive: Receive, message: Any): Unit =
-    message match {
-      case RedeliveryTick ⇒
-        redeliverOverdue()
+  override protected[akka] def aroundReceive(
+      receive: Receive, message: Any): Unit = message match {
+    case RedeliveryTick ⇒
+      redeliverOverdue()
 
-      case x ⇒
-        super.aroundReceive(receive, message)
-    }
+    case x ⇒
+      super.aroundReceive(receive, message)
+  }
 }
 
 /**
@@ -365,7 +380,9 @@ trait AtLeastOnceDeliveryLike extends Eventsourced {
  * @see [[AtLeastOnceDelivery]]
  * @see [[AtLeastOnceDeliveryLike]]
  */
-abstract class UntypedPersistentActorWithAtLeastOnceDelivery extends UntypedPersistentActor with AtLeastOnceDeliveryLike {
+abstract class UntypedPersistentActorWithAtLeastOnceDelivery
+    extends UntypedPersistentActor with AtLeastOnceDeliveryLike {
+
   /**
    * Java API: Send the message created by the `deliveryIdToMessage` function to
    * the `destination` actor. It will retry sending the message until
@@ -386,7 +403,9 @@ abstract class UntypedPersistentActorWithAtLeastOnceDelivery extends UntypedPers
    * This method will throw [[AtLeastOnceDelivery.MaxUnconfirmedMessagesExceededException]]
    * if [[#numberOfUnconfirmed]] is greater than or equal to [[#maxUnconfirmedMessages]].
    */
-  def deliver(destination: ActorPath, deliveryIdToMessage: akka.japi.Function[java.lang.Long, Object]): Unit =
+  def deliver(
+      destination: ActorPath,
+      deliveryIdToMessage: akka.japi.Function[java.lang.Long, Object]): Unit =
     super.deliver(destination)(id ⇒ deliveryIdToMessage.apply(id))
 
   /**
@@ -409,7 +428,9 @@ abstract class UntypedPersistentActorWithAtLeastOnceDelivery extends UntypedPers
    * This method will throw [[AtLeastOnceDelivery.MaxUnconfirmedMessagesExceededException]]
    * if [[#numberOfUnconfirmed]] is greater than or equal to [[#maxUnconfirmedMessages]].
    */
-  def deliver(destination: ActorSelection, deliveryIdToMessage: akka.japi.Function[java.lang.Long, Object]): Unit =
+  def deliver(
+      destination: ActorSelection,
+      deliveryIdToMessage: akka.japi.Function[java.lang.Long, Object]): Unit =
     super.deliver(destination)(id ⇒ deliveryIdToMessage.apply(id))
 }
 
@@ -423,7 +444,9 @@ abstract class UntypedPersistentActorWithAtLeastOnceDelivery extends UntypedPers
  * @see [[AtLeastOnceDelivery]]
  * @see [[AtLeastOnceDeliveryLike]]
  */
-abstract class AbstractPersistentActorWithAtLeastOnceDelivery extends AbstractPersistentActor with AtLeastOnceDeliveryLike {
+abstract class AbstractPersistentActorWithAtLeastOnceDelivery
+    extends AbstractPersistentActor with AtLeastOnceDeliveryLike {
+
   /**
    * Java API: Send the message created by the `deliveryIdToMessage` function to
    * the `destination` actor. It will retry sending the message until
@@ -444,7 +467,9 @@ abstract class AbstractPersistentActorWithAtLeastOnceDelivery extends AbstractPe
    * This method will throw [[AtLeastOnceDelivery.MaxUnconfirmedMessagesExceededException]]
    * if [[#numberOfUnconfirmed]] is greater than or equal to [[#maxUnconfirmedMessages]].
    */
-  def deliver(destination: ActorPath, deliveryIdToMessage: akka.japi.Function[java.lang.Long, Object]): Unit =
+  def deliver(
+      destination: ActorPath,
+      deliveryIdToMessage: akka.japi.Function[java.lang.Long, Object]): Unit =
     super.deliver(destination)(id ⇒ deliveryIdToMessage.apply(id))
 
   /**
@@ -467,6 +492,8 @@ abstract class AbstractPersistentActorWithAtLeastOnceDelivery extends AbstractPe
    * This method will throw [[AtLeastOnceDelivery.MaxUnconfirmedMessagesExceededException]]
    * if [[#numberOfUnconfirmed]] is greater than or equal to [[#maxUnconfirmedMessages]].
    */
-  def deliver(destination: ActorSelection, deliveryIdToMessage: akka.japi.Function[java.lang.Long, Object]): Unit =
+  def deliver(
+      destination: ActorSelection,
+      deliveryIdToMessage: akka.japi.Function[java.lang.Long, Object]): Unit =
     super.deliver(destination)(id ⇒ deliveryIdToMessage.apply(id))
 }

@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor
 
 /**
@@ -10,6 +9,7 @@ package akka.actor
  * This is an EXPERIMENTAL feature and is subject to change until it has received more real world testing.
  */
 object AbstractActor {
+
   /**
    * emptyBehavior is a Receive-expression that matches no messages at all, ever.
    */
@@ -56,19 +56,24 @@ abstract class AbstractActor extends Actor {
   @throws(classOf[IllegalActorStateException])
   protected def receive(receive: Receive): Unit =
     if (_receive == null) _receive = receive
-    else throw IllegalActorStateException("Actor behavior has already been set with receive(...), " +
-      "use context().become(...) to change it later")
+    else
+      throw IllegalActorStateException(
+          "Actor behavior has already been set with receive(...), " +
+          "use context().become(...) to change it later")
 
   /**
    * Returns this AbstractActor's AbstractActorContext
    * The AbstractActorContext is not thread safe so do not expose it outside of the
    * AbstractActor.
    */
-  def getContext(): AbstractActorContext = context.asInstanceOf[AbstractActorContext]
+  def getContext(): AbstractActorContext =
+    context.asInstanceOf[AbstractActorContext]
 
   override def receive =
     if (_receive != null) _receive
-    else throw IllegalActorStateException("Actor behavior has not been set with receive(...)")
+    else
+      throw IllegalActorStateException(
+          "Actor behavior has not been set with receive(...)")
 }
 
 /**
@@ -136,7 +141,8 @@ abstract class AbstractActorWithStash extends AbstractActor with Stash
  *
  * This is an EXPERIMENTAL feature and is subject to change until it has received more real world testing.
  */
-abstract class AbstractActorWithUnboundedStash extends AbstractActor with UnboundedStash
+abstract class AbstractActorWithUnboundedStash
+    extends AbstractActor with UnboundedStash
 
 /**
  * Java API: compatible with lambda expressions
@@ -146,4 +152,5 @@ abstract class AbstractActorWithUnboundedStash extends AbstractActor with Unboun
  *
  * This is an EXPERIMENTAL feature and is subject to change until it has received more real world testing.
  */
-abstract class AbstractActorWithUnrestrictedStash extends AbstractActor with UnrestrictedStash
+abstract class AbstractActorWithUnrestrictedStash
+    extends AbstractActor with UnrestrictedStash

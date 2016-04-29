@@ -7,7 +7,7 @@ package docs.stream
 import akka.stream._
 import akka.stream.scaladsl._
 //#imports
-import akka.{ NotUsed, Done }
+import akka.{NotUsed, Done}
 import akka.actor.ActorSystem
 import akka.util.ByteString
 
@@ -17,11 +17,12 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import java.nio.file.Paths
 
-class QuickStartDocSpec extends WordSpec with BeforeAndAfterAll with ScalaFutures {
+class QuickStartDocSpec
+    extends WordSpec with BeforeAndAfterAll with ScalaFutures {
   implicit val patience = PatienceConfig(5.seconds)
 
   //#create-materializer
-  implicit val system = ActorSystem("QuickStart")
+  implicit val system       = ActorSystem("QuickStart")
   implicit val materializer = ActorMaterializer()
   //#create-materializer
 
@@ -43,10 +44,9 @@ class QuickStartDocSpec extends WordSpec with BeforeAndAfterAll with ScalaFuture
     //#transform-source
     val factorials = source.scan(BigInt(1))((acc, next) => acc * next)
 
-    val result: Future[IOResult] =
-      factorials
-        .map(num => ByteString(s"$num\n"))
-        .runWith(FileIO.toPath(Paths.get("factorials.txt")))
+    val result: Future[IOResult] = factorials
+      .map(num => ByteString(s"$num\n"))
+      .runWith(FileIO.toPath(Paths.get("factorials.txt")))
     //#transform-source
 
     //#use-transformed-sink
@@ -54,14 +54,13 @@ class QuickStartDocSpec extends WordSpec with BeforeAndAfterAll with ScalaFuture
     //#use-transformed-sink
 
     //#add-streams
-    val done: Future[Done] =
-      factorials
-        .zipWith(Source(0 to 100))((num, idx) => s"$idx! = $num")
-        .throttle(1, 1.second, 1, ThrottleMode.shaping)
-        //#add-streams
-        .take(3)
-        //#add-streams
-        .runForeach(println)
+    val done: Future[Done] = factorials
+      .zipWith(Source(0 to 100))((num, idx) => s"$idx! = $num")
+      .throttle(1, 1.second, 1, ThrottleMode.shaping)
+      //#add-streams
+      .take(3)
+      //#add-streams
+      .runForeach(println)
     //#add-streams
 
     done.futureValue
@@ -73,5 +72,4 @@ class QuickStartDocSpec extends WordSpec with BeforeAndAfterAll with ScalaFuture
       .map(s => ByteString(s + "\n"))
       .toMat(FileIO.toPath(Paths.get(filename)))(Keep.right)
   //#transform-sink
-
 }

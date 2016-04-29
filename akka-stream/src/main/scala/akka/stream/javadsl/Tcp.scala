@@ -3,7 +3,7 @@
  */
 package akka.stream.javadsl
 
-import java.lang.{ Iterable ⇒ JIterable }
+import java.lang.{Iterable ⇒ JIterable}
 import java.util.Optional
 import akka.NotUsed
 import scala.concurrent.duration._
@@ -26,7 +26,8 @@ object Tcp extends ExtensionId[Tcp] with ExtensionIdProvider {
   /**
    * Represents a prospective TCP server binding.
    */
-  class ServerBinding private[akka] (delegate: scaladsl.Tcp.ServerBinding) {
+  class ServerBinding private[akka](delegate: scaladsl.Tcp.ServerBinding) {
+
     /**
      * The local address of the endpoint bound by the materialization of the `connections` [[Source]].
      */
@@ -44,7 +45,9 @@ object Tcp extends ExtensionId[Tcp] with ExtensionIdProvider {
   /**
    * Represents an accepted incoming TCP connection.
    */
-  class IncomingConnection private[akka] (delegate: scaladsl.Tcp.IncomingConnection) {
+  class IncomingConnection private[akka](
+      delegate: scaladsl.Tcp.IncomingConnection) {
+
     /**
      * The local address this connection is bound to.
      */
@@ -61,7 +64,8 @@ object Tcp extends ExtensionId[Tcp] with ExtensionIdProvider {
      *
      * Convenience shortcut for: `flow.join(handler).run()`.
      */
-    def handleWith[Mat](handler: Flow[ByteString, ByteString, Mat], materializer: Materializer): Mat =
+    def handleWith[Mat](handler: Flow[ByteString, ByteString, Mat],
+                        materializer: Materializer): Mat =
       delegate.handleWith(handler.asScala)(materializer)
 
     /**
@@ -74,7 +78,9 @@ object Tcp extends ExtensionId[Tcp] with ExtensionIdProvider {
   /**
    * Represents a prospective outgoing TCP connection.
    */
-  class OutgoingConnection private[akka] (delegate: scaladsl.Tcp.OutgoingConnection) {
+  class OutgoingConnection private[akka](
+      delegate: scaladsl.Tcp.OutgoingConnection) {
+
     /**
      * The remote address this connection is or will be bound to.
      */
@@ -95,7 +101,7 @@ object Tcp extends ExtensionId[Tcp] with ExtensionIdProvider {
 
 class Tcp(system: ExtendedActorSystem) extends akka.actor.Extension {
   import Tcp._
-  import akka.dispatch.ExecutionContexts.{ sameThreadExecutionContext ⇒ ec }
+  import akka.dispatch.ExecutionContexts.{sameThreadExecutionContext ⇒ ec}
 
   private lazy val delegate: scaladsl.Tcp = scaladsl.Tcp(system)
 
@@ -125,10 +131,18 @@ class Tcp(system: ExtendedActorSystem) extends akka.actor.Extension {
            backlog: Int,
            options: JIterable[SocketOption],
            halfClose: Boolean,
-           idleTimeout: Duration): Source[IncomingConnection, CompletionStage[ServerBinding]] =
-    Source.fromGraph(delegate.bind(interface, port, backlog, immutableSeq(options), halfClose, idleTimeout)
-      .map(new IncomingConnection(_))
-      .mapMaterializedValue(_.map(new ServerBinding(_))(ec).toJava))
+           idleTimeout: Duration
+  ): Source[IncomingConnection, CompletionStage[ServerBinding]] =
+    Source.fromGraph(
+        delegate
+          .bind(interface,
+                port,
+                backlog,
+                immutableSeq(options),
+                halfClose,
+                idleTimeout)
+          .map(new IncomingConnection(_))
+          .mapMaterializedValue(_.map(new ServerBinding(_))(ec).toJava))
 
   /**
    * Creates a [[Tcp.ServerBinding]] without specifying options.
@@ -138,10 +152,14 @@ class Tcp(system: ExtendedActorSystem) extends akka.actor.Extension {
    * [[akka.stream.scaladsl.RunnableGraph]] the server is not immediately available. Only after the materialized future
    * completes is the server ready to accept client connections.
    */
-  def bind(interface: String, port: Int): Source[IncomingConnection, CompletionStage[ServerBinding]] =
-    Source.fromGraph(delegate.bind(interface, port)
-      .map(new IncomingConnection(_))
-      .mapMaterializedValue(_.map(new ServerBinding(_))(ec).toJava))
+  def bind(
+      interface: String,
+      port: Int): Source[IncomingConnection, CompletionStage[ServerBinding]] =
+    Source.fromGraph(
+        delegate
+          .bind(interface, port)
+          .map(new IncomingConnection(_))
+          .mapMaterializedValue(_.map(new ServerBinding(_))(ec).toJava))
 
   /**
    * Creates an [[Tcp.OutgoingConnection]] instance representing a prospective TCP client connection to the given endpoint.
@@ -164,16 +182,26 @@ class Tcp(system: ExtendedActorSystem) extends akka.actor.Extension {
                          options: JIterable[SocketOption],
                          halfClose: Boolean,
                          connectTimeout: Duration,
-                         idleTimeout: Duration): Flow[ByteString, ByteString, CompletionStage[OutgoingConnection]] =
-    Flow.fromGraph(delegate.outgoingConnection(remoteAddress, localAddress.asScala, immutableSeq(options), halfClose, connectTimeout, idleTimeout)
-      .mapMaterializedValue(_.map(new OutgoingConnection(_))(ec).toJava))
+                         idleTimeout: Duration
+  ): Flow[ByteString, ByteString, CompletionStage[OutgoingConnection]] =
+    Flow.fromGraph(
+        delegate
+          .outgoingConnection(remoteAddress,
+                              localAddress.asScala,
+                              immutableSeq(options),
+                              halfClose,
+                              connectTimeout,
+                              idleTimeout)
+          .mapMaterializedValue(_.map(new OutgoingConnection(_))(ec).toJava))
 
   /**
    * Creates an [[Tcp.OutgoingConnection]] without specifying options.
    * It represents a prospective TCP client connection to the given endpoint.
    */
-  def outgoingConnection(host: String, port: Int): Flow[ByteString, ByteString, CompletionStage[OutgoingConnection]] =
-    Flow.fromGraph(delegate.outgoingConnection(new InetSocketAddress(host, port))
-      .mapMaterializedValue(_.map(new OutgoingConnection(_))(ec).toJava))
-
+  def outgoingConnection(host: String,
+                         port: Int
+  ): Flow[ByteString, ByteString, CompletionStage[OutgoingConnection]] =
+    Flow.fromGraph(delegate
+          .outgoingConnection(new InetSocketAddress(host, port))
+          .mapMaterializedValue(_.map(new OutgoingConnection(_))(ec).toJava))
 }

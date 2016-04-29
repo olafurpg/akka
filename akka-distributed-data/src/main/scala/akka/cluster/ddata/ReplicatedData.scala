@@ -24,6 +24,7 @@ import akka.cluster.UniqueAddress
  * a new instance.
  */
 trait ReplicatedData {
+
   /**
    * The type of the concrete implementation, e.g. `GSet[A]`.
    * To be specified by subclass.
@@ -34,7 +35,6 @@ trait ReplicatedData {
    * Monotonic merge function.
    */
   def merge(that: T): T
-
 }
 
 /**
@@ -44,7 +44,8 @@ trait ReplicatedData {
  * concrete implementation.
  * E.g. `class TwoPhaseSet extends AbstractReplicatedData&lt;TwoPhaseSet&gt;`
  */
-abstract class AbstractReplicatedData[D <: AbstractReplicatedData[D]] extends ReplicatedData {
+abstract class AbstractReplicatedData[D <: AbstractReplicatedData[D]]
+    extends ReplicatedData {
 
   override type T = ReplicatedData
 
@@ -58,7 +59,6 @@ abstract class AbstractReplicatedData[D <: AbstractReplicatedData[D]] extends Re
    * Java API: Monotonic merge function.
    */
   def mergeData(that: D): D
-
 }
 
 /**
@@ -95,4 +95,3 @@ trait RemovedNodePruning extends ReplicatedData {
  * [[akka.cluster.ddata.protobuf.ReplicatedDataSerializer]].
  */
 trait ReplicatedDataSerialization extends Serializable
-

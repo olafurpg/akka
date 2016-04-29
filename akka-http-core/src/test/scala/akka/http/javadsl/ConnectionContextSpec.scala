@@ -4,12 +4,12 @@
 package akka.http.javadsl
 
 import java.util
-import java.util.{ Collections, Optional }
-import javax.net.ssl.{ SSLContext, SSLSessionContext }
+import java.util.{Collections, Optional}
+import javax.net.ssl.{SSLContext, SSLSessionContext}
 
 import akka.http.javadsl.model._
 import akka.stream.TLSClientAuth
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 
 class ConnectionContextSpec extends WordSpec with Matchers {
 
@@ -17,15 +17,20 @@ class ConnectionContextSpec extends WordSpec with Matchers {
 
     "pass through all parameters" in {
       val sslContext = SSLContext.getDefault
-      val ciphers: Optional[java.util.Collection[String]] = Optional.of(Collections.singletonList("A"))
-      val protocols: Optional[java.util.Collection[String]] = Optional.of(Collections.singletonList("B"))
+      val ciphers: Optional[java.util.Collection[String]] =
+        Optional.of(Collections.singletonList("A"))
+      val protocols: Optional[java.util.Collection[String]] =
+        Optional.of(Collections.singletonList("B"))
       val clientAuth = Optional.of(TLSClientAuth.need)
       val parameters = Optional.of(sslContext.getDefaultSSLParameters)
 
-      val httpsContext = akka.http.javadsl.ConnectionContext.https(sslContext, ciphers, protocols, clientAuth, parameters)
+      val httpsContext = akka.http.javadsl.ConnectionContext
+        .https(sslContext, ciphers, protocols, clientAuth, parameters)
       httpsContext.getSslContext should ===(sslContext)
-      httpsContext.getEnabledCipherSuites.get.toArray.toList shouldBe (ciphers.get.toArray.toList)
-      httpsContext.getEnabledProtocols.get.toArray.toList shouldBe (protocols.get.toArray.toList)
+      httpsContext.getEnabledCipherSuites.get.toArray.toList shouldBe
+      (ciphers.get.toArray.toList)
+      httpsContext.getEnabledProtocols.get.toArray.toList shouldBe
+      (protocols.get.toArray.toList)
       httpsContext.getClientAuth should ===(clientAuth)
       httpsContext.getSslParameters should ===(parameters)
     }

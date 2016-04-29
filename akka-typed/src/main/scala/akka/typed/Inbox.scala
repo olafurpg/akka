@@ -19,14 +19,17 @@ object Inbox {
     private val q = new ConcurrentLinkedQueue[T]
     private val r = new akka.actor.MinimalActorRef {
       override def provider: ActorRefProvider = ???
-      override val path: ActorPath = RootActorPath(Address("akka", "SyncInbox")) / name
-      override def !(msg: Any)(implicit sender: akka.actor.ActorRef) = q.offer(msg.asInstanceOf[T])
+      override val path: ActorPath =
+        RootActorPath(Address("akka", "SyncInbox")) / name
+      override def !(msg: Any)(implicit sender: akka.actor.ActorRef) =
+        q.offer(msg.asInstanceOf[T])
     }
 
     val ref: ActorRef[T] = ActorRef(r)
     def receiveMsg(): T = q.poll() match {
-      case null ⇒ throw new NoSuchElementException(s"polling on an empty inbox: $name")
-      case x    ⇒ x
+      case null ⇒
+        throw new NoSuchElementException(s"polling on an empty inbox: $name")
+      case x ⇒ x
     }
     def receiveAll(): immutable.Seq[T] = {
       @tailrec def rec(acc: List[T]): List[T] = q.poll() match {

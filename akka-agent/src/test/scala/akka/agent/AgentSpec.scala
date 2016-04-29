@@ -2,17 +2,17 @@ package akka.agent
 
 import language.postfixOps
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 import akka.util.Timeout
 import akka.testkit._
 import scala.concurrent.stm._
-import java.util.concurrent.{ CountDownLatch, TimeUnit }
+import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 class CountDownFunction[A](num: Int = 1) extends Function1[A, A] {
   val latch = new CountDownLatch(num)
-  def apply(a: A) = { latch.countDown(); a }
+  def apply(a: A)              = { latch.countDown(); a }
   def await(timeout: Duration) = latch.await(timeout.length, timeout.unit)
 }
 
@@ -36,10 +36,11 @@ class AgentSpec extends AkkaSpec {
 
     "maintain order between send and sendOff" in {
       val countDown = new CountDownFunction[String]
-      val l1, l2 = new TestLatch(1)
-      val agent = Agent("a")
+      val l1, l2    = new TestLatch(1)
+      val agent     = Agent("a")
       agent send (_ + "b")
-      agent.sendOff((s: String) ⇒ { l1.countDown; Await.ready(l2, timeout.duration); s + "c" })
+      agent.sendOff((s: String) ⇒
+            { l1.countDown; Await.ready(l2, timeout.duration); s + "c" })
       Await.ready(l1, timeout.duration)
       agent send (_ + "d")
       agent send countDown
@@ -50,12 +51,13 @@ class AgentSpec extends AkkaSpec {
 
     "maintain order between alter and alterOff" in {
       val l1, l2 = new TestLatch(1)
-      val agent = Agent("a")
+      val agent  = Agent("a")
 
       val r1 = agent.alter(_ + "b")
-      val r2 = agent.alterOff(s ⇒ { l1.countDown; Await.ready(l2, timeout.duration); s + "c" })
+      val r2 = agent.alterOff(
+          s ⇒ { l1.countDown; Await.ready(l2, timeout.duration); s + "c" })
       Await.ready(l1, timeout.duration)
-      val r3 = agent.alter(_ + "d")
+      val r3     = agent.alter(_ + "d")
       val result = Future.sequence(Seq(r1, r2, r3)).map(_.mkString(":"))
       l2.countDown
 
@@ -65,14 +67,15 @@ class AgentSpec extends AkkaSpec {
     }
 
     "be immediately readable" in {
-      val countDown = new CountDownFunction[Int]
-      val readLatch = new TestLatch(1)
+      val countDown   = new CountDownFunction[Int]
+      val readLatch   = new TestLatch(1)
       val readTimeout = 5 seconds
 
       val agent = Agent(5)
-      val f1 = (i: Int) ⇒ {
-        Await.ready(readLatch, readTimeout)
-        i + 5
+      val f1 = (i: Int) ⇒
+        {
+          Await.ready(readLatch, readTimeout)
+          i + 5
       }
       agent send f1
       val read = agent()
@@ -86,7 +89,9 @@ class AgentSpec extends AkkaSpec {
 
     "be readable within a transaction" in {
       val agent = Agent(5)
-      val value = atomic { t ⇒ agent() }
+      val value = atomic { t ⇒
+        agent()
+      }
       value should ===(5)
     }
 
@@ -179,4 +184,3 @@ class AgentSpec extends AkkaSpec {
     }
   }
 }
-

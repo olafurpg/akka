@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.persistence
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -25,10 +24,16 @@ private[persistence] object Eventsourced {
     def evt: Any
     def handler: Any ⇒ Unit
   }
+
   /** forces actor to stash incoming commands until all these invocations are handled */
-  private final case class StashingHandlerInvocation(evt: Any, handler: Any ⇒ Unit) extends PendingHandlerInvocation
+  private final case class StashingHandlerInvocation(
+      evt: Any, handler: Any ⇒ Unit)
+      extends PendingHandlerInvocation
+
   /** does not force the actor to stash commands; Originates from either `persistAsync` or `defer` calls */
-  private final case class AsyncHandlerInvocation(evt: Any, handler: Any ⇒ Unit) extends PendingHandlerInvocation
+  private final case class AsyncHandlerInvocation(
+      evt: Any, handler: Any ⇒ Unit)
+      extends PendingHandlerInvocation
 }
 
 /**
@@ -37,7 +42,9 @@ private[persistence] object Eventsourced {
  * Scala API and implementation details of [[PersistentActor]], [[AbstractPersistentActor]] and
  * [[UntypedPersistentActor]].
  */
-private[persistence] trait Eventsourced extends Snapshotter with PersistenceStash with PersistenceIdentity with PersistenceRecovery {
+private[persistence] trait Eventsourced
+    extends Snapshotter with PersistenceStash with PersistenceIdentity
+    with PersistenceRecovery {
   import JournalProtocol._
   import SnapshotProtocol.LoadSnapshotResult
   import Eventsourced._
@@ -45,16 +52,20 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
   private val extension = Persistence(context.system)
 
   private[persistence] lazy val journal = extension.journalFor(journalPluginId)
-  private[persistence] lazy val snapshotStore = extension.snapshotStoreFor(snapshotPluginId)
+  private[persistence] lazy val snapshotStore =
+    extension.snapshotStoreFor(snapshotPluginId)
 
-  private val instanceId: Int = Eventsourced.instanceIdCounter.getAndIncrement()
+  private val instanceId: Int =
+    Eventsourced.instanceIdCounter.getAndIncrement()
   private val writerUuid = UUID.randomUUID.toString
 
   private var journalBatch = Vector.empty[PersistentEnvelope]
   // no longer used, but kept for binary compatibility
-  private val maxMessageBatchSize = extension.journalConfigFor(journalPluginId).getInt("max-message-batch-size")
-  private var writeInProgress = false
-  private var sequenceNr: Long = 0L
+  private val maxMessageBatchSize = extension
+    .journalConfigFor(journalPluginId)
+    .getInt("max-message-batch-size")
+  private var writeInProgress       = false
+  private var sequenceNr: Long      = 0L
   private var _lastSequenceNr: Long = 0L
 
   // safely null because we initialize it with a proper `recoveryStarted` state in aroundPreStart before any real action happens
@@ -63,7 +74,8 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
   // Used instead of iterating `pendingInvocations` in order to check if safe to revert to processing commands
   private var pendingStashingPersistInvocations: Long = 0
   // Holds user-supplied callbacks for persist/persistAsync calls
-  private val pendingInvocations = new java.util.LinkedList[PendingHandlerInvocation]() // we only append / isEmpty / get(0) on it
+  private val pendingInvocations = new java.util.LinkedList[
+      PendingHandlerInvocation]() // we only append / isEmpty / get(0) on it
   private var eventBatch: List[PersistentEnvelope] = Nil
 
   private val internalStash = createStash()
@@ -111,11 +123,20 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
   protected def onRecoveryFailure(cause: Throwable, event: Option[Any]): Unit =
     event match {
       case Some(evt) ⇒
-        log.error(cause, "Exception in receiveRecover when replaying event type [{}] with sequence number [{}] for " +
-          "persistenceId [{}].", evt.getClass.getName, lastSequenceNr, persistenceId)
+        log.error(
+            cause,
+            "Exception in receiveRecover when replaying event type [{}] with sequence number [{}] for " +
+            "persistenceId [{}].",
+            evt.getClass.getName,
+            lastSequenceNr,
+            persistenceId)
       case None ⇒
-        log.error(cause, "Persistence failure when replaying events for persistenceId [{}]. " +
-          "Last known sequence number [{}]", persistenceId, lastSequenceNr)
+        log.error(
+            cause,
+            "Persistence failure when replaying events for persistenceId [{}]. " +
+            "Last known sequence number [{}]",
+            persistenceId,
+            lastSequenceNr)
     }
 
   /**
@@ -131,9 +152,14 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
    * @param cause failure cause.
    * @param event the event that was to be persisted
    */
-  protected def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {
-    log.error(cause, "Failed to persist event type [{}] with sequence number [{}] for persistenceId [{}].",
-      event.getClass.getName, seqNr, persistenceId)
+  protected def onPersistFailure(
+      cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.error(
+        cause,
+        "Failed to persist event type [{}] with sequence number [{}] for persistenceId [{}].",
+        event.getClass.getName,
+        seqNr,
+        persistenceId)
   }
 
   /**
@@ -144,9 +170,14 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
    * @param cause failure cause
    * @param event the event that was to be persisted
    */
-  protected def onPersistRejected(cause: Throwable, event: Any, seqNr: Long): Unit = {
-    log.warning("Rejected to persist event type [{}] with sequence number [{}] for persistenceId [{}] due to [{}].",
-      event.getClass.getName, seqNr, persistenceId, cause.getMessage)
+  protected def onPersistRejected(
+      cause: Throwable, event: Any, seqNr: Long): Unit = {
+    log.warning(
+        "Rejected to persist event type [{}] with sequence number [{}] for persistenceId [{}] due to [{}].",
+        event.getClass.getName,
+        seqNr,
+        persistenceId,
+        cause.getMessage)
   }
 
   private def stashInternally(currMsg: Any): Unit =
@@ -155,7 +186,8 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
         internalStashOverflowStrategy match {
           case DiscardToDeadLetterStrategy ⇒
             val snd = sender()
-            context.system.deadLetters.tell(DeadLetter(currMsg, snd, self), snd)
+            context.system.deadLetters
+              .tell(DeadLetter(currMsg, snd, self), snd)
           case ReplyToStrategy(response) ⇒
             sender() ! response
           case ThrowOverflowExceptionStrategy ⇒
@@ -172,7 +204,8 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
   }
 
   /** INTERNAL API. */
-  override protected[akka] def aroundReceive(receive: Receive, message: Any): Unit =
+  override protected[akka] def aroundReceive(
+      receive: Receive, message: Any): Unit =
     currentState.stateReceive(receive, message)
 
   /** INTERNAL API. */
@@ -184,7 +217,8 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
   }
 
   /** INTERNAL API. */
-  override protected[akka] def aroundPreRestart(reason: Throwable, message: Option[Any]): Unit = {
+  override protected[akka] def aroundPreRestart(
+      reason: Throwable, message: Option[Any]): Unit = {
     try {
       internalStash.unstashAll()
       unstashAll(unstashFilterPredicate)
@@ -223,14 +257,30 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
     message match {
       case RecoveryCompleted ⇒ // mute
       case SaveSnapshotFailure(m, e) ⇒
-        log.warning("Failed to saveSnapshot given metadata [{}] due to: [{}: {}]", m, e.getClass.getCanonicalName, e.getMessage)
+        log.warning(
+            "Failed to saveSnapshot given metadata [{}] due to: [{}: {}]",
+            m,
+            e.getClass.getCanonicalName,
+            e.getMessage)
       case DeleteSnapshotFailure(m, e) ⇒
-        log.warning("Failed to deleteSnapshot given metadata [{}] due to: [{}: {}]", m, e.getClass.getCanonicalName, e.getMessage)
+        log.warning(
+            "Failed to deleteSnapshot given metadata [{}] due to: [{}: {}]",
+            m,
+            e.getClass.getCanonicalName,
+            e.getMessage)
       case DeleteSnapshotsFailure(c, e) ⇒
-        log.warning("Failed to deleteSnapshots given criteria [{}] due to: [{}: {}]", c, e.getClass.getCanonicalName, e.getMessage)
+        log.warning(
+            "Failed to deleteSnapshots given criteria [{}] due to: [{}: {}]",
+            c,
+            e.getClass.getCanonicalName,
+            e.getMessage)
       case DeleteMessagesFailure(e, toSequenceNr) ⇒
-        log.warning("Failed to deleteMessages toSequenceNr [{}] for persistenceId [{}] due to [{}: {}].",
-          toSequenceNr, persistenceId, e.getClass.getCanonicalName, e.getMessage)
+        log.warning(
+            "Failed to deleteMessages toSequenceNr [{}] for persistenceId [{}] due to [{}: {}].",
+            toSequenceNr,
+            persistenceId,
+            e.getClass.getCanonicalName,
+            e.getMessage)
       case m ⇒ super.unhandled(m)
     }
   }
@@ -240,22 +290,21 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
   }
 
   private def updateLastSequenceNr(persistent: PersistentRepr): Unit =
-    if (persistent.sequenceNr > _lastSequenceNr) _lastSequenceNr = persistent.sequenceNr
+    if (persistent.sequenceNr > _lastSequenceNr)
+      _lastSequenceNr = persistent.sequenceNr
 
-  private def setLastSequenceNr(value: Long): Unit =
-    _lastSequenceNr = value
+  private def setLastSequenceNr(value: Long): Unit = _lastSequenceNr = value
 
   private def nextSequenceNr(): Long = {
     sequenceNr += 1L
     sequenceNr
   }
 
-  private def flushJournalBatch(): Unit =
-    if (!writeInProgress) {
-      journal ! WriteMessages(journalBatch, self, instanceId)
-      journalBatch = Vector.empty
-      writeInProgress = true
-    }
+  private def flushJournalBatch(): Unit = if (!writeInProgress) {
+    journal ! WriteMessages(journalBatch, self, instanceId)
+    journalBatch = Vector.empty
+    writeInProgress = true
+  }
 
   private def log: LoggingAdapter = Logging(context.system, this)
 
@@ -309,9 +358,14 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
    */
   def persist[A](event: A)(handler: A ⇒ Unit): Unit = {
     pendingStashingPersistInvocations += 1
-    pendingInvocations addLast StashingHandlerInvocation(event, handler.asInstanceOf[Any ⇒ Unit])
-    eventBatch ::= AtomicWrite(PersistentRepr(event, persistenceId = persistenceId,
-      sequenceNr = nextSequenceNr(), writerUuid = writerUuid, sender = sender()))
+    pendingInvocations addLast StashingHandlerInvocation(
+        event, handler.asInstanceOf[Any ⇒ Unit])
+    eventBatch ::= AtomicWrite(
+        PersistentRepr(event,
+                       persistenceId = persistenceId,
+                       sequenceNr = nextSequenceNr(),
+                       writerUuid = writerUuid,
+                       sender = sender()))
   }
 
   /**
@@ -326,10 +380,15 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
     if (events.nonEmpty) {
       events.foreach { event ⇒
         pendingStashingPersistInvocations += 1
-        pendingInvocations addLast StashingHandlerInvocation(event, handler.asInstanceOf[Any ⇒ Unit])
+        pendingInvocations addLast StashingHandlerInvocation(
+            event, handler.asInstanceOf[Any ⇒ Unit])
       }
-      eventBatch ::= AtomicWrite(events.map(PersistentRepr.apply(_, persistenceId = persistenceId,
-        sequenceNr = nextSequenceNr(), writerUuid = writerUuid, sender = sender())))
+      eventBatch ::= AtomicWrite(
+          events.map(PersistentRepr.apply(_,
+                                          persistenceId = persistenceId,
+                                          sequenceNr = nextSequenceNr(),
+                                          writerUuid = writerUuid,
+                                          sender = sender())))
     }
   }
 
@@ -361,9 +420,14 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
    * @param handler handler for each persisted `event`
    */
   def persistAsync[A](event: A)(handler: A ⇒ Unit): Unit = {
-    pendingInvocations addLast AsyncHandlerInvocation(event, handler.asInstanceOf[Any ⇒ Unit])
-    eventBatch ::= AtomicWrite(PersistentRepr(event, persistenceId = persistenceId,
-      sequenceNr = nextSequenceNr(), writerUuid = writerUuid, sender = sender()))
+    pendingInvocations addLast AsyncHandlerInvocation(
+        event, handler.asInstanceOf[Any ⇒ Unit])
+    eventBatch ::= AtomicWrite(
+        PersistentRepr(event,
+                       persistenceId = persistenceId,
+                       sequenceNr = nextSequenceNr(),
+                       writerUuid = writerUuid,
+                       sender = sender()))
   }
 
   /**
@@ -377,10 +441,15 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
   def persistAllAsync[A](events: immutable.Seq[A])(handler: A ⇒ Unit): Unit =
     if (events.nonEmpty) {
       events.foreach { event ⇒
-        pendingInvocations addLast AsyncHandlerInvocation(event, handler.asInstanceOf[Any ⇒ Unit])
+        pendingInvocations addLast AsyncHandlerInvocation(
+            event, handler.asInstanceOf[Any ⇒ Unit])
       }
-      eventBatch ::= AtomicWrite(events.map(PersistentRepr(_, persistenceId = persistenceId,
-        sequenceNr = nextSequenceNr(), writerUuid = writerUuid, sender = sender())))
+      eventBatch ::= AtomicWrite(
+          events.map(PersistentRepr(_,
+                                    persistenceId = persistenceId,
+                                    sequenceNr = nextSequenceNr(),
+                                    writerUuid = writerUuid,
+                                    sender = sender())))
     }
 
   @deprecated("use persistAllAsync instead", "2.4")
@@ -408,7 +477,8 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
     if (pendingInvocations.isEmpty) {
       handler(event)
     } else {
-      pendingInvocations addLast AsyncHandlerInvocation(event, handler.asInstanceOf[Any ⇒ Unit])
+      pendingInvocations addLast AsyncHandlerInvocation(
+          event, handler.asInstanceOf[Any ⇒ Unit])
       eventBatch = NonPersistentRepr(event, sender()) :: eventBatch
     }
   }
@@ -463,16 +533,19 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
       val _receiveRecover = receiveRecover
 
       {
-        case PersistentRepr(payload, _) if recoveryRunning && _receiveRecover.isDefinedAt(payload) ⇒
+        case PersistentRepr(payload, _)
+            if recoveryRunning && _receiveRecover.isDefinedAt(payload) ⇒
           _receiveRecover(payload)
         case s: SnapshotOffer if _receiveRecover.isDefinedAt(s) ⇒
           _receiveRecover(s)
-        case RecoveryCompleted if _receiveRecover.isDefinedAt(RecoveryCompleted) ⇒
+        case RecoveryCompleted
+            if _receiveRecover.isDefinedAt(RecoveryCompleted) ⇒
           _receiveRecover(RecoveryCompleted)
       }
     }
 
-    override def toString: String = s"recovery started (replayMax = [$replayMax])"
+    override def toString: String =
+      s"recovery started (replayMax = [$replayMax])"
     override def recoveryRunning: Boolean = true
 
     override def stateReceive(receive: Receive, message: Any) = message match {
@@ -481,10 +554,12 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
           case SelectedSnapshot(metadata, snapshot) ⇒
             setLastSequenceNr(metadata.sequenceNr)
             // Since we are recovering we can ignore the receive behavior from the stack
-            Eventsourced.super.aroundReceive(recoveryBehavior, SnapshotOffer(metadata, snapshot))
+            Eventsourced. super.aroundReceive(
+                recoveryBehavior, SnapshotOffer(metadata, snapshot))
         }
         changeState(recovering(recoveryBehavior))
-        journal ! ReplayMessages(lastSequenceNr + 1L, toSnr, replayMax, persistenceId, self)
+        journal ! ReplayMessages(
+            lastSequenceNr + 1L, toSnr, replayMax, persistenceId, self)
       case other ⇒
         stashInternally(other)
     }
@@ -501,17 +576,18 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
    * All incoming messages are stashed.
    */
   private def recovering(recoveryBehavior: Receive) = new State {
-    override def toString: String = "replay started"
+    override def toString: String         = "replay started"
     override def recoveryRunning: Boolean = true
 
     override def stateReceive(receive: Receive, message: Any) = message match {
       case ReplayedMessage(p) ⇒
         try {
           updateLastSequenceNr(p)
-          Eventsourced.super.aroundReceive(recoveryBehavior, p)
+          Eventsourced. super.aroundReceive(recoveryBehavior, p)
         } catch {
           case NonFatal(t) ⇒
-            try onRecoveryFailure(t, Some(p.payload)) finally context.stop(self)
+            try onRecoveryFailure(t, Some(p.payload)) finally context.stop(
+                self)
         }
       case RecoverySuccess(highestSeqNr) ⇒
         onReplaySuccess() // callback for subclass implementation
@@ -519,7 +595,7 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
         sequenceNr = highestSeqNr
         setLastSequenceNr(highestSeqNr)
         internalStash.unstashAll()
-        Eventsourced.super.aroundReceive(recoveryBehavior, RecoveryCompleted)
+        Eventsourced. super.aroundReceive(recoveryBehavior, RecoveryCompleted)
       case ReplayMessagesFailure(cause) ⇒
         try onRecoveryFailure(cause, event = None) finally context.stop(self)
       case other ⇒
@@ -537,8 +613,7 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
   }
 
   private def peekApplyHandler(payload: Any): Unit =
-    try pendingInvocations.peek().handler(payload)
-    finally flushBatch()
+    try pendingInvocations.peek().handler(payload) finally flushBatch()
 
   /**
    * Common receive handler for processingCommands and persistingEvents
@@ -555,7 +630,9 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
           try {
             peekApplyHandler(p.payload)
             onWriteMessageComplete(err = false)
-          } catch { case NonFatal(e) ⇒ onWriteMessageComplete(err = true); throw e }
+          } catch {
+            case NonFatal(e) ⇒ onWriteMessageComplete(err = true); throw e
+          }
         }
       case WriteMessageRejected(p, cause, id) ⇒
         // instanceId mismatch can happen for persistAsync and defer in case of actor restart
@@ -570,7 +647,8 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
         // while message is in flight, in that case the handler has already been discarded
         if (id == instanceId) {
           onWriteMessageComplete(err = false)
-          try onPersistFailure(cause, p.payload, p.sequenceNr) finally context.stop(self)
+          try onPersistFailure(cause, p.payload, p.sequenceNr) finally context
+            .stop(self)
         }
       case LoopMessageSuccess(l, id) ⇒
         // instanceId mismatch can happen for persistAsync and defer in case of actor restart
@@ -579,7 +657,9 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
           try {
             peekApplyHandler(l)
             onWriteMessageComplete(err = false)
-          } catch { case NonFatal(e) ⇒ onWriteMessageComplete(err = true); throw e }
+          } catch {
+            case NonFatal(e) ⇒ onWriteMessageComplete(err = true); throw e
+          }
         }
       case WriteMessagesSuccessful ⇒
         writeInProgress = false
@@ -602,10 +682,13 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
 
     override def stateReceive(receive: Receive, message: Any) =
       if (common.isDefinedAt(message)) common(message)
-      else try {
-        Eventsourced.super.aroundReceive(receive, message)
-        aroundReceiveComplete(err = false)
-      } catch { case NonFatal(e) ⇒ aroundReceiveComplete(err = true); throw e }
+      else
+        try {
+          Eventsourced. super.aroundReceive(receive, message)
+          aroundReceiveComplete(err = false)
+        } catch {
+          case NonFatal(e) ⇒ aroundReceiveComplete(err = true); throw e
+        }
 
     private def aroundReceiveComplete(err: Boolean): Unit = {
       if (eventBatch.nonEmpty) flushBatch()
@@ -647,7 +730,5 @@ private[persistence] trait Eventsourced extends Snapshotter with PersistenceStas
         unstashInternally(all = err)
       }
     }
-
   }
-
 }

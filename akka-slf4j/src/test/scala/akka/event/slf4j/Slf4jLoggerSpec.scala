@@ -6,7 +6,7 @@ package akka.event.slf4j
 import language.postfixOps
 
 import akka.testkit.AkkaSpec
-import akka.actor.{ DiagnosticActorLogging, Actor, Props }
+import akka.actor.{DiagnosticActorLogging, Actor, Props}
 import scala.concurrent.duration._
 import akka.event.Logging
 import ch.qos.logback.core.OutputStreamAppender
@@ -53,10 +53,10 @@ object Slf4jLoggerSpec {
       super.start()
     }
   }
-
 }
 
-class Slf4jLoggerSpec extends AkkaSpec(Slf4jLoggerSpec.config) with BeforeAndAfterEach {
+class Slf4jLoggerSpec
+    extends AkkaSpec(Slf4jLoggerSpec.config) with BeforeAndAfterEach {
   import Slf4jLoggerSpec._
 
   val producer = system.actorOf(Props[LogProducer], name = "logProducer")
@@ -65,7 +65,8 @@ class Slf4jLoggerSpec extends AkkaSpec(Slf4jLoggerSpec.config) with BeforeAndAft
     output.reset()
   }
 
-  val sourceThreadRegex = "sourceThread=\\[Slf4jLoggerSpec-akka.actor.default-dispatcher-[1-9][0-9]*\\]"
+  val sourceThreadRegex =
+    "sourceThread=\\[Slf4jLoggerSpec-akka.actor.default-dispatcher-[1-9][0-9]*\\]"
 
   "Slf4jLogger" must {
 
@@ -96,7 +97,9 @@ class Slf4jLoggerSpec extends AkkaSpec(Slf4jLoggerSpec.config) with BeforeAndAft
     }
 
     "put custom MDC values when specified" in {
-      producer ! StringWithMDC("Message with custom MDC values", Map("ticketNumber" -> 3671, "ticketDesc" -> "Custom MDC Values"))
+      producer ! StringWithMDC("Message with custom MDC values",
+                               Map("ticketNumber" -> 3671,
+                                   "ticketDesc"   -> "Custom MDC Values"))
 
       awaitCond(outputString.contains("----"), 5 seconds)
       val s = outputString
@@ -109,7 +112,9 @@ class Slf4jLoggerSpec extends AkkaSpec(Slf4jLoggerSpec.config) with BeforeAndAft
     }
 
     "Support null values in custom MDC" in {
-      producer ! StringWithMDC("Message with null custom MDC values", Map("ticketNumber" -> 3671, "ticketDesc" -> null))
+      producer ! StringWithMDC("Message with null custom MDC values",
+                               Map("ticketNumber" -> 3671,
+                                   "ticketDesc"   -> null))
 
       awaitCond(outputString.contains("----"), 5 seconds)
       val s = outputString
@@ -126,16 +131,20 @@ class Slf4jLoggerSpec extends AkkaSpec(Slf4jLoggerSpec.config) with BeforeAndAft
       log.info("test")
       awaitCond(outputString.contains("----"), 5 seconds)
       val s = outputString
-      s should include("akkaSource=[akka.event.slf4j.Slf4jLoggerSpec.MyLogSource(akka://Slf4jLoggerSpec)]")
-      s should include("logger=[akka.event.slf4j.Slf4jLoggerSpec.MyLogSource(akka://Slf4jLoggerSpec)]")
+      s should include(
+          "akkaSource=[akka.event.slf4j.Slf4jLoggerSpec.MyLogSource(akka://Slf4jLoggerSpec)]")
+      s should include(
+          "logger=[akka.event.slf4j.Slf4jLoggerSpec.MyLogSource(akka://Slf4jLoggerSpec)]")
     }
 
     "not include system info in akkaSource when creating Logging with system.eventStream" in {
-      val log = Logging(system.eventStream, "akka.event.slf4j.Slf4jLoggerSpec.MyLogSource")
+      val log = Logging(system.eventStream,
+                        "akka.event.slf4j.Slf4jLoggerSpec.MyLogSource")
       log.info("test")
       awaitCond(outputString.contains("----"), 5 seconds)
       val s = outputString
-      s should include("akkaSource=[akka.event.slf4j.Slf4jLoggerSpec.MyLogSource]")
+      s should include(
+          "akkaSource=[akka.event.slf4j.Slf4jLoggerSpec.MyLogSource]")
       s should include("logger=[akka.event.slf4j.Slf4jLoggerSpec.MyLogSource]")
     }
 
@@ -144,7 +153,8 @@ class Slf4jLoggerSpec extends AkkaSpec(Slf4jLoggerSpec.config) with BeforeAndAft
       log.info("test")
       awaitCond(outputString.contains("----"), 5 seconds)
       val s = outputString
-      s should include("akkaSource=[Slf4jLoggerSpec$MyLogSource(akka://Slf4jLoggerSpec)]")
+      s should include(
+          "akkaSource=[Slf4jLoggerSpec$MyLogSource(akka://Slf4jLoggerSpec)]")
       s should include("logger=[akka.event.slf4j.Slf4jLoggerSpec$MyLogSource]")
     }
 
@@ -165,5 +175,4 @@ class Slf4jLoggerSpec extends AkkaSpec(Slf4jLoggerSpec.config) with BeforeAndAft
       s should include("sourceActorSystem=[Slf4jLoggerSpec]")
     }
   }
-
 }

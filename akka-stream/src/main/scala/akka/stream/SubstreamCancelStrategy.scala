@@ -11,6 +11,7 @@ import SubstreamCancelStrategies._
 sealed abstract class SubstreamCancelStrategy
 
 private[akka] object SubstreamCancelStrategies {
+
   /**
    * INTERNAL API
    */
@@ -23,6 +24,7 @@ private[akka] object SubstreamCancelStrategies {
 }
 
 object SubstreamCancelStrategy {
+
   /**
    * Cancel the stream of streams if any substream is cancelled.
    */
@@ -33,4 +35,3 @@ object SubstreamCancelStrategy {
    */
   def drain: SubstreamCancelStrategy = Drain
 }
-

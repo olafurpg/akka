@@ -25,7 +25,8 @@ object NodeQueueBenchmark {
 class NodeQueueBenchmark {
   import NodeQueueBenchmark._
 
-  val config = ConfigFactory.parseString("""
+  val config = ConfigFactory
+    .parseString("""
 dispatcher {
   executor = "thread-pool-executor"
   throughput = 1000
@@ -37,7 +38,8 @@ mailbox {
   mailbox-type = "akka.dispatch.SingleConsumerOnlyUnboundedMailbox"
   mailbox-capacity = 1000000
 }
-""").withFallback(ConfigFactory.load())
+""")
+    .withFallback(ConfigFactory.load())
   implicit val sys = ActorSystem("ANQ", config)
   val ref = sys.actorOf(Props(new Actor {
     def receive = {
@@ -68,5 +70,4 @@ mailbox {
       todo -= 1
     }
   }
-
 }

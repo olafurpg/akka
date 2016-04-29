@@ -15,13 +15,17 @@ import akka.http.scaladsl
 import akka.http.impl.server.RouteStructure
 
 abstract class CodingDirectives extends CacheConditionDirectives {
+
   /**
    * Wraps the inner routes with encoding support. The response will be encoded
    * using one of the predefined coders, `Gzip`, `Deflate`, or `NoCoding` depending on
    * a potential [[akka.http.javadsl.model.headers.AcceptEncoding]] header from the client.
    */
-  @varargs def encodeResponse(innerRoute: Route, moreInnerRoutes: Route*): Route =
-    RouteStructure.EncodeResponse(CodingDirectives._DefaultCodersToEncodeResponse)(innerRoute, moreInnerRoutes.toList)
+  @varargs
+  def encodeResponse(innerRoute: Route, moreInnerRoutes: Route*): Route =
+    RouteStructure.EncodeResponse(
+        CodingDirectives._DefaultCodersToEncodeResponse)(
+        innerRoute, moreInnerRoutes.toList)
 
   /**
    * A directive that Wraps its inner routes with encoding support.
@@ -38,8 +42,11 @@ abstract class CodingDirectives extends CacheConditionDirectives {
    * Decodes the incoming request using the given Decoder.
    * If the request encoding doesn't match the request is rejected with an `UnsupportedRequestEncodingRejection`.
    */
-  @varargs def decodeRequestWith(decoder: Coder, innerRoute: Route, moreInnerRoutes: Route*): Route =
-    RouteStructure.DecodeRequest(decoder :: Nil)(innerRoute, moreInnerRoutes.toList)
+  @varargs
+  def decodeRequestWith(
+      decoder: Coder, innerRoute: Route, moreInnerRoutes: Route*): Route =
+    RouteStructure.DecodeRequest(decoder :: Nil)(
+        innerRoute, moreInnerRoutes.toList)
 
   /**
    * Decodes the incoming request if it is encoded with one of the given
@@ -55,8 +62,11 @@ abstract class CodingDirectives extends CacheConditionDirectives {
    * Uncompressed requests are passed through untouched.
    * If the request encoded with another encoding the request is rejected with an `UnsupportedRequestEncodingRejection`.
    */
-  @varargs def decodeRequest(innerRoute: Route, moreInnerRoutes: Route*): Route =
-    RouteStructure.DecodeRequest(CodingDirectives._DefaultCodersToDecodeRequest)(innerRoute, moreInnerRoutes.toList)
+  @varargs
+  def decodeRequest(innerRoute: Route, moreInnerRoutes: Route*): Route =
+    RouteStructure.DecodeRequest(
+        CodingDirectives._DefaultCodersToDecodeRequest)(
+        innerRoute, moreInnerRoutes.toList)
 }
 
 /**

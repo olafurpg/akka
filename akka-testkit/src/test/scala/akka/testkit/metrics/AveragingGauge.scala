@@ -14,7 +14,7 @@ import com.codahale.metrics.Gauge
  */
 class AveragingGauge extends Gauge[Double] {
 
-  private val sum = new LongAdder
+  private val sum   = new LongAdder
   private val count = new LongAdder
 
   def add(n: Long) {

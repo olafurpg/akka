@@ -1,13 +1,12 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.remote
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
 import scala.collection.immutable.Map
-import java.util.concurrent.locks.{ ReentrantLock, Lock }
+import java.util.concurrent.locks.{ReentrantLock, Lock}
 
 /**
  * A lock-less thread-safe implementation of [[akka.remote.FailureDetectorRegistry]].
@@ -16,26 +15,30 @@ import java.util.concurrent.locks.{ ReentrantLock, Lock }
  *   By-name parameter that returns the failure detector instance to be used by a newly registered resource
  *
  */
-class DefaultFailureDetectorRegistry[A](detectorFactory: () ⇒ FailureDetector) extends FailureDetectorRegistry[A] {
+class DefaultFailureDetectorRegistry[A](detectorFactory: () ⇒ FailureDetector)
+    extends FailureDetectorRegistry[A] {
 
-  private val resourceToFailureDetector = new AtomicReference[Map[A, FailureDetector]](Map())
+  private val resourceToFailureDetector =
+    new AtomicReference[Map[A, FailureDetector]](Map())
   private final val failureDetectorCreationLock: Lock = new ReentrantLock
 
-  final override def isAvailable(resource: A): Boolean = resourceToFailureDetector.get.get(resource) match {
-    case Some(r) ⇒ r.isAvailable
-    case _       ⇒ true
-  }
+  final override def isAvailable(resource: A): Boolean =
+    resourceToFailureDetector.get.get(resource) match {
+      case Some(r) ⇒ r.isAvailable
+      case _       ⇒ true
+    }
 
-  final override def isMonitoring(resource: A): Boolean = resourceToFailureDetector.get.get(resource) match {
-    case Some(r) ⇒ r.isMonitoring
-    case _       ⇒ false
-  }
+  final override def isMonitoring(resource: A): Boolean =
+    resourceToFailureDetector.get.get(resource) match {
+      case Some(r) ⇒ r.isMonitoring
+      case _       ⇒ false
+    }
 
   final override def heartbeat(resource: A): Unit = {
 
     resourceToFailureDetector.get.get(resource) match {
       case Some(failureDetector) ⇒ failureDetector.heartbeat()
-      case None ⇒
+      case None                  ⇒
         // First one wins and creates the new FailureDetector
         failureDetectorCreationLock.lock()
         try {
@@ -48,7 +51,8 @@ class DefaultFailureDetectorRegistry[A](detectorFactory: () ⇒ FailureDetector)
             case None ⇒
               val newDetector: FailureDetector = detectorFactory()
               newDetector.heartbeat()
-              resourceToFailureDetector.set(oldTable + (resource -> newDetector))
+              resourceToFailureDetector.set(
+                  oldTable + (resource -> newDetector))
           }
         } finally failureDetectorCreationLock.unlock()
     }
@@ -62,7 +66,8 @@ class DefaultFailureDetectorRegistry[A](detectorFactory: () ⇒ FailureDetector)
       val newTable = oldTable - resource
 
       // if we won the race then update else try again
-      if (!resourceToFailureDetector.compareAndSet(oldTable, newTable)) remove(resource) // recur
+      if (!resourceToFailureDetector.compareAndSet(oldTable, newTable))
+        remove(resource) // recur
     }
   }
 
@@ -70,8 +75,8 @@ class DefaultFailureDetectorRegistry[A](detectorFactory: () ⇒ FailureDetector)
 
     val oldTable = resourceToFailureDetector.get
     // if we won the race then update else try again
-    if (!resourceToFailureDetector.compareAndSet(oldTable, Map.empty[A, FailureDetector])) reset() // recur
-
+    if (!resourceToFailureDetector.compareAndSet(
+            oldTable, Map.empty[A, FailureDetector])) reset() // recur
   }
 
   /**
@@ -80,6 +85,4 @@ class DefaultFailureDetectorRegistry[A](detectorFactory: () ⇒ FailureDetector)
    */
   private[akka] def failureDetector(resource: A): Option[FailureDetector] =
     resourceToFailureDetector.get.get(resource)
-
 }
-

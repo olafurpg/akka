@@ -4,13 +4,13 @@
 package akka.cluster.ddata
 
 object Key {
+
   /**
    * Extract the [[Key#id]].
    */
   def unapply(k: Key[_]): Option[String] = Some(k.id)
 
-  private[akka]type KeyR = Key[ReplicatedData]
-
+  private[akka] type KeyR = Key[ReplicatedData]
 }
 
 /**
@@ -24,12 +24,11 @@ object Key {
 abstract class Key[+T <: ReplicatedData](val id: String) extends Serializable {
 
   override final def equals(o: Any): Boolean = o match {
-    case k: Key[_] ⇒ id == k.id
-    case _         ⇒ false
+    case k: Key [_] ⇒ id == k.id
+    case _          ⇒ false
   }
 
   override final def hashCode: Int = id.hashCode
 
   override def toString(): String = id
 }
-

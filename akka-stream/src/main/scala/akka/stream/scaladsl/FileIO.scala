@@ -4,7 +4,7 @@
 package akka.stream.scaladsl
 
 import java.io.File
-import java.nio.file.{ Path, StandardOpenOption }
+import java.nio.file.{Path, StandardOpenOption}
 import java.nio.file.StandardOpenOption._
 
 import akka.stream.impl.Stages.DefaultAttributes
@@ -19,8 +19,8 @@ import scala.concurrent.Future
  */
 object FileIO {
 
-  import Sink.{ shape ⇒ sinkShape }
-  import Source.{ shape ⇒ sourceShape }
+  import Sink.{shape ⇒ sinkShape}
+  import Source.{shape ⇒ sourceShape}
 
   /**
    * Creates a Source from a files contents.
@@ -37,7 +37,8 @@ object FileIO {
    * @param chunkSize the size of each read operation, defaults to 8192
    */
   @deprecated("Use `fromPath` instead", "2.4.5")
-  def fromFile(f: File, chunkSize: Int = 8192): Source[ByteString, Future[IOResult]] =
+  def fromFile(
+      f: File, chunkSize: Int = 8192): Source[ByteString, Future[IOResult]] =
     fromPath(f.toPath, chunkSize)
 
   /**
@@ -54,8 +55,13 @@ object FileIO {
    * @param f         the file to read from
    * @param chunkSize the size of each read operation, defaults to 8192
    */
-  def fromPath(f: Path, chunkSize: Int = 8192): Source[ByteString, Future[IOResult]] =
-    new Source(new FileSource(f, chunkSize, DefaultAttributes.fileSource, sourceShape("FileSource")))
+  def fromPath(
+      f: Path, chunkSize: Int = 8192): Source[ByteString, Future[IOResult]] =
+    new Source(
+        new FileSource(f,
+                       chunkSize,
+                       DefaultAttributes.fileSource,
+                       sourceShape("FileSource")))
 
   /**
    * Creates a Sink which writes incoming [[ByteString]] elements to the given file. Overwrites existing files by default.
@@ -70,8 +76,9 @@ object FileIO {
    * @param options File open options, defaults to Set(WRITE, CREATE)
    */
   @deprecated("Use `toPath` instead", "2.4.5")
-  def toFile(f: File, options: Set[StandardOpenOption] = Set(WRITE, CREATE)): Sink[ByteString, Future[IOResult]] =
-    toPath(f.toPath, options)
+  def toFile(
+      f: File, options: Set[StandardOpenOption] = Set(WRITE, CREATE)): Sink[
+      ByteString, Future[IOResult]] = toPath(f.toPath, options)
 
   /**
    * Creates a Sink which writes incoming [[ByteString]] elements to the given file. Overwrites existing files by default.
@@ -85,6 +92,9 @@ object FileIO {
    * @param f the file to write to
    * @param options File open options, defaults to Set(WRITE, CREATE)
    */
-  def toPath(f: Path, options: Set[StandardOpenOption] = Set(WRITE, CREATE)): Sink[ByteString, Future[IOResult]] =
-    new Sink(new FileSink(f, options, DefaultAttributes.fileSink, sinkShape("FileSink")))
+  def toPath(
+      f: Path, options: Set[StandardOpenOption] = Set(WRITE, CREATE)): Sink[
+      ByteString, Future[IOResult]] =
+    new Sink(new FileSink(
+            f, options, DefaultAttributes.fileSink, sinkShape("FileSink")))
 }

@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.persistence.journal
 
 import scala.concurrent.Future
@@ -44,8 +43,11 @@ trait AsyncRecovery {
    *
    * @see [[AsyncWriteJournal]]
    */
-  def asyncReplayMessages(persistenceId: String, fromSequenceNr: Long, toSequenceNr: Long,
-                          max: Long)(recoveryCallback: PersistentRepr ⇒ Unit): Future[Unit]
+  def asyncReplayMessages(persistenceId: String,
+                          fromSequenceNr: Long,
+                          toSequenceNr: Long,
+                          max: Long)(
+      recoveryCallback: PersistentRepr ⇒ Unit): Future[Unit]
 
   /**
    * Plugin API: asynchronously reads the highest stored sequence number for the
@@ -67,6 +69,7 @@ trait AsyncRecovery {
    *                       `fromSequenceNr` will be the sequence number of the used
    *                       snapshot or `0L` if no snapshot is used.
    */
-  def asyncReadHighestSequenceNr(persistenceId: String, fromSequenceNr: Long): Future[Long]
+  def asyncReadHighestSequenceNr(
+      persistenceId: String, fromSequenceNr: Long): Future[Long]
   //#journal-plugin-api
 }

@@ -30,7 +30,11 @@ private[akka] object Reflect {
     try {
       val c = Class.forName("sun.reflect.Reflection")
       val m = c.getMethod("getCallerClass", Array(classOf[Int]): _*)
-      Some((i: Int) ⇒ m.invoke(null, Array[AnyRef](i.asInstanceOf[java.lang.Integer]): _*).asInstanceOf[Class[_]])
+      Some(
+          (i: Int) ⇒
+            m.invoke(
+                  null, Array[AnyRef](i.asInstanceOf[java.lang.Integer]): _*)
+              .asInstanceOf[Class[_]])
     } catch {
       case NonFatal(e) ⇒ None
     }
@@ -41,18 +45,20 @@ private[akka] object Reflect {
    * @param clazz the class which to instantiate an instance of
    * @return a new instance from the default constructor of the given class
    */
-  private[akka] def instantiate[T](clazz: Class[T]): T = try clazz.newInstance catch {
-    case iae: IllegalAccessException ⇒
-      val ctor = clazz.getDeclaredConstructor()
-      ctor.setAccessible(true)
-      ctor.newInstance()
-  }
+  private[akka] def instantiate[T](clazz: Class[T]): T =
+    try clazz.newInstance catch {
+      case iae: IllegalAccessException ⇒
+        val ctor = clazz.getDeclaredConstructor()
+        ctor.setAccessible(true)
+        ctor.newInstance()
+    }
 
   /**
    * INTERNAL API
    * Calls findConstructor and invokes it with the given arguments.
    */
-  private[akka] def instantiate[T](clazz: Class[T], args: immutable.Seq[Any]): T = {
+  private[akka] def instantiate[T](
+      clazz: Class[T], args: immutable.Seq[Any]): T = {
     instantiate(findConstructor(clazz, args), args)
   }
 
@@ -60,13 +66,15 @@ private[akka] object Reflect {
    * INTERNAL API
    * Invokes the constructor with the given arguments.
    */
-  private[akka] def instantiate[T](constructor: Constructor[T], args: immutable.Seq[Any]): T = {
+  private[akka] def instantiate[T](
+      constructor: Constructor[T], args: immutable.Seq[Any]): T = {
     constructor.setAccessible(true)
-    try constructor.newInstance(args.asInstanceOf[Seq[AnyRef]]: _*)
-    catch {
+    try constructor.newInstance(args.asInstanceOf[Seq[AnyRef]]: _*) catch {
       case e: IllegalArgumentException ⇒
         val argString = args map safeGetClass mkString ("[", ", ", "]")
-        throw new IllegalArgumentException(s"constructor $constructor is incompatible with arguments $argString", e)
+        throw new IllegalArgumentException(
+            s"constructor $constructor is incompatible with arguments $argString",
+            e)
     }
   }
 
@@ -75,10 +83,12 @@ private[akka] object Reflect {
    * Implements a primitive form of overload resolution a.k.a. finding the
    * right constructor.
    */
-  private[akka] def findConstructor[T](clazz: Class[T], args: immutable.Seq[Any]): Constructor[T] = {
+  private[akka] def findConstructor[T](
+      clazz: Class[T], args: immutable.Seq[Any]): Constructor[T] = {
     def error(msg: String): Nothing = {
       val argClasses = args map safeGetClass mkString ", "
-      throw new IllegalArgumentException(s"$msg found on $clazz for arguments [$argClasses]")
+      throw new IllegalArgumentException(
+          s"$msg found on $clazz for arguments [$argClasses]")
     }
 
     val constructor: Constructor[T] =
@@ -86,14 +96,17 @@ private[akka] object Reflect {
       else {
         val length = args.length
         val candidates =
-          clazz.getDeclaredConstructors.asInstanceOf[Array[Constructor[T]]].iterator filter { c ⇒
+          clazz.getDeclaredConstructors
+            .asInstanceOf[Array[Constructor[T]]]
+            .iterator filter { c ⇒
             val parameterTypes = c.getParameterTypes
             parameterTypes.length == length &&
-              (parameterTypes.iterator zip args.iterator forall {
-                case (found, required) ⇒
-                  found.isInstance(required) || BoxedType(found).isInstance(required) ||
+            (parameterTypes.iterator zip args.iterator forall {
+                  case (found, required) ⇒
+                    found.isInstance(required) ||
+                    BoxedType(found).isInstance(required) ||
                     (required == null && !found.isPrimitive)
-              })
+                })
           }
         if (candidates.hasNext) {
           val cstrtr = candidates.next()
@@ -114,20 +127,29 @@ private[akka] object Reflect {
    * @param clazz the class which to instantiate an instance of
    * @return a function which when applied will create a new instance from the default constructor of the given class
    */
-  private[akka] def instantiator[T](clazz: Class[T]): () ⇒ T = () ⇒ instantiate(clazz)
+  private[akka] def instantiator[T](clazz: Class[T]): () ⇒ T =
+    () ⇒ instantiate(clazz)
 
   def findMarker(root: Class[_], marker: Class[_]): Type = {
     @tailrec def rec(curr: Class[_]): Type = {
-      if (curr.getSuperclass != null && marker.isAssignableFrom(curr.getSuperclass)) rec(curr.getSuperclass)
-      else curr.getGenericInterfaces collectFirst {
-        case c: Class[_] if marker isAssignableFrom c ⇒ c
-        case t: ParameterizedType if marker isAssignableFrom t.getRawType.asInstanceOf[Class[_]] ⇒ t
-      } match {
-        case None                       ⇒ throw new IllegalArgumentException(s"cannot find [$marker] in ancestors of [$root]")
-        case Some(c: Class[_])          ⇒ if (c == marker) c else rec(c)
-        case Some(t: ParameterizedType) ⇒ if (t.getRawType == marker) t else rec(t.getRawType.asInstanceOf[Class[_]])
-        case _                          ⇒ ??? // cannot happen due to collectFirst
-      }
+      if (curr.getSuperclass != null &&
+          marker.isAssignableFrom(curr.getSuperclass)) rec(curr.getSuperclass)
+      else
+        curr.getGenericInterfaces collectFirst {
+          case c: Class [_] if marker isAssignableFrom c ⇒ c
+          case t: ParameterizedType
+              if marker isAssignableFrom t.getRawType.asInstanceOf[Class[_]] ⇒
+            t
+        } match {
+          case None ⇒
+            throw new IllegalArgumentException(
+                s"cannot find [$marker] in ancestors of [$root]")
+          case Some(c: Class [_]) ⇒ if (c == marker) c else rec(c)
+          case Some(t: ParameterizedType) ⇒
+            if (t.getRawType == marker) t
+            else rec(t.getRawType.asInstanceOf[Class[_]])
+          case _ ⇒ ??? // cannot happen due to collectFirst
+        }
     }
     rec(root)
   }
@@ -136,8 +158,10 @@ private[akka] object Reflect {
    * INTERNAL API
    * Set a val inside a class.
    */
-  @tailrec protected[akka] final def lookupAndSetField(clazz: Class[_], instance: AnyRef, name: String, value: Any): Boolean = {
-    @tailrec def clearFirst(fields: Array[java.lang.reflect.Field], idx: Int): Boolean =
+  @tailrec protected[akka] final def lookupAndSetField(
+      clazz: Class[_], instance: AnyRef, name: String, value: Any): Boolean = {
+    @tailrec
+    def clearFirst(fields: Array[java.lang.reflect.Field], idx: Int): Boolean =
       if (idx < fields.length) {
         val field = fields(idx)
         if (field.getName == name) {
@@ -160,19 +184,19 @@ private[akka] object Reflect {
    */
   private[akka] def findClassLoader(): ClassLoader = {
     def findCaller(get: Int ⇒ Class[_]): ClassLoader =
-      Iterator.from(2 /*is the magic number, promise*/ ).map(get) dropWhile { c ⇒
-        c != null &&
+      Iterator.from(2 /*is the magic number, promise*/ ).map(get) dropWhile {
+        c ⇒
+          c != null &&
           (c.getName.startsWith("akka.actor.ActorSystem") ||
-            c.getName.startsWith("scala.Option") ||
-            c.getName.startsWith("scala.collection.Iterator") ||
-            c.getName.startsWith("akka.util.Reflect"))
+              c.getName.startsWith("scala.Option") ||
+              c.getName.startsWith("scala.collection.Iterator") ||
+              c.getName.startsWith("akka.util.Reflect"))
       } next () match {
         case null ⇒ getClass.getClassLoader
         case c    ⇒ c.getClassLoader
       }
 
     Option(Thread.currentThread.getContextClassLoader) orElse
-      (Reflect.getCallerClass map findCaller) getOrElse
-      getClass.getClassLoader
+    (Reflect.getCallerClass map findCaller) getOrElse getClass.getClassLoader
   }
 }

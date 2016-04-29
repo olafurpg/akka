@@ -6,18 +6,19 @@ import akka.actor.Address
 import akka.remote.transport.Transport._
 import akka.remote.transport.TestTransport._
 import akka.util.ByteString
-import akka.remote.transport.AssociationHandle.{ ActorHandleEventListener, Disassociated, InboundPayload }
+import akka.remote.transport.AssociationHandle.{ActorHandleEventListener, Disassociated, InboundPayload}
 
-class TestTransportSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
+class TestTransportSpec
+    extends AkkaSpec with DefaultTimeout with ImplicitSender {
 
-  val addressA: Address = Address("test", "testsytemA", "testhostA", 4321)
-  val addressB: Address = Address("test", "testsytemB", "testhostB", 5432)
+  val addressA: Address  = Address("test", "testsytemA", "testhostA", 4321)
+  val addressB: Address  = Address("test", "testsytemB", "testhostB", 5432)
   val nonExistingAddress = Address("test", "nosystem", "nohost", 0)
 
   "TestTransport" must {
 
     "return an Address and promise when listen is called and log calls" in {
-      val registry = new AssociationRegistry
+      val registry   = new AssociationRegistry
       val transportA = new TestTransport(addressA, registry)
 
       val result = Await.result(transportA.listen, timeout.duration)
@@ -32,13 +33,19 @@ class TestTransportSpec extends AkkaSpec with DefaultTimeout with ImplicitSender
     }
 
     "associate successfully with another TestTransport and log" in {
-      val registry = new AssociationRegistry
+      val registry   = new AssociationRegistry
       val transportA = new TestTransport(addressA, registry)
       val transportB = new TestTransport(addressB, registry)
 
       // Must complete the returned promise to receive events
-      Await.result(transportA.listen, timeout.duration)._2.success(ActorAssociationEventListener(self))
-      Await.result(transportB.listen, timeout.duration)._2.success(ActorAssociationEventListener(self))
+      Await
+        .result(transportA.listen, timeout.duration)
+        ._2
+        .success(ActorAssociationEventListener(self))
+      Await
+        .result(transportB.listen, timeout.duration)
+        ._2
+        .success(ActorAssociationEventListener(self))
 
       awaitCond(registry.transportsReady(addressA, addressB))
 
@@ -47,34 +54,48 @@ class TestTransportSpec extends AkkaSpec with DefaultTimeout with ImplicitSender
         case InboundAssociation(handle) if handle.remoteAddress == addressA ⇒
       }
 
-      registry.logSnapshot.contains(AssociateAttempt(addressA, addressB)) should ===(true)
+      registry.logSnapshot.contains(AssociateAttempt(addressA, addressB)) should ===(
+          true)
     }
 
     "fail to associate with nonexisting address" in {
       val registry = new AssociationRegistry
       var transportA = new TestTransport(addressA, registry)
 
-      Await.result(transportA.listen, timeout.duration)._2.success(ActorAssociationEventListener(self))
+      Await
+        .result(transportA.listen, timeout.duration)
+        ._2
+        .success(ActorAssociationEventListener(self))
 
       // TestTransport throws IllegalAssociationException when trying to associate with non-existing system
-      intercept[InvalidAssociationException] { Await.result(transportA.associate(nonExistingAddress), timeout.duration) }
-
+      intercept[InvalidAssociationException] {
+        Await.result(transportA.associate(nonExistingAddress),
+                     timeout.duration)
+      }
     }
 
     "emulate sending PDUs and logs write" in {
-      val registry = new AssociationRegistry
+      val registry   = new AssociationRegistry
       val transportA = new TestTransport(addressA, registry)
       val transportB = new TestTransport(addressB, registry)
 
-      Await.result(transportA.listen, timeout.duration)._2.success(ActorAssociationEventListener(self))
-      Await.result(transportB.listen, timeout.duration)._2.success(ActorAssociationEventListener(self))
+      Await
+        .result(transportA.listen, timeout.duration)
+        ._2
+        .success(ActorAssociationEventListener(self))
+      Await
+        .result(transportB.listen, timeout.duration)
+        ._2
+        .success(ActorAssociationEventListener(self))
 
       awaitCond(registry.transportsReady(addressA, addressB))
 
       val associate: Future[AssociationHandle] = transportA.associate(addressB)
-      val handleB = expectMsgPF(timeout.duration, "Expect InboundAssociation from A") {
-        case InboundAssociation(handle) if handle.remoteAddress == addressA ⇒ handle
-      }
+      val handleB =
+        expectMsgPF(timeout.duration, "Expect InboundAssociation from A") {
+          case InboundAssociation(handle) if handle.remoteAddress == addressA ⇒
+            handle
+        }
 
       handleB.readHandlerPromise.success(ActorHandleEventListener(self))
       val handleA = Await.result(associate, timeout.duration)
@@ -99,19 +120,27 @@ class TestTransportSpec extends AkkaSpec with DefaultTimeout with ImplicitSender
     }
 
     "emulate disassociation and log it" in {
-      val registry = new AssociationRegistry
+      val registry   = new AssociationRegistry
       val transportA = new TestTransport(addressA, registry)
       val transportB = new TestTransport(addressB, registry)
 
-      Await.result(transportA.listen, timeout.duration)._2.success(ActorAssociationEventListener(self))
-      Await.result(transportB.listen, timeout.duration)._2.success(ActorAssociationEventListener(self))
+      Await
+        .result(transportA.listen, timeout.duration)
+        ._2
+        .success(ActorAssociationEventListener(self))
+      Await
+        .result(transportB.listen, timeout.duration)
+        ._2
+        .success(ActorAssociationEventListener(self))
 
       awaitCond(registry.transportsReady(addressA, addressB))
 
       val associate: Future[AssociationHandle] = transportA.associate(addressB)
-      val handleB: AssociationHandle = expectMsgPF(timeout.duration, "Expect InboundAssociation from A") {
-        case InboundAssociation(handle) if handle.remoteAddress == addressA ⇒ handle
-      }
+      val handleB: AssociationHandle =
+        expectMsgPF(timeout.duration, "Expect InboundAssociation from A") {
+          case InboundAssociation(handle) if handle.remoteAddress == addressA ⇒
+            handle
+        }
 
       handleB.readHandlerPromise.success(ActorHandleEventListener(self))
       val handleA = Await.result(associate, timeout.duration)
@@ -130,11 +159,11 @@ class TestTransportSpec extends AkkaSpec with DefaultTimeout with ImplicitSender
       awaitCond(!registry.existsAssociation(addressA, addressB))
 
       registry.logSnapshot exists {
-        case DisassociateAttempt(requester, remote) if requester == addressA && remote == addressB ⇒ true
+        case DisassociateAttempt(requester, remote)
+            if requester == addressA && remote == addressB ⇒
+          true
         case _ ⇒ false
       } should ===(true)
     }
-
   }
-
 }

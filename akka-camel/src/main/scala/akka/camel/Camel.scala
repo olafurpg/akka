@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.camel
 
 import akka.camel.internal._
@@ -20,6 +19,7 @@ import scala.collection.immutable
  * This trait can be obtained through the [[akka.camel.CamelExtension]] object.
  */
 trait Camel extends Extension with Activation {
+
   /**
    * Underlying camel context.
    *
@@ -58,34 +58,39 @@ trait Camel extends Extension with Activation {
  * Settings for the Camel Extension
  * @param config the config
  */
-class CamelSettings private[camel] (config: Config, dynamicAccess: DynamicAccess) {
+class CamelSettings private[camel](
+    config: Config, dynamicAccess: DynamicAccess) {
   import akka.util.Helpers.ConfigOps
 
   /**
    * Configured setting for how long the actor should wait for activation before it fails.
    */
-  final val ActivationTimeout: FiniteDuration = config.getMillisDuration("akka.camel.consumer.activation-timeout")
+  final val ActivationTimeout: FiniteDuration =
+    config.getMillisDuration("akka.camel.consumer.activation-timeout")
 
   /**
    * Configured setting, when endpoint is out-capable (can produce responses) replyTimeout is the maximum time
    * the endpoint can take to send the response before the message exchange fails.
    * This setting is used for out-capable, in-only, manually acknowledged communication.
    */
-  final val ReplyTimeout: FiniteDuration = config.getMillisDuration("akka.camel.consumer.reply-timeout")
+  final val ReplyTimeout: FiniteDuration =
+    config.getMillisDuration("akka.camel.consumer.reply-timeout")
 
   /**
    * Configured setting which determines whether one-way communications between an endpoint and this consumer actor
    * should be auto-acknowledged or application-acknowledged.
    * This flag has only effect when exchange is in-only.
    */
-  final val AutoAck: Boolean = config.getBoolean("akka.camel.consumer.auto-ack")
+  final val AutoAck: Boolean =
+    config.getBoolean("akka.camel.consumer.auto-ack")
 
   final val JmxStatistics: Boolean = config.getBoolean("akka.camel.jmx")
 
   /**
    * enables or disables streamingCache on the Camel Context
    */
-  final val StreamingCache: Boolean = config.getBoolean("akka.camel.streamingCache")
+  final val StreamingCache: Boolean =
+    config.getBoolean("akka.camel.streamingCache")
 
   final val Conversions: (String, RouteDefinition) ⇒ RouteDefinition = {
     val specifiedConversions = {
@@ -93,23 +98,39 @@ class CamelSettings private[camel] (config: Config, dynamicAccess: DynamicAccess
       val section = config.getConfig("akka.camel.conversions")
       section.entrySet.asScala.map(e ⇒ (e.getKey, section.getString(e.getKey)))
     }
-    val conversions = (Map[String, Class[_ <: AnyRef]]() /: specifiedConversions) {
-      case (m, (key, fqcn)) ⇒
-        m.updated(key, dynamicAccess.getClassFor[AnyRef](fqcn).recover {
-          case e ⇒ throw new ConfigurationException("Could not find/load Camel Converter class [" + fqcn + "]", e)
-        }.get)
-    }
+    val conversions =
+      (Map[String, Class[_ <: AnyRef]]() /: specifiedConversions) {
+        case (m, (key, fqcn)) ⇒
+          m.updated(key,
+                    dynamicAccess
+                      .getClassFor[AnyRef](fqcn)
+                      .recover {
+                        case e ⇒
+                          throw new ConfigurationException(
+                              "Could not find/load Camel Converter class [" +
+                              fqcn + "]",
+                              e)
+                      }
+                      .get)
+      }
 
-    (s: String, r: RouteDefinition) ⇒ conversions.get(s).fold(r)(r.convertBodyTo)
+    (s: String, r: RouteDefinition) ⇒
+      conversions.get(s).fold(r)(r.convertBodyTo)
   }
+
   /**
    * Configured setting, determine the class used to load/retrieve the instance of the Camel Context
    */
   final val ContextProvider: ContextProvider = {
     val fqcn = config.getString("akka.camel.context-provider")
-    dynamicAccess.createInstanceFor[ContextProvider](fqcn, immutable.Seq.empty).recover {
-      case e ⇒ throw new ConfigurationException("Could not find/load Context Provider class [" + fqcn + "]", e)
-    }.get
+    dynamicAccess
+      .createInstanceFor[ContextProvider](fqcn, immutable.Seq.empty)
+      .recover {
+        case e ⇒
+          throw new ConfigurationException(
+              "Could not find/load Context Provider class [" + fqcn + "]", e)
+      }
+      .get
   }
 }
 

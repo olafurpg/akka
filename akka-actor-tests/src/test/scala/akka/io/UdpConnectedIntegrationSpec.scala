@@ -4,12 +4,13 @@
 package akka.io
 
 import java.net.InetSocketAddress
-import akka.testkit.{ TestProbe, ImplicitSender, AkkaSpec }
+import akka.testkit.{TestProbe, ImplicitSender, AkkaSpec}
 import akka.util.ByteString
 import akka.actor.ActorRef
 import akka.testkit.SocketUtil._
 
-class UdpConnectedIntegrationSpec extends AkkaSpec("""
+class UdpConnectedIntegrationSpec
+    extends AkkaSpec("""
     akka.loglevel = INFO
     akka.actor.serialize-creators = on
     """) with ImplicitSender {
@@ -23,9 +24,13 @@ class UdpConnectedIntegrationSpec extends AkkaSpec("""
     commander.sender()
   }
 
-  def connectUdp(localAddress: Option[InetSocketAddress], remoteAddress: InetSocketAddress, handler: ActorRef): ActorRef = {
+  def connectUdp(localAddress: Option[InetSocketAddress],
+                 remoteAddress: InetSocketAddress,
+                 handler: ActorRef): ActorRef = {
     val commander = TestProbe()
-    commander.send(IO(UdpConnected), UdpConnected.Connect(handler, remoteAddress, localAddress, Nil))
+    commander.send(
+        IO(UdpConnected),
+        UdpConnected.Connect(handler, remoteAddress, localAddress, Nil))
     commander.expectMsg(UdpConnected.Connected)
     commander.sender()
   }
@@ -34,10 +39,11 @@ class UdpConnectedIntegrationSpec extends AkkaSpec("""
 
     "be able to send and receive without binding" in {
       val serverAddress = addresses(0)
-      val server = bindUdp(serverAddress, testActor)
-      val data1 = ByteString("To infinity and beyond!")
-      val data2 = ByteString("All your datagram belong to us")
-      connectUdp(localAddress = None, serverAddress, testActor) ! UdpConnected.Send(data1)
+      val server        = bindUdp(serverAddress, testActor)
+      val data1         = ByteString("To infinity and beyond!")
+      val data2         = ByteString("All your datagram belong to us")
+      connectUdp(localAddress = None, serverAddress, testActor) ! UdpConnected
+        .Send(data1)
 
       val clientAddress = expectMsgPF() {
         case Udp.Received(d, a) ⇒
@@ -53,10 +59,11 @@ class UdpConnectedIntegrationSpec extends AkkaSpec("""
     "be able to send and receive with binding" in {
       val serverAddress = addresses(1)
       val clientAddress = addresses(2)
-      val server = bindUdp(serverAddress, testActor)
-      val data1 = ByteString("To infinity and beyond!")
-      val data2 = ByteString("All your datagram belong to us")
-      connectUdp(Some(clientAddress), serverAddress, testActor) ! UdpConnected.Send(data1)
+      val server        = bindUdp(serverAddress, testActor)
+      val data1         = ByteString("To infinity and beyond!")
+      val data2         = ByteString("All your datagram belong to us")
+      connectUdp(Some(clientAddress), serverAddress, testActor) ! UdpConnected
+        .Send(data1)
 
       expectMsgPF() {
         case Udp.Received(d, a) ⇒
@@ -72,9 +79,9 @@ class UdpConnectedIntegrationSpec extends AkkaSpec("""
     "be able to unbind and bind again successfully" in {
       val serverAddress = addresses(3)
       val clientAddress = addresses(4)
-      val server1 = bindUdp(serverAddress, testActor)
+      val server1       = bindUdp(serverAddress, testActor)
 
-      val data1 = ByteString("test")
+      val data1  = ByteString("test")
       val client = connectUdp(Some(clientAddress), serverAddress, testActor)
 
       client ! UdpConnected.Send(data1)
@@ -89,7 +96,5 @@ class UdpConnectedIntegrationSpec extends AkkaSpec("""
       client ! UdpConnected.Send(data1)
       expectMsgType[Udp.Received].data should ===(data1)
     }
-
   }
-
 }

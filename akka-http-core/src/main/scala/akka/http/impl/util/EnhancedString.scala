@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.http.impl.util
 
 import java.util.Locale
@@ -22,12 +21,11 @@ private[http] class EnhancedString(val underlying: String) extends AnyVal {
    * empty leading or trailing empty string (respectively).
    */
   def fastSplit(delimiter: Char): immutable.LinearSeq[String] = {
-    @tailrec def split(end: Int = underlying.length, elements: List[String] = Nil): List[String] = {
+    @tailrec def split(end: Int = underlying.length, elements: List[String] = Nil): List[
+        String] = {
       val ix = underlying.lastIndexOf(delimiter, end - 1)
-      if (ix < 0)
-        underlying.substring(0, end) :: elements
-      else
-        split(ix, underlying.substring(ix + 1, end) :: elements)
+      if (ix < 0) underlying.substring(0, end) :: elements
+      else split(ix, underlying.substring(ix + 1, end) :: elements)
     }
     split()
   }
@@ -44,10 +42,8 @@ private[http] class EnhancedString(val underlying: String) extends AnyVal {
   def lazySplit(delimiter: Char): Stream[String] = {
     def split(start: Int = 0): Stream[String] = {
       val ix = underlying.indexOf(delimiter, start)
-      if (ix < 0)
-        Stream.cons(underlying.substring(start), Stream.Empty)
-      else
-        Stream.cons(underlying.substring(start, ix), split(ix + 1))
+      if (ix < 0) Stream.cons(underlying.substring(start), Stream.Empty)
+      else Stream.cons(underlying.substring(start, ix), split(ix + 1))
     }
     split()
   }
@@ -61,8 +57,7 @@ private[http] class EnhancedString(val underlying: String) extends AnyVal {
   /**
    * If the underlying string is null the method returns the empty string, otherwise the underlying string.
    */
-  def nullAsEmpty: String =
-    if (underlying eq null) "" else underlying
+  def nullAsEmpty: String = if (underlying eq null) "" else underlying
 
   /**
    * Returns the ASCII encoded bytes of this string. Truncates characters to 8-bit byte value.
@@ -79,11 +74,10 @@ private[http] class EnhancedString(val underlying: String) extends AnyVal {
    * If the array does not have enough space for the whole string only the portion that fits is copied.
    */
   def getAsciiBytes(array: Array[Byte], offset: Int): Unit = {
-    @tailrec def rec(ix: Int): Unit =
-      if (ix < array.length) {
-        array(ix) = underlying.charAt(ix - offset).asInstanceOf[Byte]
-        rec(ix + 1)
-      }
+    @tailrec def rec(ix: Int): Unit = if (ix < array.length) {
+      array(ix) = underlying.charAt(ix - offset).asInstanceOf[Byte]
+      rec(ix + 1)
+    }
     rec(offset)
   }
 
@@ -103,15 +97,18 @@ private[http] class EnhancedString(val underlying: String) extends AnyVal {
   /**
    * Determines whether the underlying String starts with the given character.
    */
-  def startsWith(c: Char): Boolean = underlying.nonEmpty && underlying.charAt(0) == c
+  def startsWith(c: Char): Boolean =
+    underlying.nonEmpty && underlying.charAt(0) == c
 
   /**
    * Determines whether the underlying String ends with the given character.
    */
-  def endsWith(c: Char): Boolean = underlying.nonEmpty && underlying.charAt(underlying.length - 1) == c
+  def endsWith(c: Char): Boolean =
+    underlying.nonEmpty && underlying.charAt(underlying.length - 1) == c
 
   /** Strips margin and fixes the newline sequence to the given one preventing dependencies on the build platform */
-  def stripMarginWithNewline(newline: String) = underlying.stripMargin.replace("\r\n", "\n").replace("\n", newline)
+  def stripMarginWithNewline(newline: String) =
+    underlying.stripMargin.replace("\r\n", "\n").replace("\n", newline)
 
   /**
    * Provides a default toLowerCase that doesn't suffer from the dreaded turkish-i problem.

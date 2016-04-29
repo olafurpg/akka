@@ -1,12 +1,11 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.camel
 
-import java.util.{ Map ⇒ JMap, Set ⇒ JSet }
+import java.util.{Map ⇒ JMap, Set ⇒ JSet}
 import javax.activation.DataHandler
-import org.apache.camel.{ CamelContext, Message ⇒ JCamelMessage, StreamCache }
+import org.apache.camel.{CamelContext, Message ⇒ JCamelMessage, StreamCache}
 import akka.AkkaException
 import scala.reflect.ClassTag
 import scala.runtime.ScalaRunTime
@@ -17,14 +16,25 @@ import akka.dispatch.Mapper
 /**
  * An immutable representation of a Camel message.
  */
-class CamelMessage(val body: Any, val headers: Map[String, Any], val attachments: Map[String, DataHandler]) extends Serializable with Product {
-  def this(body: Any, headers: JMap[String, Any]) = this(body, headers.toMap, Map.empty[String, DataHandler]) //Java
-  def this(body: Any, headers: JMap[String, Any], attachments: JMap[String, DataHandler]) = this(body, headers.toMap, attachments.toMap) //Java
-  def this(body: Any, headers: Map[String, Any]) = this(body, headers.toMap, Map.empty[String, DataHandler])
+class CamelMessage(val body: Any,
+                   val headers: Map[String, Any],
+                   val attachments: Map[String, DataHandler])
+    extends Serializable with Product {
+  def this(body: Any, headers: JMap[String, Any]) =
+    this(body, headers.toMap, Map.empty[String, DataHandler]) //Java
+  def this(body: Any,
+           headers: JMap[String, Any],
+           attachments: JMap[String, DataHandler]) =
+    this(body, headers.toMap, attachments.toMap) //Java
+  def this(body: Any, headers: Map[String, Any]) =
+    this(body, headers.toMap, Map.empty[String, DataHandler])
 
-  def copy(body: Any = this.body, headers: Map[String, Any] = this.headers): CamelMessage = CamelMessage(body, headers, this.attachments)
+  def copy(body: Any = this.body,
+           headers: Map[String, Any] = this.headers): CamelMessage =
+    CamelMessage(body, headers, this.attachments)
 
-  override def toString: String = "CamelMessage(%s, %s, %s)" format (body, headers, attachments)
+  override def toString: String =
+    "CamelMessage(%s, %s, %s)" format (body, headers, attachments)
 
   /**
    * Returns those headers from this message whose name is contained in <code>names</code>.
@@ -48,7 +58,8 @@ class CamelMessage(val body: Any, val headers: Map[String, Any], val attachments
   /**
    * Java API: Creates a new CamelMessage with given <code>headers</code>. A copy of the headers map is made.
    */
-  def withHeaders[A](headers: JMap[String, A]): CamelMessage = copy(this.body, headers.toMap)
+  def withHeaders[A](headers: JMap[String, A]): CamelMessage =
+    copy(this.body, headers.toMap)
 
   /**
    * Returns the header by given <code>name</code> parameter in a [[scala.util.Try]]. The header is  converted to type <code>T</code>, which is returned
@@ -59,8 +70,15 @@ class CamelMessage(val body: Any, val headers: Map[String, Any], val attachments
    * using the `getCamelContext` method, and is available on the [[akka.camel.CamelExtension]].
    *
    */
-  def headerAs[T](name: String)(implicit t: ClassTag[T], camelContext: CamelContext): Try[T] =
-    Try(headers.get(name).map(camelContext.getTypeConverter.mandatoryConvertTo[T](t.runtimeClass.asInstanceOf[Class[T]], _)).getOrElse(throw new NoSuchElementException(name)))
+  def headerAs[T](name: String)(
+      implicit t: ClassTag[T], camelContext: CamelContext): Try[T] =
+    Try(
+        headers
+          .get(name)
+          .map(camelContext.getTypeConverter.mandatoryConvertTo[T](
+                  t.runtimeClass.asInstanceOf[Class[T]],
+                  _))
+          .getOrElse(throw new NoSuchElementException(name)))
 
   /**
    * Java API: Returns the header by given <code>name</code> parameter. The header is  converted to type <code>T</code> as defined by the <code>clazz</code> parameter.
@@ -69,19 +87,23 @@ class CamelMessage(val body: Any, val headers: Map[String, Any], val attachments
    * The CamelContext is accessible in a [[akka.camel.javaapi.UntypedConsumerActor]] and [[akka.camel.javaapi.UntypedProducerActor]]
    * using the `getCamelContext` method, and is available on the [[akka.camel.CamelExtension]].
    */
-  def getHeaderAs[T](name: String, clazz: Class[T], camelContext: CamelContext): T = headerAs[T](name)(ClassTag(clazz), camelContext).get
+  def getHeaderAs[T](
+      name: String, clazz: Class[T], camelContext: CamelContext): T =
+    headerAs[T](name)(ClassTag(clazz), camelContext).get
 
   /**
    * Returns a new CamelMessage with a transformed body using a <code>transformer</code> function.
    * This method will throw a [[java.lang.ClassCastException]] if the body cannot be mapped to type A.
    */
-  def mapBody[A, B](transformer: A ⇒ B): CamelMessage = copy(body = transformer(body.asInstanceOf[A]))
+  def mapBody[A, B](transformer: A ⇒ B): CamelMessage =
+    copy(body = transformer(body.asInstanceOf[A]))
 
   /**
    * Java API: Returns a new CamelMessage with a transformed body using a <code>transformer</code> function.
    * This method will throw a [[java.lang.ClassCastException]] if the body cannot be mapped to type A.
    */
-  def mapBody[A, B](transformer: Mapper[A, B]): CamelMessage = copy(body = transformer(body.asInstanceOf[A]))
+  def mapBody[A, B](transformer: Mapper[A, B]): CamelMessage =
+    copy(body = transformer(body.asInstanceOf[A]))
 
   /**
    * Returns the body of the message converted to the type <code>T</code>. Conversion is done
@@ -89,7 +111,8 @@ class CamelMessage(val body: Any, val headers: Map[String, Any], val attachments
    * The CamelContext is accessible in a [[akka.camel.javaapi.UntypedConsumerActor]] and [[akka.camel.javaapi.UntypedProducerActor]]
    * using the `getCamelContext` method, and is available on the [[akka.camel.CamelExtension]].
    */
-  def bodyAs[T](implicit t: ClassTag[T], camelContext: CamelContext): T = getBodyAs(t.runtimeClass.asInstanceOf[Class[T]], camelContext)
+  def bodyAs[T](implicit t: ClassTag[T], camelContext: CamelContext): T =
+    getBodyAs(t.runtimeClass.asInstanceOf[Class[T]], camelContext)
 
   /**
    * Java API: Returns the body of the message converted to the type as given by the <code>clazz</code>
@@ -100,7 +123,8 @@ class CamelMessage(val body: Any, val headers: Map[String, Any], val attachments
    * using the `getCamelContext` method, and is available on the [[akka.camel.CamelExtension]].
    */
   def getBodyAs[T](clazz: Class[T], camelContext: CamelContext): T = {
-    val result = camelContext.getTypeConverter.mandatoryConvertTo[T](clazz, body)
+    val result =
+      camelContext.getTypeConverter.mandatoryConvertTo[T](clazz, body)
     // to be able to re-read a StreamCache we must "undo" the side effect by resetting the StreamCache
     resetStreamCache()
     result
@@ -119,12 +143,15 @@ class CamelMessage(val body: Any, val headers: Map[String, Any], val attachments
    * Java API: Returns a new CamelMessage with a new body, while keeping the same headers.
    */
   def withBody[T](body: T): CamelMessage = copy(body = body)
+
   /**
    * Creates a CamelMessage with current <code>body</code> converted to type <code>T</code>.
    * The CamelContext is accessible in a [[akka.camel.javaapi.UntypedConsumerActor]] and [[akka.camel.javaapi.UntypedProducerActor]]
    * using the `getCamelContext` method, and is available on the [[akka.camel.CamelExtension]].
    */
-  def withBodyAs[T](implicit t: ClassTag[T], camelContext: CamelContext): CamelMessage = withBodyAs(t.runtimeClass.asInstanceOf[Class[T]])
+  def withBodyAs[T](
+      implicit t: ClassTag[T], camelContext: CamelContext): CamelMessage =
+    withBodyAs(t.runtimeClass.asInstanceOf[Class[T]])
 
   /**
    * Java API: Creates a CamelMessage with current <code>body</code> converted to type <code>clazz</code>.
@@ -132,19 +159,23 @@ class CamelMessage(val body: Any, val headers: Map[String, Any], val attachments
    * The CamelContext is accessible in a [[akka.camel.javaapi.UntypedConsumerActor]] and [[akka.camel.javaapi.UntypedProducerActor]]
    * using the `getCamelContext` method, and is available on the [[akka.camel.CamelExtension]].
    */
-  def withBodyAs[T](clazz: Class[T])(implicit camelContext: CamelContext): CamelMessage = copy(body = getBodyAs(clazz, camelContext))
+  def withBodyAs[T](clazz: Class[T])(
+      implicit camelContext: CamelContext): CamelMessage =
+    copy(body = getBodyAs(clazz, camelContext))
 
   /**
    * Returns those attachments from this message whose name is contained in <code>names</code>.
    */
-  def attachments(names: Set[String]): Map[String, DataHandler] = attachments filterKeys names
+  def attachments(names: Set[String]): Map[String, DataHandler] =
+    attachments filterKeys names
 
   /**
    * Java API: Returns those attachments from this message whose name is contained in <code>names</code>.
    * The returned headers map is backed up by an immutable headers map. Any attempt to modify
    * the returned map will throw an exception.
    */
-  def getAttachments(names: JSet[String]): JMap[String, DataHandler] = attachments(names.toSet)
+  def getAttachments(names: JSet[String]): JMap[String, DataHandler] =
+    attachments(names.toSet)
 
   /**
    * Java API: Returns all attachments from this message. The returned attachments map is backed up by this
@@ -156,24 +187,24 @@ class CamelMessage(val body: Any, val headers: Map[String, Any], val attachments
   /**
    * Java API: Creates a new CamelMessage with given <code>attachments</code>. A copy of the attachments map is made.
    */
-  def withAttachments(attachments: JMap[String, DataHandler]): CamelMessage = CamelMessage(this.body, this.headers, attachments.toMap)
+  def withAttachments(attachments: JMap[String, DataHandler]): CamelMessage =
+    CamelMessage(this.body, this.headers, attachments.toMap)
 
   /**
    * SCALA API: Creates a new CamelMessage with given <code>attachments</code>.
    */
-  def withAttachments(attachments: Map[String, DataHandler]): CamelMessage = CamelMessage(this.body, this.headers, attachments)
+  def withAttachments(attachments: Map[String, DataHandler]): CamelMessage =
+    CamelMessage(this.body, this.headers, attachments)
 
   /**
    * Indicates whether some other object is "equal to" this one.
    */
-  override def equals(that: Any): Boolean =
-    that match {
-      case that: CamelMessage if canEqual(that) ⇒
-        this.body == that.body &&
-          this.headers == that.headers &&
-          this.attachments == that.attachments
-      case _ ⇒ false
-    }
+  override def equals(that: Any): Boolean = that match {
+    case that: CamelMessage if canEqual(that) ⇒
+      this.body == that.body && this.headers == that.headers &&
+      this.attachments == that.attachments
+    case _ ⇒ false
+  }
 
   /**
    * Returns a hash code value for the object.
@@ -212,17 +243,22 @@ object CamelMessage extends ((Any, Map[String, Any]) ⇒ CamelMessage) {
   /**
    * Returns a new CamelMessage based on the <code>body</code> and <code>headers</code>.
    */
-  def apply(body: Any, headers: Map[String, Any]): CamelMessage = new CamelMessage(body, headers, Map.empty[String, DataHandler])
+  def apply(body: Any, headers: Map[String, Any]): CamelMessage =
+    new CamelMessage(body, headers, Map.empty[String, DataHandler])
 
   /**
    * Returns a new CamelMessage based on the <code>body</code>, <code>headers</code> and <code>attachments</code>.
    */
-  def apply(body: Any, headers: Map[String, Any], attachments: Map[String, DataHandler]): CamelMessage = new CamelMessage(body, headers, attachments)
+  def apply(body: Any,
+            headers: Map[String, Any],
+            attachments: Map[String, DataHandler]): CamelMessage =
+    new CamelMessage(body, headers, attachments)
 
   /**
    * Returns <code>Some(body, headers)</code>.
    */
-  def unapply(camelMessage: CamelMessage): Option[(Any, Map[String, Any])] = Some((camelMessage.body, camelMessage.headers))
+  def unapply(camelMessage: CamelMessage): Option[(Any, Map[String, Any])] =
+    Some((camelMessage.body, camelMessage.headers))
 
   /**
    * CamelMessage header to correlate request with response messages. Applications that send
@@ -230,7 +266,8 @@ object CamelMessage extends ((Any, Map[String, Any]) ⇒ CamelMessage) {
    * so that it can be correlated with an asynchronous response. Messages send to Consumer
    * actors have this header already set.
    */
-  val MessageExchangeId = "MessageExchangeId" //Deliberately without type ascription to make it a constant
+  val MessageExchangeId =
+    "MessageExchangeId" //Deliberately without type ascription to make it a constant
 
   /**
    * Creates a canonical form of the given message <code>msg</code>. If <code>msg</code> of type
@@ -248,8 +285,11 @@ object CamelMessage extends ((Any, Map[String, Any]) ⇒ CamelMessage) {
    * @param headers additional headers to set on the created CamelMessage in addition to those
    *                in the Camel message.
    */
-  private[camel] def from(camelMessage: JCamelMessage, headers: Map[String, Any]): CamelMessage =
-    CamelMessage(camelMessage.getBody, headers ++ camelMessage.getHeaders, camelMessage.getAttachments.toMap)
+  private[camel] def from(
+      camelMessage: JCamelMessage, headers: Map[String, Any]): CamelMessage =
+    CamelMessage(camelMessage.getBody,
+                 headers ++ camelMessage.getHeaders,
+                 camelMessage.getAttachments.toMap)
 
   /**
    * Creates a new CamelMessageWithAttachments object from the Camel message.
@@ -259,8 +299,13 @@ object CamelMessage extends ((Any, Map[String, Any]) ⇒ CamelMessage) {
    * @param attachments additional attachments to set on the created CamelMessageWithAttachments in addition to those
    *                in the Camel message.
    */
-  private[camel] def from(camelMessage: JCamelMessage, headers: Map[String, Any], attachments: Map[String, DataHandler]): CamelMessage =
-    CamelMessage(camelMessage.getBody, headers ++ camelMessage.getHeaders, attachments ++ camelMessage.getAttachments)
+  private[camel] def from(
+      camelMessage: JCamelMessage,
+      headers: Map[String, Any],
+      attachments: Map[String, DataHandler]): CamelMessage =
+    CamelMessage(camelMessage.getBody,
+                 headers ++ camelMessage.getHeaders,
+                 attachments ++ camelMessage.getAttachments)
 
   /**
    * INTERNAL API
@@ -268,7 +313,8 @@ object CamelMessage extends ((Any, Map[String, Any]) ⇒ CamelMessage) {
    */
   private[camel] def copyContent(from: CamelMessage, to: JCamelMessage): Unit = {
     to.setBody(from.body)
-    for ((name, value) ← from.headers) to.getHeaders.put(name, value.asInstanceOf[AnyRef])
+    for ((name, value) ← from.headers) to.getHeaders.put(
+        name, value.asInstanceOf[AnyRef])
     to.getAttachments.putAll(from.getAttachments)
   }
 }
@@ -278,6 +324,7 @@ object CamelMessage extends ((Any, Map[String, Any]) ⇒ CamelMessage) {
  * When `autoAck` is set to false in the [[akka.camel.Consumer]], you can send an `Ack` to the sender of the CamelMessage.
  */
 case object Ack {
+
   /** Java API to get the Ack singleton */
   def getInstance = this
 }
@@ -287,7 +334,8 @@ case object Ack {
  * It contains the failure cause obtained from Exchange.getException and the headers from either the Exchange.getIn
  * message or Exchange.getOut message, depending on the exchange pattern.
  */
-class AkkaCamelException private[akka] (cause: Throwable, val headers: Map[String, Any])
-  extends AkkaException(cause.getMessage, cause) {
+class AkkaCamelException private[akka](
+    cause: Throwable, val headers: Map[String, Any])
+    extends AkkaException(cause.getMessage, cause) {
   def this(cause: Throwable) = this(cause, Map.empty)
 }

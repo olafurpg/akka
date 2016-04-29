@@ -36,6 +36,4 @@ trait EventsByTagQuery extends ReadJournal {
    * stored events is provided by [[CurrentEventsByTagQuery#currentEventsByTag]].
    */
   def eventsByTag(tag: String, offset: Long): Source[EventEnvelope, NotUsed]
-
 }
-

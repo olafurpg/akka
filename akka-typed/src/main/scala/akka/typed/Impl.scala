@@ -3,7 +3,7 @@
  */
 package akka.typed
 
-import akka.{ actor ⇒ a }
+import akka.{actor ⇒ a}
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContextExecutor
@@ -14,7 +14,8 @@ import akka.actor.DeathPactException
  * INTERNAL API. Mapping the execution of a [[Behavior]] onto a good old untyped
  * [[akka.actor.Actor]].
  */
-private[typed] class ActorAdapter[T](_initialBehavior: () ⇒ Behavior[T]) extends akka.actor.Actor {
+private[typed] class ActorAdapter[T](_initialBehavior: () ⇒ Behavior[T])
+    extends akka.actor.Actor {
   import Behavior._
 
   var behavior = _initialBehavior()
@@ -47,7 +48,7 @@ private[typed] class ActorAdapter[T](_initialBehavior: () ⇒ Behavior[T]) exten
   override val supervisorStrategy = a.OneForOneStrategy() {
     case ex ⇒
       import Failed._
-      import akka.actor.{ SupervisorStrategy ⇒ s }
+      import akka.actor.{SupervisorStrategy ⇒ s}
       val f = Failed(ex, ActorRef(sender()))
       next(behavior.management(ctx, f), f)
       f.getDecision match {
@@ -71,44 +72,45 @@ private[typed] class ActorAdapter[T](_initialBehavior: () ⇒ Behavior[T]) exten
 /**
  * INTERNAL API. Wrapping an [[akka.actor.ActorContext]] as an [[ActorContext]].
  */
-private[typed] class ActorContextAdapter[T](ctx: akka.actor.ActorContext) extends ActorContext[T] {
+private[typed] class ActorContextAdapter[T](ctx: akka.actor.ActorContext)
+    extends ActorContext[T] {
   import Ops._
-  def self = ActorRef(ctx.self)
+  def self  = ActorRef(ctx.self)
   def props = Props(ctx.props)
   val system = ActorSystem(ctx.system)
-  def children = ctx.children.map(ActorRef(_))
-  def child(name: String) = ctx.child(name).map(ActorRef(_))
-  def spawnAnonymous[U](props: Props[U]) = ctx.spawn(props)
+  def children                                = ctx.children.map(ActorRef(_))
+  def child(name: String)                     = ctx.child(name).map(ActorRef(_))
+  def spawnAnonymous[U](props: Props[U])      = ctx.spawn(props)
   def spawn[U](props: Props[U], name: String) = ctx.spawn(props, name)
-  def actorOf(props: a.Props) = ctx.actorOf(props)
-  def actorOf(props: a.Props, name: String) = ctx.actorOf(props, name)
-  def stop(child: ActorRef[Nothing]) =
-    child.untypedRef match {
-      case f: akka.actor.FunctionRef ⇒
-        val cell = ctx.asInstanceOf[akka.actor.ActorCell]
-        cell.removeFunctionRef(f)
-      case _ ⇒
-        ctx.child(child.path.name) match {
-          case Some(ref) if ref == child.untypedRef ⇒
-            ctx.stop(child.untypedRef)
-            true
-          case _ ⇒
-            false // none of our business
-        }
-    }
-  def watch[U](other: ActorRef[U]) = { ctx.watch(other.untypedRef); other }
-  def watch(other: a.ActorRef) = { ctx.watch(other); other }
-  def unwatch[U](other: ActorRef[U]) = { ctx.unwatch(other.untypedRef); other }
-  def unwatch(other: a.ActorRef) = { ctx.unwatch(other); other }
-  def setReceiveTimeout(d: Duration) = ctx.setReceiveTimeout(d)
+  def actorOf(props: a.Props)                 = ctx.actorOf(props)
+  def actorOf(props: a.Props, name: String)   = ctx.actorOf(props, name)
+  def stop(child: ActorRef[Nothing]) = child.untypedRef match {
+    case f: akka.actor.FunctionRef ⇒
+      val cell = ctx.asInstanceOf[akka.actor.ActorCell]
+      cell.removeFunctionRef(f)
+    case _ ⇒
+      ctx.child(child.path.name) match {
+        case Some(ref) if ref == child.untypedRef ⇒
+          ctx.stop(child.untypedRef)
+          true
+        case _ ⇒
+          false // none of our business
+      }
+  }
+  def watch[U](other: ActorRef[U])               = { ctx.watch(other.untypedRef); other }
+  def watch(other: a.ActorRef)                   = { ctx.watch(other); other }
+  def unwatch[U](other: ActorRef[U])             = { ctx.unwatch(other.untypedRef); other }
+  def unwatch(other: a.ActorRef)                 = { ctx.unwatch(other); other }
+  def setReceiveTimeout(d: Duration)             = ctx.setReceiveTimeout(d)
   def executionContext: ExecutionContextExecutor = ctx.dispatcher
-  def schedule[U](delay: FiniteDuration, target: ActorRef[U], msg: U): a.Cancellable = {
+  def schedule[U](
+      delay: FiniteDuration, target: ActorRef[U], msg: U): a.Cancellable = {
     import ctx.dispatcher
     ctx.system.scheduler.scheduleOnce(delay, target.untypedRef, msg)
   }
   def spawnAdapter[U](f: U ⇒ T) = {
     val cell = ctx.asInstanceOf[akka.actor.ActorCell]
-    val ref = cell.addFunctionRef((_, msg) ⇒ ctx.self ! f(msg.asInstanceOf[U]))
+    val ref  = cell.addFunctionRef((_, msg) ⇒ ctx.self ! f(msg.asInstanceOf[U]))
     ActorRef[U](ref)
   }
 }

@@ -9,18 +9,20 @@ import akka.persistence.PersistentRepr
 import akka.persistence.query.EventEnvelope
 import akka.serialization.SerializationExtension
 import akka.stream.actor.ActorPublisher
-import akka.stream.actor.ActorPublisherMessage.{ Cancel, Request }
+import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 
 import scala.concurrent.duration.FiniteDuration
 
 object MyEventsByTagPublisher {
-  def props(tag: String, offset: Long, refreshInterval: FiniteDuration): Props =
+  def props(
+      tag: String, offset: Long, refreshInterval: FiniteDuration): Props =
     Props(new MyEventsByTagPublisher(tag, offset, refreshInterval))
 }
 
 //#events-by-tag-publisher
-class MyEventsByTagPublisher(tag: String, offset: Long, refreshInterval: FiniteDuration)
-  extends ActorPublisher[EventEnvelope] {
+class MyEventsByTagPublisher(
+    tag: String, offset: Long, refreshInterval: FiniteDuration)
+    extends ActorPublisher[EventEnvelope] {
 
   private case object Continue
 
@@ -28,11 +30,11 @@ class MyEventsByTagPublisher(tag: String, offset: Long, refreshInterval: FiniteD
 
   private val Limit = 1000
   private var currentOffset = offset
-  var buf = Vector.empty[EventEnvelope]
+  var buf                   = Vector.empty[EventEnvelope]
 
   import context.dispatcher
-  val continueTask = context.system.scheduler.schedule(
-    refreshInterval, refreshInterval, self, Continue)
+  val continueTask = context.system.scheduler
+    .schedule(refreshInterval, refreshInterval, self, Continue)
 
   override def postStop(): Unit = {
     continueTask.cancel()
@@ -48,8 +50,8 @@ class MyEventsByTagPublisher(tag: String, offset: Long, refreshInterval: FiniteD
   }
 
   object Select {
-    private def statement() = connection.prepareStatement(
-      """
+    private def statement() =
+      connection.prepareStatement("""
         SELECT id, persistent_repr FROM journal
         WHERE tag = ? AND id >= ?
         ORDER BY id LIMIT ?
@@ -64,41 +66,38 @@ class MyEventsByTagPublisher(tag: String, offset: Long, refreshInterval: FiniteD
         val rs = s.executeQuery()
 
         val b = Vector.newBuilder[(Long, Array[Byte])]
-        while (rs.next())
-          b += (rs.getLong(1) -> rs.getBytes(2))
+        while (rs.next()) b += (rs.getLong(1) -> rs.getBytes(2))
         b.result()
       } finally s.close()
     }
   }
 
-  def query(): Unit =
-    if (buf.isEmpty) {
-      try {
-        val result = Select.run(tag, currentOffset, Limit)
-        currentOffset = if (result.nonEmpty) result.last._1 else currentOffset
-        val serialization = SerializationExtension(context.system)
+  def query(): Unit = if (buf.isEmpty) {
+    try {
+      val result = Select.run(tag, currentOffset, Limit)
+      currentOffset = if (result.nonEmpty) result.last._1 else currentOffset
+      val serialization = SerializationExtension(context.system)
 
-        buf = result.map {
-          case (id, bytes) ⇒
-            val p = serialization.deserialize(bytes, classOf[PersistentRepr]).get
-            EventEnvelope(offset = id, p.persistenceId, p.sequenceNr, p.payload)
-        }
-      } catch {
-        case e: Exception ⇒
-          onErrorThenStop(e)
+      buf = result.map {
+        case (id, bytes) ⇒
+          val p = serialization.deserialize(bytes, classOf[PersistentRepr]).get
+          EventEnvelope(offset = id, p.persistenceId, p.sequenceNr, p.payload)
       }
+    } catch {
+      case e: Exception ⇒
+        onErrorThenStop(e)
     }
+  }
 
-  final def deliverBuf(): Unit =
-    if (totalDemand > 0 && buf.nonEmpty) {
-      if (totalDemand <= Int.MaxValue) {
-        val (use, keep) = buf.splitAt(totalDemand.toInt)
-        buf = keep
-        use foreach onNext
-      } else {
-        buf foreach onNext
-        buf = Vector.empty
-      }
+  final def deliverBuf(): Unit = if (totalDemand > 0 && buf.nonEmpty) {
+    if (totalDemand <= Int.MaxValue) {
+      val (use, keep) = buf.splitAt(totalDemand.toInt)
+      buf = keep
+      use foreach onNext
+    } else {
+      buf foreach onNext
+      buf = Vector.empty
     }
+  }
 }
 //#events-by-tag-publisher

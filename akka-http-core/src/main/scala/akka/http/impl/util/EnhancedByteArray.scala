@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.http.impl.util
 
 import scala.annotation.tailrec
@@ -9,7 +8,8 @@ import scala.annotation.tailrec
 /**
  * INTERNAL API
  */
-private[http] class EnhancedByteArray(val underlying: Array[Byte]) extends AnyVal {
+private[http] class EnhancedByteArray(val underlying: Array[Byte])
+    extends AnyVal {
 
   /**
    * Tests two byte arrays for value equality in a way that defends against timing attacks.
@@ -24,7 +24,8 @@ private[http] class EnhancedByteArray(val underlying: Array[Byte]) extends AnyVa
    */
   def secure_==(other: Array[Byte]): Boolean = {
     @tailrec def xor(ix: Int = 0, result: Int = 0): Int =
-      if (ix < underlying.length) xor(ix + 1, result | (underlying(ix) ^ other(ix))) else result
+      if (ix < underlying.length)
+        xor(ix + 1, result | (underlying(ix) ^ other(ix))) else result
 
     other.length == underlying.length && xor() == 0
   }

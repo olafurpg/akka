@@ -4,17 +4,18 @@
 package akka.stream.scaladsl
 
 import akka.stream.impl.Stages.DefaultAttributes
-import akka.stream.stage.{ OutHandler, GraphStageLogic, GraphStage }
+import akka.stream.stage.{OutHandler, GraphStageLogic, GraphStage}
 import akka.stream._
 
 import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 /**
  * INTERNAL API
  */
-private[akka] final class Unfold[S, E](s: S, f: S ⇒ Option[(S, E)]) extends GraphStage[SourceShape[E]] {
-  val out: Outlet[E] = Outlet("Unfold.out")
+private[akka] final class Unfold[S, E](s: S, f: S ⇒ Option[(S, E)])
+    extends GraphStage[SourceShape[E]] {
+  val out: Outlet[E]                 = Outlet("Unfold.out")
   override val shape: SourceShape[E] = SourceShape(out)
   override def initialAttributes: Attributes = DefaultAttributes.unfold
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
@@ -25,9 +26,9 @@ private[akka] final class Unfold[S, E](s: S, f: S ⇒ Option[(S, E)]) extends Gr
         override def onPull(): Unit = f(state) match {
           case None ⇒ complete(out)
           case Some((newState, v)) ⇒ {
-            push(out, v)
-            state = newState
-          }
+              push(out, v)
+              state = newState
+            }
         }
       })
     }
@@ -36,13 +37,15 @@ private[akka] final class Unfold[S, E](s: S, f: S ⇒ Option[(S, E)]) extends Gr
 /**
  * INTERNAL API
  */
-private[akka] final class UnfoldAsync[S, E](s: S, f: S ⇒ Future[Option[(S, E)]]) extends GraphStage[SourceShape[E]] {
-  val out: Outlet[E] = Outlet("UnfoldAsync.out")
+private[akka] final class UnfoldAsync[S, E](
+    s: S, f: S ⇒ Future[Option[(S, E)]])
+    extends GraphStage[SourceShape[E]] {
+  val out: Outlet[E]                 = Outlet("UnfoldAsync.out")
   override val shape: SourceShape[E] = SourceShape(out)
   override def initialAttributes: Attributes = DefaultAttributes.unfoldAsync
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
     new GraphStageLogic(shape) {
-      private[this] var state = s
+      private[this] var state                                              = s
       private[this] var asyncHandler: Function1[Try[Option[(S, E)]], Unit] = _
 
       override def preStart() = {
@@ -58,7 +61,8 @@ private[akka] final class UnfoldAsync[S, E](s: S, f: S ⇒ Future[Option[(S, E)]
 
       setHandler(out, new OutHandler {
         override def onPull(): Unit =
-          f(state).onComplete(asyncHandler)(akka.dispatch.ExecutionContexts.sameThreadExecutionContext)
+          f(state).onComplete(asyncHandler)(
+              akka.dispatch.ExecutionContexts.sameThreadExecutionContext)
       })
     }
 }

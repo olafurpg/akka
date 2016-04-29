@@ -3,19 +3,20 @@
  */
 package akka.stream.impl.fusing
 
-import akka.event.{ NoLogging }
+import akka.event.{NoLogging}
 import akka.stream._
-import akka.stream.impl.fusing.GraphInterpreter.{ GraphAssembly, DownstreamBoundaryStageLogic, UpstreamBoundaryStageLogic }
+import akka.stream.impl.fusing.GraphInterpreter.{GraphAssembly, DownstreamBoundaryStageLogic, UpstreamBoundaryStageLogic}
 import akka.stream.stage.AbstractStage.PushPullGraphStage
 import akka.stream.stage._
-import java.{ util ⇒ ju }
+import java.{util ⇒ ju}
 
 /**
  * INTERNAL API
  */
 private[akka] object IteratorInterpreter {
 
-  final case class IteratorUpstream[T](input: Iterator[T]) extends UpstreamBoundaryStageLogic[T] {
+  final case class IteratorUpstream[T](input: Iterator[T])
+      extends UpstreamBoundaryStageLogic[T] {
     val out: Outlet[T] = Outlet[T]("IteratorUpstream.out")
     out.id = 0
 
@@ -40,13 +41,14 @@ private[akka] object IteratorInterpreter {
     override def toString = "IteratorUpstream"
   }
 
-  final case class IteratorDownstream[T]() extends DownstreamBoundaryStageLogic[T] with Iterator[T] {
+  final case class IteratorDownstream[T]()
+      extends DownstreamBoundaryStageLogic[T] with Iterator[T] {
     val in: Inlet[T] = Inlet[T]("IteratorDownstream.in")
     in.id = 0
 
-    private var done = false
-    private var nextElem: T = _
-    private var needsPull = true
+    private var done                   = false
+    private var nextElem: T            = _
+    private var needsPull              = true
     private var lastFailure: Throwable = null
 
     setHandler(in, new InHandler {
@@ -82,8 +84,7 @@ private[akka] object IteratorInterpreter {
         val e = lastFailure
         lastFailure = null
         throw e
-      } else if (!hasNext)
-        Iterator.empty.next()
+      } else if (!hasNext) Iterator.empty.next()
       else {
         needsPull = true
         nextElem
@@ -93,32 +94,32 @@ private[akka] object IteratorInterpreter {
     // don't let toString consume the iterator
     override def toString: String = "IteratorDownstream"
   }
-
 }
 
 /**
  * INTERNAL API
  */
 private[akka] class IteratorInterpreter[I, O](
-  val input: Iterator[I],
-  val stages: Seq[GraphStageWithMaterializedValue[FlowShape[_, _], Any]]) {
+    val input: Iterator[I],
+    val stages: Seq[GraphStageWithMaterializedValue[FlowShape[_, _], Any]]) {
 
   import akka.stream.impl.fusing.IteratorInterpreter._
 
-  private val upstream = IteratorUpstream(input)
+  private val upstream   = IteratorUpstream(input)
   private val downstream = IteratorDownstream[O]()
 
   private def init(): Unit = {
     import GraphInterpreter.Boundary
 
     var i = 0
-    val length = stages.length
+    val length     = stages.length
     val attributes = Array.fill[Attributes](length)(Attributes.none)
-    val ins = Array.ofDim[Inlet[_]](length + 1)
-    val inOwners = Array.ofDim[Int](length + 1)
-    val outs = Array.ofDim[Outlet[_]](length + 1)
-    val outOwners = Array.ofDim[Int](length + 1)
-    val stagesArray = Array.ofDim[GraphStageWithMaterializedValue[Shape, Any]](length)
+    val ins        = Array.ofDim[Inlet[_]](length + 1)
+    val inOwners   = Array.ofDim[Int](length + 1)
+    val outs       = Array.ofDim[Outlet[_]](length + 1)
+    val outOwners  = Array.ofDim[Int](length + 1)
+    val stagesArray =
+      Array.ofDim[GraphStageWithMaterializedValue[Shape, Any]](length)
 
     ins(length) = null
     inOwners(length) = Boundary
@@ -135,20 +136,23 @@ private[akka] class IteratorInterpreter[I, O](
       outOwners(i + 1) = i
       i += 1
     }
-    val assembly = new GraphAssembly(stagesArray, attributes, ins, inOwners, outs, outOwners)
+    val assembly = new GraphAssembly(
+        stagesArray, attributes, ins, inOwners, outs, outOwners)
 
-    val (inHandlers, outHandlers, logics) =
-      assembly.materialize(Attributes.none, assembly.stages.map(_.module), new ju.HashMap, _ ⇒ ())
+    val (inHandlers, outHandlers, logics) = assembly.materialize(
+        Attributes.none, assembly.stages.map(_.module), new ju.HashMap, _ ⇒ ())
     val interpreter = new GraphInterpreter(
-      assembly,
-      NoMaterializer,
-      NoLogging,
-      inHandlers,
-      outHandlers,
-      logics,
-      (_, _, _) ⇒ throw new UnsupportedOperationException("IteratorInterpreter does not support asynchronous events."),
-      fuzzingMode = false,
-      null)
+        assembly,
+        NoMaterializer,
+        NoLogging,
+        inHandlers,
+        outHandlers,
+        logics,
+        (_, _, _) ⇒
+          throw new UnsupportedOperationException(
+              "IteratorInterpreter does not support asynchronous events."),
+        fuzzingMode = false,
+        null)
     interpreter.attachUpstreamBoundary(0, upstream)
     interpreter.attachDownstreamBoundary(length, downstream)
     interpreter.init(null)

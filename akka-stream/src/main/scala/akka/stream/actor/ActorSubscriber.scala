@@ -4,7 +4,7 @@
 package akka.stream.actor
 
 import java.util.concurrent.ConcurrentHashMap
-import org.reactivestreams.{ Subscriber, Subscription }
+import org.reactivestreams.{Subscriber, Subscription}
 import akka.actor._
 import akka.stream.impl.ReactiveStreamsCompliance
 
@@ -20,14 +20,14 @@ object ActorSubscriber {
    * INTERNAL API
    */
   private[akka] final case class OnSubscribe(subscription: Subscription)
-    extends DeadLetterSuppression with NoSerializationVerificationNeeded
-
+      extends DeadLetterSuppression with NoSerializationVerificationNeeded
 }
 
-sealed abstract class ActorSubscriberMessage extends DeadLetterSuppression with NoSerializationVerificationNeeded
+sealed abstract class ActorSubscriberMessage
+    extends DeadLetterSuppression with NoSerializationVerificationNeeded
 
 object ActorSubscriberMessage {
-  final case class OnNext(element: Any) extends ActorSubscriberMessage
+  final case class OnNext(element: Any)      extends ActorSubscriberMessage
   final case class OnError(cause: Throwable) extends ActorSubscriberMessage
   case object OnComplete extends ActorSubscriberMessage
 
@@ -41,6 +41,7 @@ object ActorSubscriberMessage {
  * An [[ActorSubscriber]] defines a `RequestStrategy` to control the stream back pressure.
  */
 trait RequestStrategy {
+
   /**
    * Invoked by the [[ActorSubscriber]] after each incoming message to
    * determine how many more elements to request from the stream.
@@ -81,30 +82,35 @@ case object ZeroRequestStrategy extends RequestStrategy {
 }
 
 object WatermarkRequestStrategy {
+
   /**
    * Create [[WatermarkRequestStrategy]] with `lowWatermark` as half of
    * the specified `highWatermark`.
    */
-  def apply(highWatermark: Int): WatermarkRequestStrategy = new WatermarkRequestStrategy(highWatermark)
+  def apply(highWatermark: Int): WatermarkRequestStrategy =
+    new WatermarkRequestStrategy(highWatermark)
 }
 
 /**
  * Requests up to the `highWatermark` when the `remainingRequested` is
  * below the `lowWatermark`. This a good strategy when the actor performs work itself.
  */
-final case class WatermarkRequestStrategy(highWatermark: Int, lowWatermark: Int) extends RequestStrategy {
+final case class WatermarkRequestStrategy(
+    highWatermark: Int, lowWatermark: Int)
+    extends RequestStrategy {
   require(lowWatermark >= 0, "lowWatermark must be >= 0")
-  require(highWatermark >= lowWatermark, "highWatermark must be >= lowWatermark")
+  require(
+      highWatermark >= lowWatermark, "highWatermark must be >= lowWatermark")
 
   /**
    * Create [[WatermarkRequestStrategy]] with `lowWatermark` as half of
    * the specified `highWatermark`.
    */
-  def this(highWatermark: Int) = this(highWatermark, lowWatermark = math.max(1, highWatermark / 2))
+  def this(highWatermark: Int) =
+    this(highWatermark, lowWatermark = math.max(1, highWatermark / 2))
 
   def requestDemand(remainingRequested: Int): Int =
-    if (remainingRequested < lowWatermark)
-      highWatermark - remainingRequested
+    if (remainingRequested < lowWatermark) highWatermark - remainingRequested
     else 0
 }
 
@@ -165,8 +171,8 @@ trait ActorSubscriber extends Actor {
 
   private[this] val state = ActorSubscriberState(context.system)
   private[this] var subscription: Option[Subscription] = None
-  private[this] var requested: Long = 0
-  private[this] var _canceled = false
+  private[this] var requested: Long                    = 0
+  private[this] var _canceled                          = false
 
   protected def requestStrategy: RequestStrategy
 
@@ -175,7 +181,8 @@ trait ActorSubscriber extends Actor {
   /**
    * INTERNAL API
    */
-  protected[akka] override def aroundReceive(receive: Receive, msg: Any): Unit = msg match {
+  protected[akka] override def aroundReceive(
+      receive: Receive, msg: Any): Unit = msg match {
     case _: OnNext ⇒
       requested -= 1
       if (!_canceled) {
@@ -188,10 +195,8 @@ trait ActorSubscriber extends Actor {
         if (_canceled) {
           context.stop(self)
           sub.cancel()
-        } else if (requested != 0)
-          sub.request(remainingRequested)
-      } else
-        sub.cancel()
+        } else if (requested != 0) sub.request(remainingRequested)
+      } else sub.cancel()
     case OnComplete | OnError(_) ⇒
       if (!_canceled) {
         _canceled = true
@@ -228,9 +233,11 @@ trait ActorSubscriber extends Actor {
   /**
    * INTERNAL API
    */
-  protected[akka] override def aroundPreRestart(reason: Throwable, message: Option[Any]): Unit = {
+  protected[akka] override def aroundPreRestart(
+      reason: Throwable, message: Option[Any]): Unit = {
     // some state must survive restart
-    state.set(self, ActorSubscriberState.State(subscription, requested, _canceled))
+    state.set(
+        self, ActorSubscriberState.State(subscription, requested, _canceled))
     super.aroundPreRestart(reason, message)
   }
 
@@ -261,16 +268,15 @@ trait ActorSubscriber extends Actor {
    * In case the upstream subscription has not yet arrived the Actor will stay alive
    * until a subscription arrives, cancel it and then stop itself.
    */
-  protected def cancel(): Unit =
-    if (!_canceled) {
-      subscription match {
-        case Some(s) ⇒
-          context.stop(self)
-          s.cancel()
-        case _ ⇒
-          _canceled = true // cancel will be signaled once a subscription arrives
-      }
+  protected def cancel(): Unit = if (!_canceled) {
+    subscription match {
+      case Some(s) ⇒
+        context.stop(self)
+        s.cancel()
+      case _ ⇒
+        _canceled = true // cancel will be signaled once a subscription arrives
     }
+  }
 
   /**
    * The number of stream elements that have already been requested from upstream
@@ -286,7 +292,8 @@ trait ActorSubscriber extends Actor {
 /**
  * INTERNAL API
  */
-private[akka] final class ActorSubscriberImpl[T](val impl: ActorRef) extends Subscriber[T] {
+private[akka] final class ActorSubscriberImpl[T](val impl: ActorRef)
+    extends Subscriber[T] {
   import ActorSubscriberMessage._
   override def onError(cause: Throwable): Unit = {
     ReactiveStreamsCompliance.requireNonNullException(cause)
@@ -307,16 +314,19 @@ private[akka] final class ActorSubscriberImpl[T](val impl: ActorRef) extends Sub
  * INTERNAL API
  * Some state must survive restarts.
  */
-private[akka] object ActorSubscriberState extends ExtensionId[ActorSubscriberState] with ExtensionIdProvider {
-  override def get(system: ActorSystem): ActorSubscriberState = super.get(system)
+private[akka] object ActorSubscriberState
+    extends ExtensionId[ActorSubscriberState] with ExtensionIdProvider {
+  override def get(system: ActorSystem): ActorSubscriberState =
+    super.get(system)
 
   override def lookup() = ActorSubscriberState
 
-  override def createExtension(system: ExtendedActorSystem): ActorSubscriberState =
+  override def createExtension(
+      system: ExtendedActorSystem): ActorSubscriberState =
     new ActorSubscriberState
 
-  final case class State(subscription: Option[Subscription], requested: Long, canceled: Boolean)
-
+  final case class State(
+      subscription: Option[Subscription], requested: Long, canceled: Boolean)
 }
 
 /**
@@ -337,6 +347,7 @@ private[akka] class ActorSubscriberState extends Extension {
  * Java API
  */
 object UntypedActorSubscriber {
+
   /**
    * Java API: Attach a [[UntypedActorSubscriber]] actor as a [[org.reactivestreams.Subscriber]]
    * to a [[org.reactivestreams.Publisher]] or [[akka.stream.javadsl.Flow]].
@@ -354,6 +365,7 @@ abstract class UntypedActorSubscriber extends UntypedActor with ActorSubscriber
  * Java API compatible with lambda expressions
  */
 object AbstractActorSubscriber {
+
   /**
    * Java API compatible with lambda expressions: Attach a [[AbstractActorSubscriber]] actor
    * as a [[org.reactivestreams.Subscriber]] o a [[org.reactivestreams.Publisher]] or
@@ -366,4 +378,5 @@ object AbstractActorSubscriber {
  * Java API compatible with lambda expressions
  * @see [[akka.stream.actor.ActorSubscriber]]
  */
-abstract class AbstractActorSubscriber extends AbstractActor with ActorSubscriber
+abstract class AbstractActorSubscriber
+    extends AbstractActor with ActorSubscriber

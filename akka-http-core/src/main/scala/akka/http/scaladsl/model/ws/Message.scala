@@ -19,6 +19,7 @@ sealed trait Message
  * will return a Source streaming the data as it comes in.
  */
 sealed trait TextMessage extends Message {
+
   /**
    * The contents of this message as a stream.
    */
@@ -35,9 +36,10 @@ object TextMessage {
    */
   final case class Strict(text: String) extends TextMessage {
     def textStream: Source[String, _] = Source.single(text)
-    override def toString: String = s"TextMessage.Strict($text)"
+    override def toString: String     = s"TextMessage.Strict($text)"
   }
-  final case class Streamed(textStream: Source[String, _]) extends TextMessage {
+  final case class Streamed(textStream: Source[String, _])
+      extends TextMessage {
     override def toString: String = s"TextMessage.Streamed($textStream)"
   }
 }
@@ -49,6 +51,7 @@ object TextMessage {
  */
 //#message-model
 sealed trait BinaryMessage extends Message {
+
   /**
    * The contents of this message as a stream.
    */
@@ -65,9 +68,10 @@ object BinaryMessage {
    */
   final case class Strict(data: ByteString) extends BinaryMessage {
     def dataStream: Source[ByteString, _] = Source.single(data)
-    override def toString: String = s"BinaryMessage.Strict($data)"
+    override def toString: String         = s"BinaryMessage.Strict($data)"
   }
-  final case class Streamed(dataStream: Source[ByteString, _]) extends BinaryMessage {
+  final case class Streamed(dataStream: Source[ByteString, _])
+      extends BinaryMessage {
     override def toString: String = s"BinaryMessage.Streamed($dataStream)"
   }
 }

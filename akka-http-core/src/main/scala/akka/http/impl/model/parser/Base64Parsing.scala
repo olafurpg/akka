@@ -22,35 +22,41 @@ import akka.parboiled2._
 /**
  * Rules for parsing Base-64 encoded strings.
  */
-private[parser] trait Base64Parsing { this: Parser ⇒
+private[parser] trait Base64Parsing {
+  this: Parser ⇒
   import Base64Parsing._
 
   /**
    * Parses an RFC4045-encoded string and decodes it onto the value stack.
    */
-  def rfc2045String: Rule1[Array[Byte]] = base64StringOrBlock(rfc2045Alphabet, rfc2045StringDecoder)
+  def rfc2045String: Rule1[Array[Byte]] =
+    base64StringOrBlock(rfc2045Alphabet, rfc2045StringDecoder)
 
   /**
    * Parses an RFC4045-encoded string potentially containing newlines and decodes it onto the value stack.
    */
-  def rfc2045Block: Rule1[Array[Byte]] = base64StringOrBlock(rfc2045Alphabet, rfc2045BlockDecoder)
+  def rfc2045Block: Rule1[Array[Byte]] =
+    base64StringOrBlock(rfc2045Alphabet, rfc2045BlockDecoder)
 
   /**
    * Parses a org.parboiled2.util.Base64.custom()-encoded string and decodes it onto the value stack.
    */
-  def base64CustomString: Rule1[Array[Byte]] = base64StringOrBlock(customAlphabet, customStringDecoder)
+  def base64CustomString: Rule1[Array[Byte]] =
+    base64StringOrBlock(customAlphabet, customStringDecoder)
 
   /**
    * Parses a org.parboiled2.util.Base64.custom()-encoded string potentially containing newlines
    * and decodes it onto the value stack.
    */
-  def base64CustomBlock: Rule1[Array[Byte]] = base64StringOrBlock(customAlphabet, customBlockDecoder)
+  def base64CustomBlock: Rule1[Array[Byte]] =
+    base64StringOrBlock(customAlphabet, customBlockDecoder)
 
   /**
    * Parses a BASE64-encoded string with the given alphabet and decodes it onto the value
    * stack using the given codec.
    */
-  def base64StringOrBlock(alphabet: CharPredicate, decoder: Decoder): Rule1[Array[Byte]] = {
+  def base64StringOrBlock(
+      alphabet: CharPredicate, decoder: Decoder): Rule1[Array[Byte]] = {
     val start = cursor
     rule {
       oneOrMore(alphabet) ~ run {
@@ -67,14 +73,16 @@ object Base64Parsing {
   type Decoder = Array[Char] ⇒ Array[Byte]
 
   val rfc2045Alphabet = CharPredicate(Base64.rfc2045().getAlphabet).asMaskBased
-  val customAlphabet = CharPredicate(Base64.custom().getAlphabet).asMaskBased
+  val customAlphabet  = CharPredicate(Base64.custom().getAlphabet).asMaskBased
 
   val rfc2045StringDecoder: Decoder = decodeString(Base64.rfc2045())
-  val customStringDecoder: Decoder = decodeString(Base64.custom())
+  val customStringDecoder: Decoder  = decodeString(Base64.custom())
 
   val rfc2045BlockDecoder: Decoder = decodeBlock(Base64.rfc2045())
-  val customBlockDecoder: Decoder = decodeBlock(Base64.custom())
+  val customBlockDecoder: Decoder  = decodeBlock(Base64.custom())
 
-  def decodeString(codec: Base64)(chars: Array[Char]): Array[Byte] = codec.decodeFast(chars)
-  def decodeBlock(codec: Base64)(chars: Array[Char]): Array[Byte] = codec.decode(chars)
+  def decodeString(codec: Base64)(chars: Array[Char]): Array[Byte] =
+    codec.decodeFast(chars)
+  def decodeBlock(codec: Base64)(chars: Array[Char]): Array[Byte] =
+    codec.decode(chars)
 }

@@ -3,9 +3,9 @@
  */
 package akka.stream.javadsl
 
-import java.io.{ InputStream, OutputStream }
+import java.io.{InputStream, OutputStream}
 import akka.japi.function
-import akka.stream.{ scaladsl, javadsl }
+import akka.stream.{scaladsl, javadsl}
 import akka.stream.IOResult
 import akka.util.ByteString
 import scala.concurrent.duration.FiniteDuration
@@ -15,6 +15,7 @@ import java.util.concurrent.CompletionStage
  * Converters for interacting with the blocking `java.io` streams APIs
  */
 object StreamConverters {
+
   /**
    * Sink which writes incoming [[ByteString]]s to an [[OutputStream]] created by the given function.
    *
@@ -31,7 +32,9 @@ object StreamConverters {
    *
    * @param f A Creator which creates an OutputStream to write to
    */
-  def fromOutputStream(f: function.Creator[OutputStream]): javadsl.Sink[ByteString, CompletionStage[IOResult]] = fromOutputStream(f, autoFlush = false)
+  def fromOutputStream(f: function.Creator[OutputStream]
+      ): javadsl.Sink[ByteString, CompletionStage[IOResult]] =
+    fromOutputStream(f, autoFlush = false)
 
   /**
    * Sink which writes incoming [[ByteString]]s to an [[OutputStream]] created by the given function.
@@ -48,8 +51,13 @@ object StreamConverters {
    * @param f A Creator which creates an OutputStream to write to
    * @param autoFlush If true the OutputStream will be flushed whenever a byte array is written
    */
-  def fromOutputStream(f: function.Creator[OutputStream], autoFlush: Boolean): javadsl.Sink[ByteString, CompletionStage[IOResult]] =
-    new Sink(scaladsl.StreamConverters.fromOutputStream(() ⇒ f.create(), autoFlush).toCompletionStage())
+  def fromOutputStream(f: function.Creator[OutputStream],
+                       autoFlush: Boolean
+  ): javadsl.Sink[ByteString, CompletionStage[IOResult]] =
+    new Sink(
+        scaladsl.StreamConverters
+          .fromOutputStream(() ⇒ f.create(), autoFlush)
+          .toCompletionStage())
 
   /**
    * Creates a Sink which when materialized will return an [[java.io.InputStream]] which it is possible
@@ -66,7 +74,8 @@ object StreamConverters {
    * The [[InputStream]] will be closed when the stream flowing into this [[Sink]] completes, and
    * closing the [[InputStream]] will cancel this [[Sink]].
    */
-  def asInputStream(): Sink[ByteString, InputStream] = new Sink(scaladsl.StreamConverters.asInputStream())
+  def asInputStream(): Sink[ByteString, InputStream] =
+    new Sink(scaladsl.StreamConverters.asInputStream())
 
   /**
    * Creates a Sink which when materialized will return an [[java.io.InputStream]] which it is possible
@@ -82,7 +91,8 @@ object StreamConverters {
    *
    * @param readTimeout the max time the read operation on the materialized InputStream should block
    */
-  def asInputStream(readTimeout: FiniteDuration): Sink[ByteString, InputStream] =
+  def asInputStream(
+      readTimeout: FiniteDuration): Sink[ByteString, InputStream] =
     new Sink(scaladsl.StreamConverters.asInputStream(readTimeout))
 
   /**
@@ -97,8 +107,13 @@ object StreamConverters {
    *
    * The created [[InputStream]] will be closed when the [[Source]] is cancelled.
    */
-  def fromInputStream(in: function.Creator[InputStream], chunkSize: Int): javadsl.Source[ByteString, CompletionStage[IOResult]] =
-    new Source(scaladsl.StreamConverters.fromInputStream(() ⇒ in.create(), chunkSize).toCompletionStage())
+  def fromInputStream(
+      in: function.Creator[InputStream],
+      chunkSize: Int): javadsl.Source[ByteString, CompletionStage[IOResult]] =
+    new Source(
+        scaladsl.StreamConverters
+          .fromInputStream(() ⇒ in.create(), chunkSize)
+          .toCompletionStage())
 
   /**
    * Creates a Source from an [[java.io.InputStream]] created by the given function.
@@ -113,7 +128,9 @@ object StreamConverters {
    *
    * The created [[InputStream]] will be closed when the [[Source]] is cancelled.
    */
-  def fromInputStream(in: function.Creator[InputStream]): javadsl.Source[ByteString, CompletionStage[IOResult]] = fromInputStream(in, 8192)
+  def fromInputStream(in: function.Creator[InputStream]
+      ): javadsl.Source[ByteString, CompletionStage[IOResult]] =
+    fromInputStream(in, 8192)
 
   /**
    * Creates a Source which when materialized will return an [[java.io.OutputStream]] which it is possible
@@ -129,7 +146,8 @@ object StreamConverters {
    *
    * @param writeTimeout the max time the write operation on the materialized OutputStream should block
    */
-  def asOutputStream(writeTimeout: FiniteDuration): javadsl.Source[ByteString, OutputStream] =
+  def asOutputStream(
+      writeTimeout: FiniteDuration): javadsl.Source[ByteString, OutputStream] =
     new Source(scaladsl.StreamConverters.asOutputStream(writeTimeout))
 
   /**
@@ -147,5 +165,4 @@ object StreamConverters {
    */
   def asOutputStream(): javadsl.Source[ByteString, OutputStream] =
     new Source(scaladsl.StreamConverters.asOutputStream())
-
 }

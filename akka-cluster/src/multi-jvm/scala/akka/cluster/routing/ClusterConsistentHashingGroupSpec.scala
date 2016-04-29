@@ -33,33 +33,40 @@ object ClusterConsistentHashingGroupMultiJvmSpec extends MultiNodeConfig {
     }
   }
 
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
-  commonConfig(debugConfig(on = false).withFallback(MultiNodeClusterSpec.clusterConfig))
-
+  commonConfig(
+      debugConfig(on = false).withFallback(MultiNodeClusterSpec.clusterConfig))
 }
 
-class ClusterConsistentHashingGroupMultiJvmNode1 extends ClusterConsistentHashingGroupSpec
-class ClusterConsistentHashingGroupMultiJvmNode2 extends ClusterConsistentHashingGroupSpec
-class ClusterConsistentHashingGroupMultiJvmNode3 extends ClusterConsistentHashingGroupSpec
+class ClusterConsistentHashingGroupMultiJvmNode1
+    extends ClusterConsistentHashingGroupSpec
+class ClusterConsistentHashingGroupMultiJvmNode2
+    extends ClusterConsistentHashingGroupSpec
+class ClusterConsistentHashingGroupMultiJvmNode3
+    extends ClusterConsistentHashingGroupSpec
 
-abstract class ClusterConsistentHashingGroupSpec extends MultiNodeSpec(ClusterConsistentHashingGroupMultiJvmSpec)
-  with MultiNodeClusterSpec
-  with ImplicitSender with DefaultTimeout {
+abstract class ClusterConsistentHashingGroupSpec
+    extends MultiNodeSpec(ClusterConsistentHashingGroupMultiJvmSpec)
+    with MultiNodeClusterSpec with ImplicitSender with DefaultTimeout {
   import ClusterConsistentHashingGroupMultiJvmSpec._
 
   /**
    * Fills in self address for local ActorRef
    */
-  private def fullAddress(actorRef: ActorRef): Address = actorRef.path.address match {
-    case Address(_, _, None, None) ⇒ cluster.selfAddress
-    case a                         ⇒ a
-  }
+  private def fullAddress(actorRef: ActorRef): Address =
+    actorRef.path.address match {
+      case Address(_, _, None, None) ⇒ cluster.selfAddress
+      case a                         ⇒ a
+    }
 
   def currentRoutees(router: ActorRef) =
-    Await.result(router ? GetRoutees, timeout.duration).asInstanceOf[Routees].routees
+    Await
+      .result(router ? GetRoutees, timeout.duration)
+      .asInstanceOf[Routees]
+      .routees
 
   "A cluster router with a consistent hashing group" must {
     "start cluster with 3 nodes" taggedAs LongRunningTest in {
@@ -73,9 +80,14 @@ abstract class ClusterConsistentHashingGroupSpec extends MultiNodeSpec(ClusterCo
         case s: String ⇒ s
       }
       val paths = List("/user/dest")
-      val router = system.actorOf(ClusterRouterGroup(local = ConsistentHashingGroup(paths, hashMapping = hashMapping),
-        settings = ClusterRouterGroupSettings(totalInstances = 10, paths, allowLocalRoutees = true, useRole = None)).props(),
-        "router")
+      val router = system.actorOf(
+          ClusterRouterGroup(
+              local = ConsistentHashingGroup(paths, hashMapping = hashMapping),
+              settings = ClusterRouterGroupSettings(totalInstances = 10,
+                                                    paths,
+                                                    allowLocalRoutees = true,
+                                                    useRole = None)).props(),
+          "router")
       // it may take some time until router receives cluster member events
       awaitAssert { currentRoutees(router).size should ===(3) }
       val keys = List("A", "B", "C", "D", "E", "F", "G")
@@ -93,6 +105,5 @@ abstract class ClusterConsistentHashingGroupSpec extends MultiNodeSpec(ClusterCo
       (a.size + b.size + c.size) should ===(keys.size)
       enterBarrier("after-2")
     }
-
   }
 }

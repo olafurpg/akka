@@ -5,7 +5,7 @@ package akka.osgi
 
 import akka.event.Logging
 import org.osgi.service.log.LogService
-import akka.event.Logging.{ DefaultLogger, LogEvent }
+import akka.event.Logging.{DefaultLogger, LogEvent}
 import akka.event.Logging.Error.NoCause
 
 /**
@@ -17,7 +17,8 @@ class DefaultOSGiLogger extends DefaultLogger {
 
   val messageFormat = " %s | %s | %s | %s"
 
-  override def receive: Receive = uninitialisedReceive.orElse[Any, Unit](super.receive)
+  override def receive: Receive =
+    uninitialisedReceive.orElse[Any, Unit](super.receive)
 
   /**
    * Behaviour of the logger that waits for its LogService
@@ -27,15 +28,19 @@ class DefaultOSGiLogger extends DefaultLogger {
     var messagesToLog: Vector[LogEvent] = Vector()
     //the Default Logger needs to be aware of the LogService which is published on the EventStream
     context.system.eventStream.subscribe(self, classOf[LogService])
-    context.system.eventStream.unsubscribe(self, UnregisteringLogService.getClass)
+    context.system.eventStream
+      .unsubscribe(self, UnregisteringLogService.getClass)
+
     /**
      * Logs every already received LogEvent and set the logger ready to log every incoming LogEvent.
      *
      * @param logService OSGi LogService that has been registered,
      */
     def setLogService(logService: LogService) {
-      messagesToLog.foreach(x ⇒ {
-        logMessage(logService, x)
+      messagesToLog.foreach(
+          x ⇒
+            {
+          logMessage(logService, x)
       })
       context.become(initialisedReceive(logService))
     }
@@ -52,7 +57,8 @@ class DefaultOSGiLogger extends DefaultLogger {
    * @return Receive : Logs LogEvent or go back to the uninitialised state
    */
   def initialisedReceive(logService: LogService): Receive = {
-    context.system.eventStream.subscribe(self, UnregisteringLogService.getClass)
+    context.system.eventStream
+      .subscribe(self, UnregisteringLogService.getClass)
     context.system.eventStream.unsubscribe(self, classOf[LogService])
 
     {
@@ -70,12 +76,20 @@ class DefaultOSGiLogger extends DefaultLogger {
   def logMessage(logService: LogService, event: LogEvent) {
     event match {
       case error: Logging.Error if error.cause != NoCause ⇒
-        logService.log(event.level.asInt, messageFormat.format(timestamp(event), event.thread.getName, event.logSource, event.message), error.cause)
+        logService.log(event.level.asInt,
+                       messageFormat.format(timestamp(event),
+                                            event.thread.getName,
+                                            event.logSource,
+                                            event.message),
+                       error.cause)
       case _ ⇒
-        logService.log(event.level.asInt, messageFormat.format(timestamp(event), event.thread.getName, event.logSource, event.message))
+        logService.log(event.level.asInt,
+                       messageFormat.format(timestamp(event),
+                                            event.thread.getName,
+                                            event.logSource,
+                                            event.message))
     }
   }
-
 }
 
 /**

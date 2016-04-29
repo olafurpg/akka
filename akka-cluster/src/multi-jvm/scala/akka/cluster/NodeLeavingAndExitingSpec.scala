@@ -15,12 +15,12 @@ import akka.cluster.MemberStatus._
 import akka.actor.Deploy
 
 object NodeLeavingAndExitingMultiJvmSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
-  commonConfig(debugConfig(on = false).
-    withFallback(MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
+  commonConfig(debugConfig(on = false).withFallback(
+          MultiNodeClusterSpec.clusterConfigWithFailureDetectorPuppet))
 }
 
 class NodeLeavingAndExitingMultiJvmNode1 extends NodeLeavingAndExitingSpec
@@ -28,8 +28,8 @@ class NodeLeavingAndExitingMultiJvmNode2 extends NodeLeavingAndExitingSpec
 class NodeLeavingAndExitingMultiJvmNode3 extends NodeLeavingAndExitingSpec
 
 abstract class NodeLeavingAndExitingSpec
-  extends MultiNodeSpec(NodeLeavingAndExitingMultiJvmSpec)
-  with MultiNodeClusterSpec {
+    extends MultiNodeSpec(NodeLeavingAndExitingMultiJvmSpec)
+    with MultiNodeClusterSpec {
 
   import NodeLeavingAndExitingMultiJvmSpec._
   import ClusterEvent._
@@ -46,11 +46,12 @@ abstract class NodeLeavingAndExitingSpec
         cluster.subscribe(system.actorOf(Props(new Actor {
           def receive = {
             case state: CurrentClusterState ⇒
-              if (state.members.exists(m ⇒ m.address == secondAddess && m.status == Exiting))
+              if (state.members.exists(
+                      m ⇒ m.address == secondAddess && m.status == Exiting))
                 exitingLatch.countDown()
-            case MemberExited(m) if m.address == secondAddess ⇒ exitingLatch.countDown()
-            case _: MemberRemoved                             ⇒ // not tested here
-
+            case MemberExited(m) if m.address == secondAddess ⇒
+              exitingLatch.countDown()
+            case _: MemberRemoved ⇒ // not tested here
           }
         }).withDeploy(Deploy.local)), classOf[MemberEvent])
         enterBarrier("registered-listener")
@@ -62,7 +63,6 @@ abstract class NodeLeavingAndExitingSpec
 
         // Verify that 'second' node is set to EXITING
         exitingLatch.await
-
       }
 
       // node that is leaving

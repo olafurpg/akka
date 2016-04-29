@@ -88,6 +88,7 @@ sealed abstract class EventSeq {
   def events: immutable.Seq[Any]
 }
 object EventSeq {
+
   /** Java API */
   final def empty: EventSeq = EmptyEventSeq
 
@@ -96,9 +97,10 @@ object EventSeq {
 
   /** Java API */
   @varargs final def create(events: Any*): EventSeq = EventsSeq(events.toList)
-  final def apply(events: Any*): EventSeq = EventsSeq(events.toList)
+  final def apply(events: Any*): EventSeq           = EventsSeq(events.toList)
 }
-final case class SingleEventSeq(event: Any) extends EventSeq { // TODO try to make it a value class, would save allocations
+final case class SingleEventSeq(event: Any) extends EventSeq {
+  // TODO try to make it a value class, would save allocations
   override val events: immutable.Seq[Any] = List(event)
   override def toString = s"SingleEventSeq($event)"
 }
@@ -113,26 +115,31 @@ final case class EventsSeq[E](events: immutable.Seq[E]) extends EventSeq
 /** No-op model adapter which passes through the incoming events as-is. */
 final case object IdentityEventAdapter extends EventAdapter {
   override def toJournal(event: Any): Any = event
-  override def fromJournal(event: Any, manifest: String): EventSeq = EventSeq.single(event)
+  override def fromJournal(event: Any, manifest: String): EventSeq =
+    EventSeq.single(event)
   override def manifest(event: Any): String = ""
 }
 
 /** INTERNAL API */
-private[akka] case class NoopWriteEventAdapter(private val readEventAdapter: ReadEventAdapter) extends EventAdapter {
+private[akka] case class NoopWriteEventAdapter(
+    private val readEventAdapter: ReadEventAdapter)
+    extends EventAdapter {
   // pass-through read
   override def fromJournal(event: Any, manifest: String): EventSeq =
     readEventAdapter.fromJournal(event, manifest)
 
   // no-op write
   override def manifest(event: Any): String = ""
-  override def toJournal(event: Any): Any = event
+  override def toJournal(event: Any): Any   = event
 }
 
 /** INTERNAL API */
-private[akka] case class NoopReadEventAdapter(private val writeEventAdapter: WriteEventAdapter) extends EventAdapter {
+private[akka] case class NoopReadEventAdapter(
+    private val writeEventAdapter: WriteEventAdapter)
+    extends EventAdapter {
   // pass-through write
   override def manifest(event: Any): String = writeEventAdapter.manifest(event)
-  override def toJournal(event: Any): Any = writeEventAdapter.toJournal(event)
+  override def toJournal(event: Any): Any   = writeEventAdapter.toJournal(event)
 
   // no-op read
   override def fromJournal(event: Any, manifest: String): EventSeq =

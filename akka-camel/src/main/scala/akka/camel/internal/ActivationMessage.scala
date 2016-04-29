@@ -6,6 +6,7 @@ package akka.camel.internal
 import akka.actor.ActorRef
 
 private[camel] object ActivationProtocol {
+
   /**
    * Super class of all activation messages. Registration of the Camel [[akka.camel.Consumer]]s and [[akka.camel.Producer]]s
    * is done asynchronously. Activation messages are sent in the Camel extension when endpoints are
@@ -14,7 +15,8 @@ private[camel] object ActivationProtocol {
    * to await activation or de-activation of endpoints.
    */
   @SerialVersionUID(1L)
-  private[camel] abstract class ActivationMessage(val actor: ActorRef) extends Serializable
+  private[camel] abstract class ActivationMessage(val actor: ActorRef)
+      extends Serializable
 
   /**
    * INTERNAL API
@@ -32,7 +34,8 @@ private[camel] object ActivationProtocol {
    * @param actorRef the endpoint that was activated
    */
   @SerialVersionUID(1L)
-  final case class EndpointActivated(actorRef: ActorRef) extends ActivationMessage(actorRef)
+  final case class EndpointActivated(actorRef: ActorRef)
+      extends ActivationMessage(actorRef)
 
   /**
    * INTERNAL API
@@ -43,7 +46,9 @@ private[camel] object ActivationProtocol {
    * @param cause the cause for failure
    */
   @SerialVersionUID(1L)
-  final case class EndpointFailedToActivate(actorRef: ActorRef, cause: Throwable) extends ActivationMessage(actorRef)
+  final case class EndpointFailedToActivate(
+      actorRef: ActorRef, cause: Throwable)
+      extends ActivationMessage(actorRef)
 
   /**
    * INTERNAL API
@@ -53,7 +58,8 @@ private[camel] object ActivationProtocol {
    * @param actorRef the endpoint that was de-activated
    */
   @SerialVersionUID(1L)
-  final case class EndpointDeActivated(actorRef: ActorRef) extends ActivationMessage(actorRef)
+  final case class EndpointDeActivated(actorRef: ActorRef)
+      extends ActivationMessage(actorRef)
 
   /**
    * INTERNAL API
@@ -64,5 +70,7 @@ private[camel] object ActivationProtocol {
    * @param cause the cause for failure
    */
   @SerialVersionUID(1L)
-  final case class EndpointFailedToDeActivate(actorRef: ActorRef, cause: Throwable) extends ActivationMessage(actorRef)
+  final case class EndpointFailedToDeActivate(
+      actorRef: ActorRef, cause: Throwable)
+      extends ActivationMessage(actorRef)
 }

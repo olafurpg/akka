@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.http.scaladsl.model
 
 import akka.http.impl.model.parser.CharacterClasses
@@ -16,8 +15,13 @@ final case class FormData(fields: Uri.Query) {
     toEntity(HttpCharsets.`UTF-8`)
 
   def toEntity(charset: HttpCharset): akka.http.scaladsl.model.RequestEntity = {
-    val render: StringRendering = UriRendering.renderQuery(new StringRendering, this.fields, charset.nioCharset, CharacterClasses.unreserved)
-    HttpEntity(`application/x-www-form-urlencoded` withCharset charset, render.get)
+    val render: StringRendering = UriRendering.renderQuery(
+        new StringRendering,
+        this.fields,
+        charset.nioCharset,
+        CharacterClasses.unreserved)
+    HttpEntity(
+        `application/x-www-form-urlencoded` withCharset charset, render.get)
   }
 }
 

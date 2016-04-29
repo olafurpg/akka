@@ -3,8 +3,7 @@ package akka.serialization
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
-import java.io.{ ObjectOutputStream, ByteArrayOutputStream, ByteArrayInputStream }
+import java.io.{ObjectOutputStream, ByteArrayOutputStream, ByteArrayInputStream}
 import java.util.concurrent.Callable
 import akka.util.ClassLoaderObjectInputStream
 import akka.actor.ExtendedActorSystem
@@ -61,7 +60,8 @@ trait Serializer {
   /**
    * Java API: deserialize with type hint
    */
-  final def fromBinary(bytes: Array[Byte], clazz: Class[_]): AnyRef = fromBinary(bytes, Option(clazz))
+  final def fromBinary(bytes: Array[Byte], clazz: Class[_]): AnyRef =
+    fromBinary(bytes, Option(clazz))
 }
 
 /**
@@ -122,14 +122,14 @@ abstract class SerializerWithStringManifest extends Serializer {
    */
   def fromBinary(bytes: Array[Byte], manifest: String): AnyRef
 
-  final def fromBinary(bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef = {
+  final def fromBinary(
+      bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef = {
     val manifestString = manifest match {
       case Some(c) ⇒ c.getName
       case None    ⇒ ""
     }
     fromBinary(bytes, manifestString)
   }
-
 }
 
 /**
@@ -137,6 +137,7 @@ abstract class SerializerWithStringManifest extends Serializer {
  *  when globally unique serialization identifier is configured in the `reference.conf`.
  */
 trait BaseSerializer extends Serializer {
+
   /**
    *  Actor system which is required by most serializer implementations.
    */
@@ -163,7 +164,8 @@ trait BaseSerializer extends Serializer {
    * INTERNAL API
    */
   private[akka] def identifierFromConfig: Int =
-    system.settings.config.getInt(s"""${SerializationIdentifiers}."${getClass.getName}"""")
+    system.settings.config
+      .getInt(s"""${SerializationIdentifiers}."${getClass.getName}"""")
 }
 
 /**
@@ -173,7 +175,8 @@ trait BaseSerializer extends Serializer {
  * the JSerializer (also possible with empty constructor).
  */
 abstract class JSerializer extends Serializer {
-  final def fromBinary(bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef =
+  final def fromBinary(
+      bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef =
     fromBinaryJava(bytes, manifest.orNull)
 
   /**
@@ -202,7 +205,9 @@ object JavaSerializer {
    * currentSystem.withValue(system, callable)
    */
   val currentSystem = new CurrentSystem
-  final class CurrentSystem extends DynamicVariable[ExtendedActorSystem](null) {
+  final class CurrentSystem
+      extends DynamicVariable[ExtendedActorSystem](null) {
+
     /**
      * Java API: invoke the callable with the current system being set to the given value for this thread.
      *
@@ -210,7 +215,8 @@ object JavaSerializer {
      * @param callable - the operation to be performed
      * @return the result of callable.call()
      */
-    def withValue[S](value: ExtendedActorSystem, callable: Callable[S]): S = super.withValue[S](value)(callable.call)
+    def withValue[S](value: ExtendedActorSystem, callable: Callable[S]): S =
+      super.withValue[S](value)(callable.call)
   }
 }
 
@@ -238,7 +244,8 @@ class JavaSerializer(val system: ExtendedActorSystem) extends BaseSerializer {
   }
 
   def fromBinary(bytes: Array[Byte], clazz: Option[Class[_]]): AnyRef = {
-    val in = new ClassLoaderObjectInputStream(system.dynamicAccess.classLoader, new ByteArrayInputStream(bytes))
+    val in = new ClassLoaderObjectInputStream(
+        system.dynamicAccess.classLoader, new ByteArrayInputStream(bytes))
     val obj = JavaSerializer.currentSystem.withValue(system) { in.readObject }
     in.close()
     obj
@@ -250,9 +257,9 @@ class JavaSerializer(val system: ExtendedActorSystem) extends BaseSerializer {
  */
 class NullSerializer extends Serializer {
   val nullAsBytes = Array[Byte]()
-  def includeManifest: Boolean = false
-  def identifier = 0
-  def toBinary(o: AnyRef) = nullAsBytes
+  def includeManifest: Boolean                                        = false
+  def identifier                                                      = 0
+  def toBinary(o: AnyRef)                                             = nullAsBytes
   def fromBinary(bytes: Array[Byte], clazz: Option[Class[_]]): AnyRef = null
 }
 
@@ -260,7 +267,8 @@ class NullSerializer extends Serializer {
  * This is a special Serializer that Serializes and deserializes byte arrays only,
  * (just returns the byte array unchanged/uncopied)
  */
-class ByteArraySerializer(val system: ExtendedActorSystem) extends BaseSerializer {
+class ByteArraySerializer(val system: ExtendedActorSystem)
+    extends BaseSerializer {
 
   @deprecated("Use constructor with ExtendedActorSystem", "2.4")
   def this() = this(null)
@@ -272,9 +280,12 @@ class ByteArraySerializer(val system: ExtendedActorSystem) extends BaseSerialize
 
   def includeManifest: Boolean = false
   def toBinary(o: AnyRef) = o match {
-    case null           ⇒ null
-    case o: Array[Byte] ⇒ o
-    case other          ⇒ throw new IllegalArgumentException("ByteArraySerializer only serializes byte arrays, not [" + other + "]")
+    case null            ⇒ null
+    case o: Array [Byte] ⇒ o
+    case other ⇒
+      throw new IllegalArgumentException(
+          "ByteArraySerializer only serializes byte arrays, not [" + other +
+          "]")
   }
   def fromBinary(bytes: Array[Byte], clazz: Option[Class[_]]): AnyRef = bytes
 }

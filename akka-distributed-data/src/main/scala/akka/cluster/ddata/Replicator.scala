@@ -32,7 +32,7 @@ import akka.cluster.UniqueAddress
 import akka.serialization.SerializationExtension
 import akka.util.ByteString
 import com.typesafe.config.Config
-import java.util.function.{ Function ⇒ JFunction }
+import java.util.function.{Function ⇒ JFunction}
 import akka.dispatch.Dispatchers
 import akka.actor.DeadLetterSuppression
 import akka.cluster.ddata.Key.KeyR
@@ -57,13 +57,21 @@ object ReplicatorSettings {
       case id ⇒ id
     }
     new ReplicatorSettings(
-      role = roleOption(config.getString("role")),
-      gossipInterval = config.getDuration("gossip-interval", MILLISECONDS).millis,
-      notifySubscribersInterval = config.getDuration("notify-subscribers-interval", MILLISECONDS).millis,
-      maxDeltaElements = config.getInt("max-delta-elements"),
-      dispatcher = dispatcher,
-      pruningInterval = config.getDuration("pruning-interval", MILLISECONDS).millis,
-      maxPruningDissemination = config.getDuration("max-pruning-dissemination", MILLISECONDS).millis)
+        role = roleOption(config.getString("role")),
+        gossipInterval = config
+            .getDuration("gossip-interval", MILLISECONDS)
+            .millis,
+        notifySubscribersInterval = config
+            .getDuration("notify-subscribers-interval", MILLISECONDS)
+            .millis,
+        maxDeltaElements = config.getInt("max-delta-elements"),
+        dispatcher = dispatcher,
+        pruningInterval = config
+            .getDuration("pruning-interval", MILLISECONDS)
+            .millis,
+        maxPruningDissemination = config
+            .getDuration("max-pruning-dissemination", MILLISECONDS)
+            .millis)
   }
 
   /**
@@ -92,23 +100,24 @@ object ReplicatorSettings {
  *   The time measurement is stopped when any replica is unreachable, so it should
  *   be configured to worst case in a healthy cluster.
  */
-final class ReplicatorSettings(
-  val role: Option[String],
-  val gossipInterval: FiniteDuration,
-  val notifySubscribersInterval: FiniteDuration,
-  val maxDeltaElements: Int,
-  val dispatcher: String,
-  val pruningInterval: FiniteDuration,
-  val maxPruningDissemination: FiniteDuration) {
+final class ReplicatorSettings(val role: Option[String],
+                               val gossipInterval: FiniteDuration,
+                               val notifySubscribersInterval: FiniteDuration,
+                               val maxDeltaElements: Int,
+                               val dispatcher: String,
+                               val pruningInterval: FiniteDuration,
+                               val maxPruningDissemination: FiniteDuration) {
 
-  def withRole(role: String): ReplicatorSettings = copy(role = ReplicatorSettings.roleOption(role))
+  def withRole(role: String): ReplicatorSettings =
+    copy(role = ReplicatorSettings.roleOption(role))
 
   def withRole(role: Option[String]): ReplicatorSettings = copy(role = role)
 
   def withGossipInterval(gossipInterval: FiniteDuration): ReplicatorSettings =
     copy(gossipInterval = gossipInterval)
 
-  def withNotifySubscribersInterval(notifySubscribersInterval: FiniteDuration): ReplicatorSettings =
+  def withNotifySubscribersInterval(
+      notifySubscribersInterval: FiniteDuration): ReplicatorSettings =
     copy(notifySubscribersInterval = notifySubscribersInterval)
 
   def withMaxDeltaElements(maxDeltaElements: Int): ReplicatorSettings =
@@ -122,19 +131,28 @@ final class ReplicatorSettings(
     copy(dispatcher = d)
   }
 
-  def withPruning(pruningInterval: FiniteDuration, maxPruningDissemination: FiniteDuration): ReplicatorSettings =
-    copy(pruningInterval = pruningInterval, maxPruningDissemination = maxPruningDissemination)
+  def withPruning(
+      pruningInterval: FiniteDuration,
+      maxPruningDissemination: FiniteDuration): ReplicatorSettings =
+    copy(pruningInterval = pruningInterval,
+         maxPruningDissemination = maxPruningDissemination)
 
   private def copy(
-    role: Option[String] = role,
-    gossipInterval: FiniteDuration = gossipInterval,
-    notifySubscribersInterval: FiniteDuration = notifySubscribersInterval,
-    maxDeltaElements: Int = maxDeltaElements,
-    dispatcher: String = dispatcher,
-    pruningInterval: FiniteDuration = pruningInterval,
-    maxPruningDissemination: FiniteDuration = maxPruningDissemination): ReplicatorSettings =
-    new ReplicatorSettings(role, gossipInterval, notifySubscribersInterval, maxDeltaElements, dispatcher,
-      pruningInterval, maxPruningDissemination)
+      role: Option[String] = role,
+      gossipInterval: FiniteDuration = gossipInterval,
+      notifySubscribersInterval: FiniteDuration = notifySubscribersInterval,
+      maxDeltaElements: Int = maxDeltaElements,
+      dispatcher: String = dispatcher,
+      pruningInterval: FiniteDuration = pruningInterval,
+      maxPruningDissemination: FiniteDuration = maxPruningDissemination
+  ): ReplicatorSettings =
+    new ReplicatorSettings(role,
+                           gossipInterval,
+                           notifySubscribersInterval,
+                           maxDeltaElements,
+                           dispatcher,
+                           pruningInterval,
+                           maxPruningDissemination)
 }
 
 object Replicator {
@@ -143,7 +161,9 @@ object Replicator {
    * Factory method for the [[akka.actor.Props]] of the [[Replicator]] actor.
    */
   def props(settings: ReplicatorSettings): Props =
-    Props(new Replicator(settings)).withDeploy(Deploy.local).withDispatcher(settings.dispatcher)
+    Props(new Replicator(settings))
+      .withDeploy(Deploy.local)
+      .withDispatcher(settings.dispatcher)
 
   sealed trait ReadConsistency {
     def timeout: FiniteDuration
@@ -151,10 +171,12 @@ object Replicator {
   case object ReadLocal extends ReadConsistency {
     override def timeout: FiniteDuration = Duration.Zero
   }
-  final case class ReadFrom(n: Int, timeout: FiniteDuration) extends ReadConsistency {
+  final case class ReadFrom(n: Int, timeout: FiniteDuration)
+      extends ReadConsistency {
     require(n >= 2, "ReadFrom n must be >= 2, use ReadLocal for n=1")
   }
-  final case class ReadMajority(timeout: FiniteDuration) extends ReadConsistency
+  final case class ReadMajority(timeout: FiniteDuration)
+      extends ReadConsistency
   final case class ReadAll(timeout: FiniteDuration) extends ReadConsistency
 
   sealed trait WriteConsistency {
@@ -163,10 +185,12 @@ object Replicator {
   case object WriteLocal extends WriteConsistency {
     override def timeout: FiniteDuration = Duration.Zero
   }
-  final case class WriteTo(n: Int, timeout: FiniteDuration) extends WriteConsistency {
+  final case class WriteTo(n: Int, timeout: FiniteDuration)
+      extends WriteConsistency {
     require(n >= 2, "WriteTo n must be >= 2, use WriteLocal for n=1")
   }
-  final case class WriteMajority(timeout: FiniteDuration) extends WriteConsistency
+  final case class WriteMajority(timeout: FiniteDuration)
+      extends WriteConsistency
   final case class WriteAll(timeout: FiniteDuration) extends WriteConsistency
 
   /**
@@ -188,6 +212,7 @@ object Replicator {
    * INTERNAL API
    */
   private[akka] final case class GetKeyIdsResult(keyIds: Set[String]) {
+
     /**
      * Java API
      */
@@ -209,32 +234,39 @@ object Replicator {
    * way to pass contextual information (e.g. original sender) without having to use `ask`
    * or maintain local correlation data structures.
    */
-  final case class Get[A <: ReplicatedData](key: Key[A], consistency: ReadConsistency, request: Option[Any] = None)
-    extends Command[A] with ReplicatorMessage {
-    /**
-     * Java API: `Get` value from local `Replicator`, i.e. `ReadLocal` consistency.
-     */
-    def this(key: Key[A], consistency: ReadConsistency) = this(key, consistency, None)
+  final case class Get[A <: ReplicatedData](
+      key: Key[A], consistency: ReadConsistency, request: Option[Any] = None)
+      extends Command[A] with ReplicatorMessage {
 
     /**
      * Java API: `Get` value from local `Replicator`, i.e. `ReadLocal` consistency.
      */
-    def this(key: Key[A], consistency: ReadConsistency, request: Optional[Any]) =
+    def this(key: Key[A], consistency: ReadConsistency) =
+      this(key, consistency, None)
+
+    /**
+     * Java API: `Get` value from local `Replicator`, i.e. `ReadLocal` consistency.
+     */
+    def this(key: Key[A],
+             consistency: ReadConsistency,
+             request: Optional[Any]) =
       this(key, consistency, Option(request.orElse(null)))
-
   }
-  sealed abstract class GetResponse[A <: ReplicatedData] extends NoSerializationVerificationNeeded {
+  sealed abstract class GetResponse[A <: ReplicatedData]
+      extends NoSerializationVerificationNeeded {
     def key: Key[A]
     def request: Option[Any]
 
     /** Java API */
     def getRequest: Optional[Any] = Optional.ofNullable(request.orNull)
   }
+
   /**
    * Reply from `Get`. The data value is retrieved with [[#get]] using the typed key.
    */
-  final case class GetSuccess[A <: ReplicatedData](key: Key[A], request: Option[Any])(data: A)
-    extends GetResponse[A] with ReplicatorMessage {
+  final case class GetSuccess[A <: ReplicatedData](
+      key: Key[A], request: Option[Any])(data: A)
+      extends GetResponse[A] with ReplicatorMessage {
 
     /**
      * The data value, with correct type.
@@ -250,14 +282,17 @@ object Replicator {
      */
     def dataValue: A = data
   }
-  final case class NotFound[A <: ReplicatedData](key: Key[A], request: Option[Any])
-    extends GetResponse[A] with ReplicatorMessage
+  final case class NotFound[A <: ReplicatedData](
+      key: Key[A], request: Option[Any])
+      extends GetResponse[A] with ReplicatorMessage
+
   /**
    * The [[Get]] request could not be fulfill according to the given
    * [[ReadConsistency consistency level]] and [[ReadConsistency#timeout timeout]].
    */
-  final case class GetFailure[A <: ReplicatedData](key: Key[A], request: Option[Any])
-    extends GetResponse[A] with ReplicatorMessage
+  final case class GetFailure[A <: ReplicatedData](
+      key: Key[A], request: Option[Any])
+      extends GetResponse[A] with ReplicatorMessage
 
   /**
    * Register a subscriber that will be notified with a [[Changed]] message
@@ -273,17 +308,25 @@ object Replicator {
    * If the key is deleted the subscriber is notified with a [[DataDeleted]]
    * message.
    */
-  final case class Subscribe[A <: ReplicatedData](key: Key[A], subscriber: ActorRef) extends ReplicatorMessage
+  final case class Subscribe[A <: ReplicatedData](
+      key: Key[A], subscriber: ActorRef)
+      extends ReplicatorMessage
+
   /**
    * Unregister a subscriber.
    * @see [[Replicator.Subscribe]]
    */
-  final case class Unsubscribe[A <: ReplicatedData](key: Key[A], subscriber: ActorRef) extends ReplicatorMessage
+  final case class Unsubscribe[A <: ReplicatedData](
+      key: Key[A], subscriber: ActorRef)
+      extends ReplicatorMessage
+
   /**
    * The data value is retrieved with [[#get]] using the typed key.
    * @see [[Replicator.Subscribe]]
    */
-  final case class Changed[A <: ReplicatedData](key: Key[A])(data: A) extends ReplicatorMessage {
+  final case class Changed[A <: ReplicatedData](key: Key[A])(data: A)
+      extends ReplicatorMessage {
+
     /**
      * The data value, with correct type.
      * Scala pattern matching cannot infer the type from the `key` parameter.
@@ -312,16 +355,21 @@ object Replicator {
      * way to pass contextual information (e.g. original sender) without having to use `ask`
      * or local correlation data structures.
      */
-    def apply[A <: ReplicatedData](
-      key: Key[A], initial: A, writeConsistency: WriteConsistency,
-      request: Option[Any] = None)(modify: A ⇒ A): Update[A] =
-      Update(key, writeConsistency, request)(modifyWithInitial(initial, modify))
+    def apply[A <: ReplicatedData](key: Key[A],
+                                   initial: A,
+                                   writeConsistency: WriteConsistency,
+                                   request: Option[Any] = None)(
+        modify: A ⇒ A): Update[A] =
+      Update(key, writeConsistency, request)(
+          modifyWithInitial(initial, modify))
 
-    private def modifyWithInitial[A <: ReplicatedData](initial: A, modify: A ⇒ A): Option[A] ⇒ A = {
+    private def modifyWithInitial[A <: ReplicatedData](
+        initial: A, modify: A ⇒ A): Option[A] ⇒ A = {
       case Some(data) ⇒ modify(data)
       case None       ⇒ modify(initial)
     }
   }
+
   /**
    * Send this message to the local `Replicator` to update a data value for the
    * given `key`. The `Replicator` will reply with one of the [[UpdateResponse]] messages.
@@ -338,9 +386,11 @@ object Replicator {
    * function that only uses the data parameter and stable fields from enclosing scope. It must
    * for example not access `sender()` reference of an enclosing actor.
    */
-  final case class Update[A <: ReplicatedData](key: Key[A], writeConsistency: WriteConsistency,
-                                               request: Option[Any])(val modify: Option[A] ⇒ A)
-    extends Command[A] with NoSerializationVerificationNeeded {
+  final case class Update[A <: ReplicatedData](
+      key: Key[A],
+      writeConsistency: WriteConsistency,
+      request: Option[Any])(val modify: Option[A] ⇒ A)
+      extends Command[A] with NoSerializationVerificationNeeded {
 
     /**
      * Java API: Modify value of local `Replicator` and replicate with given `writeConsistency`.
@@ -349,9 +399,12 @@ object Replicator {
      * If there is no current data value for the `key` the `initial` value will be
      * passed to the `modify` function.
      */
-    def this(
-      key: Key[A], initial: A, writeConsistency: WriteConsistency, modify: JFunction[A, A]) =
-      this(key, writeConsistency, None)(Update.modifyWithInitial(initial, data ⇒ modify.apply(data)))
+    def this(key: Key[A],
+             initial: A,
+             writeConsistency: WriteConsistency,
+             modify: JFunction[A, A]) =
+      this(key, writeConsistency, None)(
+          Update.modifyWithInitial(initial, data ⇒ modify.apply(data)))
 
     /**
      * Java API: Modify value of local `Replicator` and replicate with given `writeConsistency`.
@@ -364,21 +417,28 @@ object Replicator {
      * way to pass contextual information (e.g. original sender) without having to use `ask`
      * or local correlation data structures.
      */
-    def this(
-      key: Key[A], initial: A, writeConsistency: WriteConsistency, request: Optional[Any], modify: JFunction[A, A]) =
-      this(key, writeConsistency, Option(request.orElse(null)))(Update.modifyWithInitial(initial, data ⇒ modify.apply(data)))
-
+    def this(key: Key[A],
+             initial: A,
+             writeConsistency: WriteConsistency,
+             request: Optional[Any],
+             modify: JFunction[A, A]) =
+      this(key, writeConsistency, Option(request.orElse(null)))(
+          Update.modifyWithInitial(initial, data ⇒ modify.apply(data)))
   }
 
-  sealed abstract class UpdateResponse[A <: ReplicatedData] extends NoSerializationVerificationNeeded {
+  sealed abstract class UpdateResponse[A <: ReplicatedData]
+      extends NoSerializationVerificationNeeded {
     def key: Key[A]
     def request: Option[Any]
 
     /** Java API */
     def getRequest: Optional[Any] = Optional.ofNullable(request.orNull)
   }
-  final case class UpdateSuccess[A <: ReplicatedData](key: Key[A], request: Option[Any]) extends UpdateResponse[A]
-  sealed abstract class UpdateFailure[A <: ReplicatedData] extends UpdateResponse[A]
+  final case class UpdateSuccess[A <: ReplicatedData](
+      key: Key[A], request: Option[Any])
+      extends UpdateResponse[A]
+  sealed abstract class UpdateFailure[A <: ReplicatedData]
+      extends UpdateResponse[A]
 
   /**
    * The direct replication of the [[Update]] could not be fulfill according to
@@ -389,13 +449,19 @@ object Replicator {
    * It will eventually be disseminated to other replicas, unless the local replica
    * crashes before it has been able to communicate with other replicas.
    */
-  final case class UpdateTimeout[A <: ReplicatedData](key: Key[A], request: Option[Any]) extends UpdateFailure[A]
+  final case class UpdateTimeout[A <: ReplicatedData](
+      key: Key[A], request: Option[Any])
+      extends UpdateFailure[A]
+
   /**
    * If the `modify` function of the [[Update]] throws an exception the reply message
    * will be this `ModifyFailure` message. The original exception is included as `cause`.
    */
-  final case class ModifyFailure[A <: ReplicatedData](key: Key[A], errorMessage: String, cause: Throwable, request: Option[Any])
-    extends UpdateFailure[A] {
+  final case class ModifyFailure[A <: ReplicatedData](key: Key[A],
+                                                      errorMessage: String,
+                                                      cause: Throwable,
+                                                      request: Option[Any])
+      extends UpdateFailure[A] {
     override def toString: String = s"ModifyFailure [$key]: $errorMessage"
   }
 
@@ -403,15 +469,19 @@ object Replicator {
    * Send this message to the local `Replicator` to delete a data value for the
    * given `key`. The `Replicator` will reply with one of the [[DeleteResponse]] messages.
    */
-  final case class Delete[A <: ReplicatedData](key: Key[A], consistency: WriteConsistency) extends Command[A]
+  final case class Delete[A <: ReplicatedData](
+      key: Key[A], consistency: WriteConsistency)
+      extends Command[A]
 
   sealed trait DeleteResponse[A <: ReplicatedData] {
     def key: Key[A]
   }
-  final case class DeleteSuccess[A <: ReplicatedData](key: Key[A]) extends DeleteResponse[A]
-  final case class ReplicationDeleteFailure[A <: ReplicatedData](key: Key[A]) extends DeleteResponse[A]
+  final case class DeleteSuccess[A <: ReplicatedData](key: Key[A])
+      extends DeleteResponse[A]
+  final case class ReplicationDeleteFailure[A <: ReplicatedData](key: Key[A])
+      extends DeleteResponse[A]
   final case class DataDeleted[A <: ReplicatedData](key: Key[A])
-    extends RuntimeException with NoStackTrace with DeleteResponse[A] {
+      extends RuntimeException with NoStackTrace with DeleteResponse[A] {
     override def toString: String = s"DataDeleted [$key]"
   }
 
@@ -456,47 +526,52 @@ object Replicator {
     case object GossipTick
     case object RemovedNodePruningTick
     case object ClockTick
-    final case class Write(key: String, envelope: DataEnvelope) extends ReplicatorMessage
+    final case class Write(key: String, envelope: DataEnvelope)
+        extends ReplicatorMessage
     case object WriteAck extends ReplicatorMessage with DeadLetterSuppression
     final case class Read(key: String) extends ReplicatorMessage
-    final case class ReadResult(envelope: Option[DataEnvelope]) extends ReplicatorMessage with DeadLetterSuppression
+    final case class ReadResult(envelope: Option[DataEnvelope])
+        extends ReplicatorMessage with DeadLetterSuppression
     final case class ReadRepair(key: String, envelope: DataEnvelope)
     case object ReadRepairAck
 
     // Gossip Status message contains SHA-1 digests of the data to determine when
     // to send the full data
     type Digest = ByteString
-    val DeletedDigest: Digest = ByteString.empty
-    val LazyDigest: Digest = ByteString(0)
+    val DeletedDigest: Digest  = ByteString.empty
+    val LazyDigest: Digest     = ByteString(0)
     val NotFoundDigest: Digest = ByteString(-1)
 
     final case class DataEnvelope(
-      data: ReplicatedData,
-      pruning: Map[UniqueAddress, PruningState] = Map.empty)
-      extends ReplicatorMessage {
+        data: ReplicatedData,
+        pruning: Map[UniqueAddress, PruningState] = Map.empty)
+        extends ReplicatorMessage {
 
       import PruningState._
 
-      def needPruningFrom(removedNode: UniqueAddress): Boolean =
-        data match {
-          case r: RemovedNodePruning ⇒ r.needPruningFrom(removedNode)
-          case _                     ⇒ false
-        }
+      def needPruningFrom(removedNode: UniqueAddress): Boolean = data match {
+        case r: RemovedNodePruning ⇒ r.needPruningFrom(removedNode)
+        case _                     ⇒ false
+      }
 
-      def initRemovedNodePruning(removed: UniqueAddress, owner: UniqueAddress): DataEnvelope = {
-        copy(pruning = pruning.updated(removed, PruningState(owner, PruningInitialized(Set.empty))))
+      def initRemovedNodePruning(
+          removed: UniqueAddress, owner: UniqueAddress): DataEnvelope = {
+        copy(
+            pruning = pruning.updated(
+                  removed, PruningState(owner, PruningInitialized(Set.empty))))
       }
 
       def prune(from: UniqueAddress): DataEnvelope = {
         data match {
           case dataWithRemovedNodePruning: RemovedNodePruning ⇒
             require(pruning.contains(from))
-            val to = pruning(from).owner
+            val to         = pruning(from).owner
             val prunedData = dataWithRemovedNodePruning.prune(from, to)
-            copy(data = prunedData, pruning = pruning.updated(from, PruningState(to, PruningPerformed)))
+            copy(data = prunedData,
+                 pruning = pruning.updated(
+                       from, PruningState(to, PruningPerformed)))
           case _ ⇒ this
         }
-
       }
 
       def merge(other: DataEnvelope): DataEnvelope =
@@ -505,25 +580,35 @@ object Replicator {
           var mergedRemovedNodePruning = other.pruning
           for ((key, thisValue) ← pruning) {
             mergedRemovedNodePruning.get(key) match {
-              case None ⇒ mergedRemovedNodePruning = mergedRemovedNodePruning.updated(key, thisValue)
+              case None ⇒
+                mergedRemovedNodePruning = mergedRemovedNodePruning.updated(
+                    key, thisValue)
               case Some(thatValue) ⇒
-                mergedRemovedNodePruning = mergedRemovedNodePruning.updated(key, thisValue merge thatValue)
+                mergedRemovedNodePruning = mergedRemovedNodePruning.updated(
+                    key, thisValue merge thatValue)
             }
           }
 
           // cleanup both sides before merging, `merge((otherData: ReplicatedData)` will cleanup other.data
-          copy(data = cleaned(data, mergedRemovedNodePruning), pruning = mergedRemovedNodePruning).merge(other.data)
+          copy(data = cleaned(data, mergedRemovedNodePruning),
+               pruning = mergedRemovedNodePruning).merge(other.data)
         }
 
       def merge(otherData: ReplicatedData): DataEnvelope =
         if (otherData == DeletedData) DeletedEnvelope
-        else copy(data = data merge cleaned(otherData, pruning).asInstanceOf[data.T])
+        else
+          copy(data = data merge cleaned(otherData, pruning)
+                  .asInstanceOf[data.T])
 
-      private def cleaned(c: ReplicatedData, p: Map[UniqueAddress, PruningState]): ReplicatedData = p.foldLeft(c) {
-        case (c: RemovedNodePruning, (removed, PruningState(_, PruningPerformed))) ⇒
-          if (c.needPruningFrom(removed)) c.pruningCleanup(removed) else c
-        case (c, _) ⇒ c
-      }
+      private def cleaned(
+          c: ReplicatedData,
+          p: Map[UniqueAddress, PruningState]): ReplicatedData =
+        p.foldLeft(c) {
+          case (c: RemovedNodePruning,
+                (removed, PruningState(_, PruningPerformed))) ⇒
+            if (c.needPruningFrom(removed)) c.pruningCleanup(removed) else c
+          case (c, _) ⇒ c
+        }
 
       def addSeen(node: Address): DataEnvelope = {
         var changed = false
@@ -540,19 +625,24 @@ object Replicator {
 
     val DeletedEnvelope = DataEnvelope(DeletedData)
 
-    case object DeletedData extends ReplicatedData with ReplicatedDataSerialization {
+    case object DeletedData
+        extends ReplicatedData with ReplicatedDataSerialization {
       type T = ReplicatedData
       override def merge(that: ReplicatedData): ReplicatedData = DeletedData
     }
 
-    final case class Status(digests: Map[String, Digest], chunk: Int, totChunks: Int) extends ReplicatorMessage {
+    final case class Status(
+        digests: Map[String, Digest], chunk: Int, totChunks: Int)
+        extends ReplicatorMessage {
       override def toString: String =
         (digests.map {
-          case (key, bytes) ⇒ key + " -> " + bytes.map(byte ⇒ f"$byte%02x").mkString("")
+          case (key, bytes) ⇒
+            key + " -> " + bytes.map(byte ⇒ f"$byte%02x").mkString("")
         }).mkString("Status(", ", ", ")")
     }
-    final case class Gossip(updatedData: Map[String, DataEnvelope], sendBack: Boolean) extends ReplicatorMessage
-
+    final case class Gossip(
+        updatedData: Map[String, DataEnvelope], sendBack: Boolean)
+        extends ReplicatorMessage
   }
 }
 
@@ -723,46 +813,53 @@ object Replicator {
  * all data are always cleared from parts associated with tombstoned nodes. </li>
  * </ol>
  */
-final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLogging {
+final class Replicator(settings: ReplicatorSettings)
+    extends Actor with ActorLogging {
 
   import Replicator._
   import Replicator.Internal._
   import PruningState._
   import settings._
 
-  val cluster = Cluster(context.system)
-  val selfAddress = cluster.selfAddress
+  val cluster           = Cluster(context.system)
+  val selfAddress       = cluster.selfAddress
   val selfUniqueAddress = cluster.selfUniqueAddress
 
   require(!cluster.isTerminated, "Cluster node must not be terminated")
-  require(role.forall(cluster.selfRoles.contains),
-    s"This cluster member [${selfAddress}] doesn't have the role [$role]")
+  require(
+      role.forall(cluster.selfRoles.contains),
+      s"This cluster member [${selfAddress}] doesn't have the role [$role]")
 
   //Start periodic gossip to random nodes in cluster
   import context.dispatcher
-  val gossipTask = context.system.scheduler.schedule(gossipInterval, gossipInterval, self, GossipTick)
-  val notifyTask = context.system.scheduler.schedule(notifySubscribersInterval, notifySubscribersInterval, self, FlushChanges)
-  val pruningTask = context.system.scheduler.schedule(pruningInterval, pruningInterval, self, RemovedNodePruningTick)
-  val clockTask = context.system.scheduler.schedule(gossipInterval, gossipInterval, self, ClockTick)
+  val gossipTask = context.system.scheduler
+    .schedule(gossipInterval, gossipInterval, self, GossipTick)
+  val notifyTask = context.system.scheduler.schedule(
+      notifySubscribersInterval, notifySubscribersInterval, self, FlushChanges)
+  val pruningTask = context.system.scheduler
+    .schedule(pruningInterval, pruningInterval, self, RemovedNodePruningTick)
+  val clockTask = context.system.scheduler
+    .schedule(gossipInterval, gossipInterval, self, ClockTick)
 
-  val serializer = SerializationExtension(context.system).serializerFor(classOf[DataEnvelope])
+  val serializer =
+    SerializationExtension(context.system).serializerFor(classOf[DataEnvelope])
   val maxPruningDisseminationNanos = maxPruningDissemination.toNanos
 
   // cluster nodes, doesn't contain selfAddress
   var nodes: Set[Address] = Set.empty
 
   // nodes removed from cluster, to be pruned, and tombstoned
-  var removedNodes: Map[UniqueAddress, Long] = Map.empty
+  var removedNodes: Map[UniqueAddress, Long]     = Map.empty
   var pruningPerformed: Map[UniqueAddress, Long] = Map.empty
-  var tombstoneNodes: Set[UniqueAddress] = Set.empty
+  var tombstoneNodes: Set[UniqueAddress]         = Set.empty
 
   var leader: Option[Address] = None
   def isLeader: Boolean = leader.exists(_ == selfAddress)
 
   // for pruning timeouts are based on clock that is only increased when all nodes are reachable
-  var previousClockTime = System.nanoTime()
+  var previousClockTime     = System.nanoTime()
   var allReachableClockTime = 0L
-  var unreachable = Set.empty[Address]
+  var unreachable           = Set.empty[Address]
 
   // the actual data
   var dataEntries = Map.empty[String, (DataEnvelope, Digest)]
@@ -770,17 +867,24 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
   var changed = Set.empty[String]
 
   // for splitting up gossip in chunks
-  var statusCount = 0L
+  var statusCount     = 0L
   var statusTotChunks = 0
 
-  val subscribers = new mutable.HashMap[String, mutable.Set[ActorRef]] with mutable.MultiMap[String, ActorRef]
-  val newSubscribers = new mutable.HashMap[String, mutable.Set[ActorRef]] with mutable.MultiMap[String, ActorRef]
+  val subscribers = new mutable.HashMap[String, mutable.Set[ActorRef]]
+  with mutable.MultiMap[String, ActorRef]
+  val newSubscribers = new mutable.HashMap[String, mutable.Set[ActorRef]]
+  with mutable.MultiMap[String, ActorRef]
   var subscriptionKeys = Map.empty[String, KeyR]
 
   override def preStart(): Unit = {
-    val leaderChangedClass = if (role.isDefined) classOf[RoleLeaderChanged] else classOf[LeaderChanged]
-    cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
-      classOf[MemberEvent], classOf[ReachabilityEvent], leaderChangedClass)
+    val leaderChangedClass =
+      if (role.isDefined) classOf[RoleLeaderChanged]
+      else classOf[LeaderChanged]
+    cluster.subscribe(self,
+                      initialStateMode = InitialStateAsEvents,
+                      classOf[MemberEvent],
+                      classOf[ReachabilityEvent],
+                      leaderChangedClass)
   }
 
   override def postStop(): Unit = {
@@ -796,33 +900,37 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
   def receive = normalReceive
 
   val normalReceive: Receive = {
-    case Get(key, consistency, req)             ⇒ receiveGet(key, consistency, req)
-    case u @ Update(key, writeC, req)           ⇒ receiveUpdate(key, u.modify, writeC, req)
-    case Read(key)                              ⇒ receiveRead(key)
-    case Write(key, envelope)                   ⇒ receiveWrite(key, envelope)
-    case ReadRepair(key, envelope)              ⇒ receiveReadRepair(key, envelope)
-    case FlushChanges                           ⇒ receiveFlushChanges()
-    case GossipTick                             ⇒ receiveGossipTick()
-    case ClockTick                              ⇒ receiveClockTick()
-    case Status(otherDigests, chunk, totChunks) ⇒ receiveStatus(otherDigests, chunk, totChunks)
-    case Gossip(updatedData, sendBack)          ⇒ receiveGossip(updatedData, sendBack)
-    case Subscribe(key, subscriber)             ⇒ receiveSubscribe(key, subscriber)
-    case Unsubscribe(key, subscriber)           ⇒ receiveUnsubscribe(key, subscriber)
-    case Terminated(ref)                        ⇒ receiveTerminated(ref)
-    case MemberUp(m)                            ⇒ receiveMemberUp(m)
-    case MemberRemoved(m, _)                    ⇒ receiveMemberRemoved(m)
-    case _: MemberEvent                         ⇒ // not of interest
-    case UnreachableMember(m)                   ⇒ receiveUnreachable(m)
-    case ReachableMember(m)                     ⇒ receiveReachable(m)
-    case LeaderChanged(leader)                  ⇒ receiveLeaderChanged(leader, None)
-    case RoleLeaderChanged(role, leader)        ⇒ receiveLeaderChanged(leader, Some(role))
-    case GetKeyIds                              ⇒ receiveGetKeyIds()
-    case Delete(key, consistency)               ⇒ receiveDelete(key, consistency)
-    case RemovedNodePruningTick                 ⇒ receiveRemovedNodePruningTick()
-    case GetReplicaCount                        ⇒ receiveGetReplicaCount()
+    case Get(key, consistency, req) ⇒ receiveGet(key, consistency, req)
+    case u @ Update(key, writeC, req) ⇒
+      receiveUpdate(key, u.modify, writeC, req)
+    case Read(key)                 ⇒ receiveRead(key)
+    case Write(key, envelope)      ⇒ receiveWrite(key, envelope)
+    case ReadRepair(key, envelope) ⇒ receiveReadRepair(key, envelope)
+    case FlushChanges              ⇒ receiveFlushChanges()
+    case GossipTick                ⇒ receiveGossipTick()
+    case ClockTick                 ⇒ receiveClockTick()
+    case Status(otherDigests, chunk, totChunks) ⇒
+      receiveStatus(otherDigests, chunk, totChunks)
+    case Gossip(updatedData, sendBack) ⇒ receiveGossip(updatedData, sendBack)
+    case Subscribe(key, subscriber)    ⇒ receiveSubscribe(key, subscriber)
+    case Unsubscribe(key, subscriber)  ⇒ receiveUnsubscribe(key, subscriber)
+    case Terminated(ref)               ⇒ receiveTerminated(ref)
+    case MemberUp(m)                   ⇒ receiveMemberUp(m)
+    case MemberRemoved(m, _)           ⇒ receiveMemberRemoved(m)
+    case _: MemberEvent                ⇒ // not of interest
+    case UnreachableMember(m)          ⇒ receiveUnreachable(m)
+    case ReachableMember(m)            ⇒ receiveReachable(m)
+    case LeaderChanged(leader)         ⇒ receiveLeaderChanged(leader, None)
+    case RoleLeaderChanged(role, leader) ⇒
+      receiveLeaderChanged(leader, Some(role))
+    case GetKeyIds                ⇒ receiveGetKeyIds()
+    case Delete(key, consistency) ⇒ receiveDelete(key, consistency)
+    case RemovedNodePruningTick   ⇒ receiveRemovedNodePruningTick()
+    case GetReplicaCount          ⇒ receiveGetReplicaCount()
   }
 
-  def receiveGet(key: KeyR, consistency: ReadConsistency, req: Option[Any]): Unit = {
+  def receiveGet(
+      key: KeyR, consistency: ReadConsistency, req: Option[Any]): Unit = {
     val localValue = getData(key.id)
     log.debug("Received Get for key [{}], local data [{}]", key, localValue)
     if (isLocalGet(consistency)) {
@@ -833,8 +941,9 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
       }
       sender() ! reply
     } else
-      context.actorOf(ReadAggregator.props(key, consistency, req, nodes, localValue, sender())
-        .withDispatcher(context.props.dispatcher))
+      context.actorOf(ReadAggregator
+            .props(key, consistency, req, nodes, localValue, sender())
+            .withDispatcher(context.props.dispatcher))
   }
 
   def isLocalGet(readConsistency: ReadConsistency): Boolean =
@@ -850,8 +959,10 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
 
   def isLocalSender(): Boolean = !sender().path.address.hasGlobalScope
 
-  def receiveUpdate(key: KeyR, modify: Option[ReplicatedData] ⇒ ReplicatedData,
-                    writeConsistency: WriteConsistency, req: Option[Any]): Unit = {
+  def receiveUpdate(key: KeyR,
+                    modify: Option[ReplicatedData] ⇒ ReplicatedData,
+                    writeConsistency: WriteConsistency,
+                    req: Option[Any]): Unit = {
     val localValue = getData(key.id)
     Try {
       localValue match {
@@ -862,19 +973,23 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
       }
     } match {
       case Success(newData) ⇒
-        log.debug("Received Update for key [{}], old data [{}], new data [{}]", key, localValue, newData)
+        log.debug("Received Update for key [{}], old data [{}], new data [{}]",
+                  key,
+                  localValue,
+                  newData)
         val envelope = DataEnvelope(pruningCleanupTombstoned(newData))
         setData(key.id, envelope)
-        if (isLocalUpdate(writeConsistency))
-          sender() ! UpdateSuccess(key, req)
+        if (isLocalUpdate(writeConsistency)) sender() ! UpdateSuccess(key, req)
         else
-          context.actorOf(WriteAggregator.props(key, envelope, writeConsistency, req, nodes, sender())
-            .withDispatcher(context.props.dispatcher))
-      case Failure(e: DataDeleted[_]) ⇒
+          context.actorOf(WriteAggregator
+                .props(key, envelope, writeConsistency, req, nodes, sender())
+                .withDispatcher(context.props.dispatcher))
+      case Failure(e: DataDeleted [_]) ⇒
         log.debug("Received Update for deleted key [{}]", key)
         sender() ! e
       case Failure(e) ⇒
-        log.debug("Received Update for key [{}], failed: {}", key, e.getMessage)
+        log.debug(
+            "Received Update for key [{}], failed: {}", key, e.getMessage)
         sender() ! ModifyFailure(key, "Update failed: " + e.getMessage, e, req)
     }
   }
@@ -895,15 +1010,22 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
     getData(key) match {
       case Some(DataEnvelope(DeletedData, _)) ⇒ // already deleted
       case Some(envelope @ DataEnvelope(existing, _)) ⇒
-        if (existing.getClass == writeEnvelope.data.getClass || writeEnvelope.data == DeletedData) {
-          val merged = envelope.merge(pruningCleanupTombstoned(writeEnvelope)).addSeen(selfAddress)
+        if (existing.getClass == writeEnvelope.data.getClass ||
+            writeEnvelope.data == DeletedData) {
+          val merged = envelope
+            .merge(pruningCleanupTombstoned(writeEnvelope))
+            .addSeen(selfAddress)
           setData(key, merged)
         } else {
-          log.warning("Wrong type for writing [{}], existing type [{}], got [{}]",
-            key, existing.getClass.getName, writeEnvelope.data.getClass.getName)
+          log.warning(
+              "Wrong type for writing [{}], existing type [{}], got [{}]",
+              key,
+              existing.getClass.getName,
+              writeEnvelope.data.getClass.getName)
         }
       case None ⇒
-        setData(key, pruningCleanupTombstoned(writeEnvelope).addSeen(selfAddress))
+        setData(
+            key, pruningCleanupTombstoned(writeEnvelope).addSeen(selfAddress))
     }
 
   def receiveReadRepair(key: String, writeEnvelope: DataEnvelope): Unit = {
@@ -925,11 +1047,13 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
         sender() ! DataDeleted(key)
       case _ ⇒
         setData(key.id, DeletedEnvelope)
-        if (isLocalUpdate(consistency))
-          sender() ! DeleteSuccess(key)
+        if (isLocalUpdate(consistency)) sender() ! DeleteSuccess(key)
         else
-          context.actorOf(WriteAggregator.props(key, DeletedEnvelope, consistency, None, nodes, sender())
-            .withDispatcher(context.props.dispatcher))
+          context.actorOf(
+              WriteAggregator
+                .props(
+                    key, DeletedEnvelope, consistency, None, nodes, sender())
+                .withDispatcher(context.props.dispatcher))
     }
   }
 
@@ -937,9 +1061,8 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
     val dig =
       if (subscribers.contains(key) && !changed.contains(key)) {
         val oldDigest = getDigest(key)
-        val dig = digest(envelope)
-        if (dig != oldDigest)
-          changed += key // notify subscribers, later
+        val dig       = digest(envelope)
+        if (dig != oldDigest) changed += key // notify subscribers, later
         dig
       } else if (envelope.data == DeletedData) DeletedDigest
       else LazyDigest
@@ -965,22 +1088,25 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
       ByteString.fromArray(MessageDigest.getInstance("SHA-1").digest(bytes))
     }
 
-  def getData(key: String): Option[DataEnvelope] = dataEntries.get(key).map { case (envelope, _) ⇒ envelope }
+  def getData(key: String): Option[DataEnvelope] =
+    dataEntries.get(key).map { case (envelope, _) ⇒ envelope }
 
   def receiveFlushChanges(): Unit = {
     def notify(keyId: String, subs: mutable.Set[ActorRef]): Unit = {
       val key = subscriptionKeys(keyId)
       getData(keyId) match {
         case Some(envelope) ⇒
-          val msg = if (envelope.data == DeletedData) DataDeleted(key) else Changed(key)(envelope.data)
+          val msg =
+            if (envelope.data == DeletedData) DataDeleted(key)
+            else Changed(key)(envelope.data)
           subs.foreach { _ ! msg }
         case None ⇒
       }
     }
 
     if (subscribers.nonEmpty) {
-      for (key ← changed; if subscribers.contains(key); subs ← subscribers.get(key))
-        notify(key, subs)
+      for (key ← changed; if subscribers.contains(key);
+      subs     ← subscribers.get(key)) notify(key, subs)
     }
 
     // Changed event is sent to new subscribers even though the key has not changed,
@@ -996,41 +1122,51 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
     changed = Set.empty[String]
   }
 
-  def receiveGossipTick(): Unit = selectRandomNode(nodes.toVector) foreach gossipTo
+  def receiveGossipTick(): Unit =
+    selectRandomNode(nodes.toVector) foreach gossipTo
 
   def gossipTo(address: Address): Unit = {
     val to = replica(address)
     if (dataEntries.size <= maxDeltaElements) {
-      val status = Status(dataEntries.map { case (key, (_, _)) ⇒ (key, getDigest(key)) }, chunk = 0, totChunks = 1)
+      val status = Status(dataEntries.map {
+        case (key, (_, _)) ⇒ (key, getDigest(key))
+      }, chunk = 0, totChunks = 1)
       to ! status
     } else {
       val totChunks = dataEntries.size / maxDeltaElements
       for (_ ← 1 to math.min(totChunks, 10)) {
-        if (totChunks == statusTotChunks)
-          statusCount += 1
+        if (totChunks == statusTotChunks) statusCount += 1
         else {
           statusCount = ThreadLocalRandom.current.nextInt(0, totChunks)
           statusTotChunks = totChunks
         }
         val chunk = (statusCount % totChunks).toInt
         val status = Status(dataEntries.collect {
-          case (key, (_, _)) if math.abs(key.hashCode) % totChunks == chunk ⇒ (key, getDigest(key))
+          case (key, (_, _)) if math.abs(key.hashCode) % totChunks == chunk ⇒
+            (key, getDigest(key))
         }, chunk, totChunks)
         to ! status
       }
     }
   }
 
-  def selectRandomNode(addresses: immutable.IndexedSeq[Address]): Option[Address] =
-    if (addresses.isEmpty) None else Some(addresses(ThreadLocalRandom.current nextInt addresses.size))
+  def selectRandomNode(
+      addresses: immutable.IndexedSeq[Address]): Option[Address] =
+    if (addresses.isEmpty) None
+    else Some(addresses(ThreadLocalRandom.current nextInt addresses.size))
 
   def replica(address: Address): ActorSelection =
     context.actorSelection(self.path.toStringWithAddress(address))
 
-  def receiveStatus(otherDigests: Map[String, Digest], chunk: Int, totChunks: Int): Unit = {
+  def receiveStatus(
+      otherDigests: Map[String, Digest], chunk: Int, totChunks: Int): Unit = {
     if (log.isDebugEnabled)
-      log.debug("Received gossip status from [{}], chunk [{}] of [{}] containing [{}]", sender().path.address,
-        (chunk + 1), totChunks, otherDigests.keys.mkString(", "))
+      log.debug(
+          "Received gossip status from [{}], chunk [{}] of [{}] containing [{}]",
+          sender().path.address,
+          (chunk + 1),
+          totChunks,
+          otherDigests.keys.mkString(", "))
 
     def isOtherDifferent(key: String, otherDigest: Digest): Boolean = {
       val d = getDigest(key)
@@ -1042,38 +1178,51 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
     val otherKeys = otherDigests.keySet
     val myKeys =
       if (totChunks == 1) dataEntries.keySet
-      else dataEntries.keysIterator.filter(_.hashCode % totChunks == chunk).toSet
+      else
+        dataEntries.keysIterator.filter(_.hashCode % totChunks == chunk).toSet
     val otherMissingKeys = myKeys diff otherKeys
-    val keys = (otherDifferentKeys ++ otherMissingKeys).take(maxDeltaElements)
+    val keys             = (otherDifferentKeys ++ otherMissingKeys).take(maxDeltaElements)
     if (keys.nonEmpty) {
       if (log.isDebugEnabled)
-        log.debug("Sending gossip to [{}], containing [{}]", sender().path.address, keys.mkString(", "))
-      val g = Gossip(keys.map(k ⇒ k -> getData(k).get)(collection.breakOut), sendBack = otherDifferentKeys.nonEmpty)
+        log.debug("Sending gossip to [{}], containing [{}]",
+                  sender().path.address,
+                  keys.mkString(", "))
+      val g = Gossip(keys.map(k ⇒ k -> getData(k).get)(collection.breakOut),
+                     sendBack = otherDifferentKeys.nonEmpty)
       sender() ! g
     }
     val myMissingKeys = otherKeys diff myKeys
     if (myMissingKeys.nonEmpty) {
       if (log.isDebugEnabled)
-        log.debug("Sending gossip status to [{}], requesting missing [{}]", sender().path.address, myMissingKeys.mkString(", "))
-      val status = Status(myMissingKeys.map(k ⇒ k -> NotFoundDigest)(collection.breakOut), chunk, totChunks)
+        log.debug("Sending gossip status to [{}], requesting missing [{}]",
+                  sender().path.address,
+                  myMissingKeys.mkString(", "))
+      val status = Status(
+          myMissingKeys.map(k ⇒ k -> NotFoundDigest)(collection.breakOut),
+          chunk,
+          totChunks)
       sender() ! status
     }
   }
 
-  def receiveGossip(updatedData: Map[String, DataEnvelope], sendBack: Boolean): Unit = {
+  def receiveGossip(
+      updatedData: Map[String, DataEnvelope], sendBack: Boolean): Unit = {
     if (log.isDebugEnabled)
-      log.debug("Received gossip from [{}], containing [{}]", sender().path.address, updatedData.keys.mkString(", "))
+      log.debug("Received gossip from [{}], containing [{}]",
+                sender().path.address,
+                updatedData.keys.mkString(", "))
     var replyData = Map.empty[String, DataEnvelope]
     updatedData.foreach {
       case (key, envelope) ⇒
         val hadData = dataEntries.contains(key)
         write(key, envelope)
-        if (sendBack) getData(key) match {
-          case Some(d) ⇒
-            if (hadData || d.pruning.nonEmpty)
-              replyData = replyData.updated(key, d)
-          case None ⇒
-        }
+        if (sendBack)
+          getData(key) match {
+            case Some(d) ⇒
+              if (hadData || d.pruning.nonEmpty)
+                replyData = replyData.updated(key, d)
+            case None ⇒
+          }
     }
     if (sendBack && replyData.nonEmpty)
       sender() ! Gossip(replyData, sendBack = false)
@@ -1089,21 +1238,24 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
   def receiveUnsubscribe(key: KeyR, subscriber: ActorRef): Unit = {
     subscribers.removeBinding(key.id, subscriber)
     newSubscribers.removeBinding(key.id, subscriber)
-    if (!hasSubscriber(subscriber))
-      context.unwatch(subscriber)
+    if (!hasSubscriber(subscriber)) context.unwatch(subscriber)
     if (!subscribers.contains(key.id) && !newSubscribers.contains(key.id))
       subscriptionKeys -= key.id
   }
 
   def hasSubscriber(subscriber: ActorRef): Boolean =
-    (subscribers.exists { case (k, s) ⇒ s.contains(subscriber) }) ||
-      (newSubscribers.exists { case (k, s) ⇒ s.contains(subscriber) })
+    (subscribers.exists { case (k, s)    ⇒ s.contains(subscriber) }) ||
+    (newSubscribers.exists { case (k, s) ⇒ s.contains(subscriber) })
 
   def receiveTerminated(ref: ActorRef): Unit = {
     val keys1 = subscribers.collect { case (k, s) if s.contains(ref) ⇒ k }
-    keys1.foreach { key ⇒ subscribers.removeBinding(key, ref) }
+    keys1.foreach { key ⇒
+      subscribers.removeBinding(key, ref)
+    }
     val keys2 = newSubscribers.collect { case (k, s) if s.contains(ref) ⇒ k }
-    keys2.foreach { key ⇒ newSubscribers.removeBinding(key, ref) }
+    keys2.foreach { key ⇒
+      newSubscribers.removeBinding(key, ref)
+    }
 
     (keys1 ++ keys2).foreach { key ⇒
       if (!subscribers.contains(key) && !newSubscribers.contains(key))
@@ -1112,15 +1264,14 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
   }
 
   def receiveMemberUp(m: Member): Unit =
-    if (matchingRole(m) && m.address != selfAddress)
-      nodes += m.address
+    if (matchingRole(m) && m.address != selfAddress) nodes += m.address
 
   def receiveMemberRemoved(m: Member): Unit = {
-    if (m.address == selfAddress)
-      context stop self
+    if (m.address == selfAddress) context stop self
     else if (matchingRole(m)) {
       nodes -= m.address
-      removedNodes = removedNodes.updated(m.uniqueAddress, allReachableClockTime)
+      removedNodes = removedNodes.updated(
+          m.uniqueAddress, allReachableClockTime)
       unreachable -= m.address
     }
   }
@@ -1131,13 +1282,13 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
   def receiveReachable(m: Member): Unit =
     if (matchingRole(m)) unreachable -= m.address
 
-  def receiveLeaderChanged(leaderOption: Option[Address], roleOption: Option[String]): Unit =
+  def receiveLeaderChanged(
+      leaderOption: Option[Address], roleOption: Option[String]): Unit =
     if (roleOption == role) leader = leaderOption
 
   def receiveClockTick(): Unit = {
     val now = System.nanoTime()
-    if (unreachable.isEmpty)
-      allReachableClockTime += (now - previousClockTime)
+    if (unreachable.isEmpty) allReachableClockTime += (now - previousClockTime)
     previousClockTime = now
   }
 
@@ -1152,25 +1303,30 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
   def initRemovedNodePruning(): Unit = {
     // initiate pruning for removed nodes
     val removedSet: Set[UniqueAddress] = removedNodes.collect {
-      case (r, t) if ((allReachableClockTime - t) > maxPruningDisseminationNanos) ⇒ r
+      case (r, t)
+          if ((allReachableClockTime - t) > maxPruningDisseminationNanos) ⇒
+        r
     }(collection.breakOut)
 
     if (removedSet.nonEmpty) {
       for ((key, (envelope, _)) ← dataEntries; removed ← removedSet) {
 
         def init(): Unit = {
-          val newEnvelope = envelope.initRemovedNodePruning(removed, selfUniqueAddress)
-          log.debug("Initiated pruning of [{}] for data key [{}]", removed, key)
+          val newEnvelope =
+            envelope.initRemovedNodePruning(removed, selfUniqueAddress)
+          log.debug(
+              "Initiated pruning of [{}] for data key [{}]", removed, key)
           setData(key, newEnvelope)
         }
 
         if (envelope.needPruningFrom(removed)) {
           envelope.data match {
             case dataWithRemovedNodePruning: RemovedNodePruning ⇒
-
               envelope.pruning.get(removed) match {
                 case None ⇒ init()
-                case Some(PruningState(owner, PruningInitialized(_))) if owner != selfUniqueAddress ⇒ init()
+                case Some(PruningState(owner, PruningInitialized(_)))
+                    if owner != selfUniqueAddress ⇒
+                  init()
                 case _ ⇒ // already in progress
               }
             case _ ⇒
@@ -1183,13 +1339,19 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
   def performRemovedNodePruning(): Unit = {
     // perform pruning when all seen Init
     dataEntries.foreach {
-      case (key, (envelope @ DataEnvelope(data: RemovedNodePruning, pruning), _)) ⇒
+      case (key,
+            (envelope @ DataEnvelope(data: RemovedNodePruning, pruning), _)) ⇒
         pruning.foreach {
-          case (removed, PruningState(owner, PruningInitialized(seen))) if owner == selfUniqueAddress
-            && (nodes.isEmpty || nodes.forall(seen)) ⇒
+          case (removed, PruningState(owner, PruningInitialized(seen)))
+              if owner == selfUniqueAddress &&
+              (nodes.isEmpty || nodes.forall(seen)) ⇒
             val newEnvelope = envelope.prune(removed)
-            pruningPerformed = pruningPerformed.updated(removed, allReachableClockTime)
-            log.debug("Perform pruning of [{}] from [{}] to [{}]", key, removed, selfUniqueAddress)
+            pruningPerformed = pruningPerformed.updated(removed,
+                                                        allReachableClockTime)
+            log.debug("Perform pruning of [{}] from [{}] to [{}]",
+                      key,
+                      removed,
+                      selfUniqueAddress)
             setData(key, newEnvelope)
           case _ ⇒
         }
@@ -1201,24 +1363,30 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
 
     def allPruningPerformed(removed: UniqueAddress): Boolean = {
       dataEntries forall {
-        case (key, (envelope @ DataEnvelope(data: RemovedNodePruning, pruning), _)) ⇒
+        case (
+            key,
+            (envelope @ DataEnvelope(data: RemovedNodePruning, pruning), _)) ⇒
           pruning.get(removed) match {
             case Some(PruningState(_, PruningInitialized(_))) ⇒ false
-            case _ ⇒ true
+            case _                                            ⇒ true
           }
         case _ ⇒ true // deleted, or pruning not needed
       }
     }
 
     pruningPerformed.foreach {
-      case (removed, timestamp) if ((allReachableClockTime - timestamp) > maxPruningDisseminationNanos) &&
-        allPruningPerformed(removed) ⇒
+      case (removed, timestamp)
+          if
+          ((allReachableClockTime -
+                  timestamp) > maxPruningDisseminationNanos) &&
+          allPruningPerformed(removed) ⇒
         log.debug("All pruning performed for [{}], tombstoned", removed)
         pruningPerformed -= removed
         removedNodes -= removed
         tombstoneNodes += removed
         dataEntries.foreach {
-          case (key, (envelope @ DataEnvelope(data: RemovedNodePruning, _), _)) ⇒
+          case (key,
+                (envelope @ DataEnvelope(data: RemovedNodePruning, _), _)) ⇒
             setData(key, pruningCleanupTombstoned(removed, envelope))
           case _ ⇒ // deleted, or pruning not needed
         }
@@ -1227,24 +1395,31 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
   }
 
   def pruningCleanupTombstoned(envelope: DataEnvelope): DataEnvelope =
-    tombstoneNodes.foldLeft(envelope)((c, removed) ⇒ pruningCleanupTombstoned(removed, c))
+    tombstoneNodes.foldLeft(envelope)(
+        (c, removed) ⇒ pruningCleanupTombstoned(removed, c))
 
-  def pruningCleanupTombstoned(removed: UniqueAddress, envelope: DataEnvelope): DataEnvelope = {
+  def pruningCleanupTombstoned(
+      removed: UniqueAddress, envelope: DataEnvelope): DataEnvelope = {
     val pruningCleanuped = pruningCleanupTombstoned(removed, envelope.data)
-    if ((pruningCleanuped ne envelope.data) || envelope.pruning.contains(removed))
-      envelope.copy(data = pruningCleanuped, pruning = envelope.pruning - removed)
-    else
-      envelope
+    if ((pruningCleanuped ne envelope.data) ||
+        envelope.pruning.contains(removed))
+      envelope.copy(
+          data = pruningCleanuped, pruning = envelope.pruning - removed)
+    else envelope
   }
 
   def pruningCleanupTombstoned(data: ReplicatedData): ReplicatedData =
     if (tombstoneNodes.isEmpty) data
-    else tombstoneNodes.foldLeft(data)((c, removed) ⇒ pruningCleanupTombstoned(removed, c))
+    else
+      tombstoneNodes.foldLeft(data)(
+          (c, removed) ⇒ pruningCleanupTombstoned(removed, c))
 
-  def pruningCleanupTombstoned(removed: UniqueAddress, data: ReplicatedData): ReplicatedData =
+  def pruningCleanupTombstoned(
+      removed: UniqueAddress, data: ReplicatedData): ReplicatedData =
     data match {
       case dataWithRemovedNodePruning: RemovedNodePruning ⇒
-        if (dataWithRemovedNodePruning.needPruningFrom(removed)) dataWithRemovedNodePruning.pruningCleanup(removed) else data
+        if (dataWithRemovedNodePruning.needPruningFrom(removed))
+          dataWithRemovedNodePruning.pruningCleanup(removed) else data
       case _ ⇒ data
     }
 
@@ -1252,7 +1427,6 @@ final class Replicator(settings: ReplicatorSettings) extends Actor with ActorLog
     // selfAddress is not included in the set
     sender() ! ReplicaCount(nodes.size + 1)
   }
-
 }
 
 /**
@@ -1273,8 +1447,10 @@ private[akka] abstract class ReadWriteAggregator extends Actor {
   def nodes: Set[Address]
 
   import context.dispatcher
-  var sendToSecondarySchedule = context.system.scheduler.scheduleOnce(timeout / 5, self, SendToSecondary)
-  var timeoutSchedule = context.system.scheduler.scheduleOnce(timeout, self, ReceiveTimeout)
+  var sendToSecondarySchedule =
+    context.system.scheduler.scheduleOnce(timeout / 5, self, SendToSecondary)
+  var timeoutSchedule =
+    context.system.scheduler.scheduleOnce(timeout, self, ReceiveTimeout)
 
   var remaining = nodes
 
@@ -1282,11 +1458,12 @@ private[akka] abstract class ReadWriteAggregator extends Actor {
 
   lazy val (primaryNodes, secondaryNodes) = {
     val primarySize = nodes.size - doneWhenRemainingSize
-    if (primarySize >= nodes.size)
-      (nodes, Set.empty[Address])
+    if (primarySize >= nodes.size) (nodes, Set.empty[Address])
     else {
-      val (p, s) = scala.util.Random.shuffle(nodes.toVector).splitAt(primarySize)
-      (p, s.take(MaxSecondaryNodes))
+      val (p, s) = scala.util.Random
+        .shuffle(nodes.toVector)
+        .splitAt(primarySize)
+        (p, s.take(MaxSecondaryNodes))
     }
   }
 
@@ -1297,20 +1474,18 @@ private[akka] abstract class ReadWriteAggregator extends Actor {
 
   def replica(address: Address): ActorSelection =
     context.actorSelection(context.parent.path.toStringWithAddress(address))
-
 }
 
 /**
  * INTERNAL API
  */
 private[akka] object WriteAggregator {
-  def props(
-    key: KeyR,
-    envelope: Replicator.Internal.DataEnvelope,
-    consistency: Replicator.WriteConsistency,
-    req: Option[Any],
-    nodes: Set[Address],
-    replyTo: ActorRef): Props =
+  def props(key: KeyR,
+            envelope: Replicator.Internal.DataEnvelope,
+            consistency: Replicator.WriteConsistency,
+            req: Option[Any],
+            nodes: Set[Address],
+            replyTo: ActorRef): Props =
     Props(new WriteAggregator(key, envelope, consistency, req, nodes, replyTo))
       .withDeploy(Deploy.local)
 }
@@ -1318,13 +1493,13 @@ private[akka] object WriteAggregator {
 /**
  * INTERNAL API
  */
-private[akka] class WriteAggregator(
-  key: KeyR,
-  envelope: Replicator.Internal.DataEnvelope,
-  consistency: Replicator.WriteConsistency,
-  req: Option[Any],
-  override val nodes: Set[Address],
-  replyTo: ActorRef) extends ReadWriteAggregator {
+private[akka] class WriteAggregator(key: KeyR,
+                                    envelope: Replicator.Internal.DataEnvelope,
+                                    consistency: Replicator.WriteConsistency,
+                                    req: Option[Any],
+                                    override val nodes: Set[Address],
+                                    replyTo: ActorRef)
+    extends ReadWriteAggregator {
 
   import Replicator._
   import Replicator.Internal._
@@ -1340,7 +1515,8 @@ private[akka] class WriteAggregator(
       val w = N / 2 + 1 // write to at least (N/2+1) nodes
       N - w
     case WriteLocal ⇒
-      throw new IllegalArgumentException("ReadLocal not supported by WriteAggregator")
+      throw new IllegalArgumentException(
+          "ReadLocal not supported by WriteAggregator")
   }
 
   val writeMsg = Write(key.id, envelope)
@@ -1348,17 +1524,15 @@ private[akka] class WriteAggregator(
   override def preStart(): Unit = {
     primaryNodes.foreach { replica(_) ! writeMsg }
 
-    if (remaining.size == doneWhenRemainingSize)
-      reply(ok = true)
-    else if (doneWhenRemainingSize < 0 || remaining.size < doneWhenRemainingSize)
-      reply(ok = false)
+    if (remaining.size == doneWhenRemainingSize) reply(ok = true)
+    else if (doneWhenRemainingSize < 0 ||
+             remaining.size < doneWhenRemainingSize) reply(ok = false)
   }
 
   def receive = {
     case WriteAck ⇒
       remaining -= senderAddress()
-      if (remaining.size == doneWhenRemainingSize)
-        reply(ok = true)
+      if (remaining.size == doneWhenRemainingSize) reply(ok = true)
     case SendToSecondary ⇒
       secondaryNodes.foreach { replica(_) ! writeMsg }
     case ReceiveTimeout ⇒ reply(ok = false)
@@ -1369,12 +1543,10 @@ private[akka] class WriteAggregator(
   def reply(ok: Boolean): Unit = {
     if (ok && envelope.data == DeletedData)
       replyTo.tell(DeleteSuccess(key), context.parent)
-    else if (ok)
-      replyTo.tell(UpdateSuccess(key, req), context.parent)
+    else if (ok) replyTo.tell(UpdateSuccess(key, req), context.parent)
     else if (envelope.data == DeletedData)
       replyTo.tell(ReplicationDeleteFailure(key), context.parent)
-    else
-      replyTo.tell(UpdateTimeout(key, req), context.parent)
+    else replyTo.tell(UpdateTimeout(key, req), context.parent)
     context.stop(self)
   }
 }
@@ -1383,28 +1555,28 @@ private[akka] class WriteAggregator(
  * INTERNAL API
  */
 private[akka] object ReadAggregator {
-  def props(
-    key: KeyR,
-    consistency: Replicator.ReadConsistency,
-    req: Option[Any],
-    nodes: Set[Address],
-    localValue: Option[Replicator.Internal.DataEnvelope],
-    replyTo: ActorRef): Props =
-    Props(new ReadAggregator(key, consistency, req, nodes, localValue, replyTo))
+  def props(key: KeyR,
+            consistency: Replicator.ReadConsistency,
+            req: Option[Any],
+            nodes: Set[Address],
+            localValue: Option[Replicator.Internal.DataEnvelope],
+            replyTo: ActorRef): Props =
+    Props(
+        new ReadAggregator(key, consistency, req, nodes, localValue, replyTo))
       .withDeploy(Deploy.local)
-
 }
 
 /**
  * INTERNAL API
  */
 private[akka] class ReadAggregator(
-  key: KeyR,
-  consistency: Replicator.ReadConsistency,
-  req: Option[Any],
-  override val nodes: Set[Address],
-  localValue: Option[Replicator.Internal.DataEnvelope],
-  replyTo: ActorRef) extends ReadWriteAggregator {
+    key: KeyR,
+    consistency: Replicator.ReadConsistency,
+    req: Option[Any],
+    override val nodes: Set[Address],
+    localValue: Option[Replicator.Internal.DataEnvelope],
+    replyTo: ActorRef)
+    extends ReadWriteAggregator {
 
   import Replicator._
   import Replicator.Internal._
@@ -1421,7 +1593,8 @@ private[akka] class ReadAggregator(
       val r = N / 2 + 1 // read from at least (N/2+1) nodes
       N - r
     case ReadLocal ⇒
-      throw new IllegalArgumentException("ReadLocal not supported by ReadAggregator")
+      throw new IllegalArgumentException(
+          "ReadLocal not supported by ReadAggregator")
   }
 
   val readMsg = Read(key.id)
@@ -1429,10 +1602,9 @@ private[akka] class ReadAggregator(
   override def preStart(): Unit = {
     primaryNodes.foreach { replica(_) ! readMsg }
 
-    if (remaining.size == doneWhenRemainingSize)
-      reply(ok = true)
-    else if (doneWhenRemainingSize < 0 || remaining.size < doneWhenRemainingSize)
-      reply(ok = false)
+    if (remaining.size == doneWhenRemainingSize) reply(ok = true)
+    else if (doneWhenRemainingSize < 0 ||
+             remaining.size < doneWhenRemainingSize) reply(ok = false)
   }
 
   def receive = {
@@ -1444,26 +1616,24 @@ private[akka] class ReadAggregator(
         case (None, None)        ⇒ None
       }
       remaining -= sender().path.address
-      if (remaining.size == doneWhenRemainingSize)
-        reply(ok = true)
+      if (remaining.size == doneWhenRemainingSize) reply(ok = true)
     case SendToSecondary ⇒
       secondaryNodes.foreach { replica(_) ! readMsg }
     case ReceiveTimeout ⇒ reply(ok = false)
   }
 
-  def reply(ok: Boolean): Unit =
-    (ok, result) match {
-      case (true, Some(envelope)) ⇒
-        context.parent ! ReadRepair(key.id, envelope)
-        // read-repair happens before GetSuccess
-        context.become(waitReadRepairAck(envelope))
-      case (true, None) ⇒
-        replyTo.tell(NotFound(key, req), context.parent)
-        context.stop(self)
-      case (false, _) ⇒
-        replyTo.tell(GetFailure(key, req), context.parent)
-        context.stop(self)
-    }
+  def reply(ok: Boolean): Unit = (ok, result) match {
+    case (true, Some(envelope)) ⇒
+      context.parent ! ReadRepair(key.id, envelope)
+      // read-repair happens before GetSuccess
+      context.become(waitReadRepairAck(envelope))
+    case (true, None) ⇒
+      replyTo.tell(NotFound(key, req), context.parent)
+      context.stop(self)
+    case (false, _) ⇒
+      replyTo.tell(GetFailure(key, req), context.parent)
+      context.stop(self)
+  }
 
   def waitReadRepairAck(envelope: Replicator.Internal.DataEnvelope): Receive = {
     case ReadRepairAck ⇒
@@ -1479,4 +1649,3 @@ private[akka] class ReadAggregator(
     case ReceiveTimeout  ⇒
   }
 }
-

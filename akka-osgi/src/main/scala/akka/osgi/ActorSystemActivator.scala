@@ -4,10 +4,10 @@
 package akka.osgi
 
 import akka.actor.ActorSystem
-import java.util.{ Dictionary, Properties }
+import java.util.{Dictionary, Properties}
 import org.osgi.framework._
 import org.osgi.service.log.LogService
-import com.typesafe.config.{ ConfigFactory, Config }
+import com.typesafe.config.{ConfigFactory, Config}
 
 /**
  * Abstract bundle activator implementation to bootstrap and configure an actor system in an
@@ -20,7 +20,7 @@ import com.typesafe.config.{ ConfigFactory, Config }
  */
 abstract class ActorSystemActivator extends BundleActivator {
 
-  private var system: Option[ActorSystem] = None
+  private var system: Option[ActorSystem]                  = None
   private var registration: Option[ServiceRegistration[_]] = None
 
   /**
@@ -39,7 +39,9 @@ abstract class ActorSystemActivator extends BundleActivator {
    * @param context the BundleContext
    */
   def start(context: BundleContext): Unit = {
-    system = Some(OsgiActorSystemFactory(context, getActorSystemConfiguration(context)).createActorSystem(Option(getActorSystemName(context))))
+    system = Some(
+        OsgiActorSystemFactory(context, getActorSystemConfiguration(context))
+          .createActorSystem(Option(getActorSystemName(context))))
     system foreach (addLogServiceListener(context, _))
     system foreach (configure(context, _))
   }
@@ -55,8 +57,10 @@ abstract class ActorSystemActivator extends BundleActivator {
       def serviceChanged(event: ServiceEvent) {
         event.getType match {
           case ServiceEvent.REGISTERED ⇒
-            system.eventStream.publish(serviceForReference[LogService](context, event.getServiceReference))
-          case ServiceEvent.UNREGISTERING ⇒ system.eventStream.publish(UnregisteringLogService)
+            system.eventStream.publish(serviceForReference[LogService](
+                    context, event.getServiceReference))
+          case ServiceEvent.UNREGISTERING ⇒
+            system.eventStream.publish(UnregisteringLogService)
         }
       }
     }
@@ -64,15 +68,19 @@ abstract class ActorSystemActivator extends BundleActivator {
     context.addServiceListener(logServiceListner, filter)
 
     //Small trick to create an event if the service is registered before this start listing for
-    Option(context.getServiceReference(classOf[LogService].getName)).foreach(x ⇒ {
-      logServiceListner.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, x))
+    Option(context.getServiceReference(classOf[LogService].getName)).foreach(
+        x ⇒
+          {
+        logServiceListner.serviceChanged(
+            new ServiceEvent(ServiceEvent.REGISTERED, x))
     })
   }
 
   /**
    * Convenience method to find a service by its reference.
    */
-  def serviceForReference[T](context: BundleContext, reference: ServiceReference[_]): T =
+  def serviceForReference[T](
+      context: BundleContext, reference: ServiceReference[_]): T =
     context.getService(reference).asInstanceOf[T]
 
   /**
@@ -98,8 +106,11 @@ abstract class ActorSystemActivator extends BundleActivator {
     registration.foreach(_.unregister()) //Cleanup
     val properties = new Properties()
     properties.put("name", system.name)
-    registration = Some(context.registerService(classOf[ActorSystem].getName, system,
-      properties.asInstanceOf[Dictionary[String, Any]]))
+    registration = Some(
+        context.registerService(
+            classOf[ActorSystem].getName,
+            system,
+            properties.asInstanceOf[Dictionary[String, Any]]))
   }
 
   /**
@@ -121,6 +132,6 @@ abstract class ActorSystemActivator extends BundleActivator {
    * @param context the bundle context
    * @return the actor system specific configuration, ConfigFactory.empty by default
    */
-  def getActorSystemConfiguration(context: BundleContext): Config = ConfigFactory.empty
-
+  def getActorSystemConfiguration(context: BundleContext): Config =
+    ConfigFactory.empty
 }

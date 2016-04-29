@@ -4,7 +4,7 @@
 package akka.event.japi
 
 import akka.util.Subclassification
-import akka.actor.{ ActorSystem, ActorRef }
+import akka.actor.{ActorSystem, ActorRef}
 
 /**
  * Java API: See documentation for [[akka.event.EventBus]]
@@ -44,8 +44,9 @@ trait EventBus[E, S, C] {
  * C is the Classifier type
  */
 abstract class LookupEventBus[E, S, C] extends EventBus[E, S, C] {
-  private val bus = new akka.event.EventBus with akka.event.LookupClassification {
-    type Event = E
+  private val bus = new akka.event.EventBus
+  with akka.event.LookupClassification {
+    type Event      = E
     type Subscriber = S
     type Classifier = C
 
@@ -81,11 +82,12 @@ abstract class LookupEventBus[E, S, C] extends EventBus[E, S, C] {
    */
   protected def publish(event: E, subscriber: S): Unit
 
-  override def subscribe(subscriber: S, to: C): Boolean = bus.subscribe(subscriber, to)
-  override def unsubscribe(subscriber: S, from: C): Boolean = bus.unsubscribe(subscriber, from)
+  override def subscribe(subscriber: S, to: C): Boolean =
+    bus.subscribe(subscriber, to)
+  override def unsubscribe(subscriber: S, from: C): Boolean =
+    bus.unsubscribe(subscriber, from)
   override def unsubscribe(subscriber: S): Unit = bus.unsubscribe(subscriber)
-  override def publish(event: E): Unit = bus.publish(event)
-
+  override def publish(event: E): Unit          = bus.publish(event)
 }
 
 /**
@@ -95,8 +97,9 @@ abstract class LookupEventBus[E, S, C] extends EventBus[E, S, C] {
  * C is the Classifier type
  */
 abstract class SubchannelEventBus[E, S, C] extends EventBus[E, S, C] {
-  private val bus = new akka.event.EventBus with akka.event.SubchannelClassification {
-    type Event = E
+  private val bus = new akka.event.EventBus
+  with akka.event.SubchannelClassification {
+    type Event      = E
     type Subscriber = S
     type Classifier = C
 
@@ -106,7 +109,8 @@ abstract class SubchannelEventBus[E, S, C] extends EventBus[E, S, C] {
     override protected def classify(event: Event): Classifier =
       SubchannelEventBus.this.classify(event)
 
-    override protected def publish(event: Event, subscriber: Subscriber): Unit =
+    override protected def publish(
+        event: Event, subscriber: Subscriber): Unit =
       SubchannelEventBus.this.publish(event, subscriber)
   }
 
@@ -125,11 +129,12 @@ abstract class SubchannelEventBus[E, S, C] extends EventBus[E, S, C] {
    */
   protected def publish(event: E, subscriber: S): Unit
 
-  override def subscribe(subscriber: S, to: C): Boolean = bus.subscribe(subscriber, to)
-  override def unsubscribe(subscriber: S, from: C): Boolean = bus.unsubscribe(subscriber, from)
+  override def subscribe(subscriber: S, to: C): Boolean =
+    bus.subscribe(subscriber, to)
+  override def unsubscribe(subscriber: S, from: C): Boolean =
+    bus.unsubscribe(subscriber, from)
   override def unsubscribe(subscriber: S): Unit = bus.unsubscribe(subscriber)
-  override def publish(event: E): Unit = bus.publish(event)
-
+  override def publish(event: E): Unit          = bus.publish(event)
 }
 
 /**
@@ -139,8 +144,9 @@ abstract class SubchannelEventBus[E, S, C] extends EventBus[E, S, C] {
  * C is the Classifier type
  */
 abstract class ScanningEventBus[E, S, C] extends EventBus[E, S, C] {
-  private val bus = new akka.event.EventBus with akka.event.ScanningClassification {
-    type Event = E
+  private val bus = new akka.event.EventBus
+  with akka.event.ScanningClassification {
+    type Event      = E
     type Subscriber = S
     type Classifier = C
 
@@ -177,10 +183,12 @@ abstract class ScanningEventBus[E, S, C] extends EventBus[E, S, C] {
    */
   protected def publish(event: E, subscriber: S): Unit
 
-  override def subscribe(subscriber: S, to: C): Boolean = bus.subscribe(subscriber, to)
-  override def unsubscribe(subscriber: S, from: C): Boolean = bus.unsubscribe(subscriber, from)
+  override def subscribe(subscriber: S, to: C): Boolean =
+    bus.subscribe(subscriber, to)
+  override def unsubscribe(subscriber: S, from: C): Boolean =
+    bus.unsubscribe(subscriber, from)
   override def unsubscribe(subscriber: S): Unit = bus.unsubscribe(subscriber)
-  override def publish(event: E): Unit = bus.publish(event)
+  override def publish(event: E): Unit          = bus.publish(event)
 }
 
 /**
@@ -189,8 +197,10 @@ abstract class ScanningEventBus[E, S, C] extends EventBus[E, S, C] {
  * Means that ActorRefs "listen" to other ActorRefs
  * E is the Event type
  */
-abstract class ManagedActorEventBus[E](system: ActorSystem) extends EventBus[E, ActorRef, ActorRef] {
-  private val bus = new akka.event.ActorEventBus with akka.event.ManagedActorClassification with akka.event.ActorClassifier {
+abstract class ManagedActorEventBus[E](system: ActorSystem)
+    extends EventBus[E, ActorRef, ActorRef] {
+  private val bus = new akka.event.ActorEventBus
+  with akka.event.ManagedActorClassification with akka.event.ActorClassifier {
     type Event = E
 
     override val system = ManagedActorEventBus.this.system
@@ -211,9 +221,12 @@ abstract class ManagedActorEventBus[E](system: ActorSystem) extends EventBus[E, 
    */
   protected def classify(event: E): ActorRef
 
-  override def subscribe(subscriber: ActorRef, to: ActorRef): Boolean = bus.subscribe(subscriber, to)
-  override def unsubscribe(subscriber: ActorRef, from: ActorRef): Boolean = bus.unsubscribe(subscriber, from)
-  override def unsubscribe(subscriber: ActorRef): Unit = bus.unsubscribe(subscriber)
+  override def subscribe(subscriber: ActorRef, to: ActorRef): Boolean =
+    bus.subscribe(subscriber, to)
+  override def unsubscribe(subscriber: ActorRef, from: ActorRef): Boolean =
+    bus.unsubscribe(subscriber, from)
+  override def unsubscribe(subscriber: ActorRef): Unit =
+    bus.unsubscribe(subscriber)
   override def publish(event: E): Unit = bus.publish(event)
 }
 
@@ -225,7 +238,8 @@ abstract class ManagedActorEventBus[E](system: ActorSystem) extends EventBus[E, 
  */
 @deprecated("Use ManagedActorEventBus instead", "2.4")
 abstract class ActorEventBus[E] extends EventBus[E, ActorRef, ActorRef] {
-  private val bus = new akka.event.ActorEventBus with akka.event.ActorClassification with akka.event.ActorClassifier {
+  private val bus = new akka.event.ActorEventBus
+  with akka.event.ActorClassification with akka.event.ActorClassifier {
     type Event = E
 
     override protected def mapSize: Int = ActorEventBus.this.mapSize
@@ -244,8 +258,11 @@ abstract class ActorEventBus[E] extends EventBus[E, ActorRef, ActorRef] {
    */
   protected def classify(event: E): ActorRef
 
-  override def subscribe(subscriber: ActorRef, to: ActorRef): Boolean = bus.subscribe(subscriber, to)
-  override def unsubscribe(subscriber: ActorRef, from: ActorRef): Boolean = bus.unsubscribe(subscriber, from)
-  override def unsubscribe(subscriber: ActorRef): Unit = bus.unsubscribe(subscriber)
+  override def subscribe(subscriber: ActorRef, to: ActorRef): Boolean =
+    bus.subscribe(subscriber, to)
+  override def unsubscribe(subscriber: ActorRef, from: ActorRef): Boolean =
+    bus.unsubscribe(subscriber, from)
+  override def unsubscribe(subscriber: ActorRef): Unit =
+    bus.unsubscribe(subscriber)
   override def publish(event: E): Unit = bus.publish(event)
 }

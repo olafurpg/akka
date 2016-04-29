@@ -3,7 +3,7 @@
  */
 package akka.stream.impl
 
-import akka.stream.{ AbruptTerminationException, ActorMaterializerSettings }
+import akka.stream.{AbruptTerminationException, ActorMaterializerSettings}
 
 import scala.collection.immutable
 import akka.actor._
@@ -14,26 +14,37 @@ import org.reactivestreams.Subscription
  */
 private[akka] object FanOut {
 
-  final case class SubstreamRequestMore(id: Int, demand: Long) extends DeadLetterSuppression with NoSerializationVerificationNeeded
-  final case class SubstreamCancel(id: Int) extends DeadLetterSuppression with NoSerializationVerificationNeeded
-  final case class SubstreamSubscribePending(id: Int) extends DeadLetterSuppression with NoSerializationVerificationNeeded
+  final case class SubstreamRequestMore(id: Int, demand: Long)
+      extends DeadLetterSuppression with NoSerializationVerificationNeeded
+  final case class SubstreamCancel(id: Int)
+      extends DeadLetterSuppression with NoSerializationVerificationNeeded
+  final case class SubstreamSubscribePending(id: Int)
+      extends DeadLetterSuppression with NoSerializationVerificationNeeded
 
-  class SubstreamSubscription(val parent: ActorRef, val id: Int) extends Subscription {
-    override def request(elements: Long): Unit = parent ! SubstreamRequestMore(id, elements)
+  class SubstreamSubscription(val parent: ActorRef, val id: Int)
+      extends Subscription {
+    override def request(elements: Long): Unit =
+      parent ! SubstreamRequestMore(id, elements)
     override def cancel(): Unit = parent ! SubstreamCancel(id)
-    override def toString = "SubstreamSubscription" + System.identityHashCode(this)
+    override def toString =
+      "SubstreamSubscription" + System.identityHashCode(this)
   }
 
-  class FanoutOutputs(val id: Int, _impl: ActorRef, _pump: Pump) extends SimpleOutputs(_impl, _pump) {
-    override def createSubscription(): Subscription = new SubstreamSubscription(actor, id)
+  class FanoutOutputs(val id: Int, _impl: ActorRef, _pump: Pump)
+      extends SimpleOutputs(_impl, _pump) {
+    override def createSubscription(): Subscription =
+      new SubstreamSubscription(actor, id)
   }
 
-  final case class ExposedPublishers(publishers: immutable.Seq[ActorPublisher[Any]]) extends DeadLetterSuppression with NoSerializationVerificationNeeded
+  final case class ExposedPublishers(
+      publishers: immutable.Seq[ActorPublisher[Any]])
+      extends DeadLetterSuppression with NoSerializationVerificationNeeded
 
   class OutputBunch(outputCount: Int, impl: ActorRef, pump: Pump) {
     private var bunchCancelled = false
 
-    private val outputs = Array.tabulate(outputCount)(new FanoutOutputs(_, impl, pump))
+    private val outputs =
+      Array.tabulate(outputCount)(new FanoutOutputs(_, impl, pump))
 
     private val marked = Array.ofDim[Boolean](outputCount)
     private var markedCount = 0
@@ -42,16 +53,15 @@ private[akka] object FanOut {
     private val cancelled = Array.ofDim[Boolean](outputCount)
     private var markedCancelled = 0
     private val completed = Array.ofDim[Boolean](outputCount)
-    private val errored = Array.ofDim[Boolean](outputCount)
+    private val errored   = Array.ofDim[Boolean](outputCount)
 
-    override def toString: String =
-      s"""|OutputBunch
-          |  marked:    ${marked.mkString(", ")}
-          |  pending:   ${pending.mkString(", ")}
-          |  errored:   ${errored.mkString(", ")}
-          |  completed: ${completed.mkString(", ")}
-          |  cancelled: ${cancelled.mkString(", ")}
-          |    mark=$markedCount pend=$markedPending depl=$markedCancelled pref=$preferredId unmark=$unmarkCancelled""".stripMargin
+    override def toString: String = s"""|OutputBunch
+                                       |  marked:    ${marked.mkString(", ")}
+                                       |  pending:   ${pending.mkString(", ")}
+                                       |  errored:   ${errored.mkString(", ")}
+                                       |  completed: ${completed.mkString(", ")}
+                                       |  cancelled: ${cancelled.mkString(", ")}
+                                       |    mark=$markedCount pend=$markedPending depl=$markedCancelled pref=$preferredId unmark=$unmarkCancelled""".stripMargin
 
     private var unmarkCancelled = true
 
@@ -65,15 +75,14 @@ private[akka] object FanOut {
 
     def isErrored(output: Int): Boolean = errored(output)
 
-    def complete(): Unit =
-      if (!bunchCancelled) {
-        bunchCancelled = true
-        var i = 0
-        while (i < outputs.length) {
-          complete(i)
-          i += 1
-        }
+    def complete(): Unit = if (!bunchCancelled) {
+      bunchCancelled = true
+      var i = 0
+      while (i < outputs.length) {
+        complete(i)
+        i += 1
       }
+    }
 
     def complete(output: Int) =
       if (!completed(output) && !errored(output) && !cancelled(output)) {
@@ -82,15 +91,14 @@ private[akka] object FanOut {
         unmarkOutput(output)
       }
 
-    def cancel(e: Throwable): Unit =
-      if (!bunchCancelled) {
-        bunchCancelled = true
-        var i = 0
-        while (i < outputs.length) {
-          error(i, e)
-          i += 1
-        }
+    def cancel(e: Throwable): Unit = if (!bunchCancelled) {
+      bunchCancelled = true
+      var i = 0
+      while (i < outputs.length) {
+        error(i, e)
+        i += 1
       }
+    }
 
     def error(output: Int, e: Throwable): Unit =
       if (!errored(output) && !cancelled(output) && !completed(output)) {
@@ -133,14 +141,16 @@ private[akka] object FanOut {
       }
     }
 
-    def unmarkCancelledOutputs(enabled: Boolean): Unit = unmarkCancelled = enabled
+    def unmarkCancelledOutputs(enabled: Boolean): Unit =
+      unmarkCancelled = enabled
 
     def idToEnqueue(): Int = {
       var id = preferredId
       while (!(marked(id) && pending(id))) {
         id += 1
         if (id == outputCount) id = 0
-        require(id != preferredId, "Tried to enqueue without waiting for any demand")
+        require(id != preferredId,
+                "Tried to enqueue without waiting for any demand")
       }
       id
     }
@@ -183,13 +193,14 @@ private[akka] object FanOut {
     def onCancel(output: Int): Unit = ()
 
     def demandAvailableFor(id: Int) = new TransferState {
-      override def isCompleted: Boolean = cancelled(id) || completed(id) || errored(id)
+      override def isCompleted: Boolean =
+        cancelled(id) || completed(id) || errored(id)
       override def isReady: Boolean = pending(id)
     }
 
     def demandOrCancelAvailableFor(id: Int) = new TransferState {
       override def isCompleted: Boolean = false
-      override def isReady: Boolean = pending(id) || cancelled(id)
+      override def isReady: Boolean     = pending(id) || cancelled(id)
     }
 
     /**
@@ -198,7 +209,8 @@ private[akka] object FanOut {
      * outputs have canceled.
      */
     val AllOfMarkedOutputs = new TransferState {
-      override def isCompleted: Boolean = markedCancelled > 0 || markedCount == 0
+      override def isCompleted: Boolean =
+        markedCancelled > 0 || markedCount == 0
       override def isReady: Boolean = markedPending == markedCount
     }
 
@@ -209,49 +221,53 @@ private[akka] object FanOut {
      */
     val AnyOfMarkedOutputs = new TransferState {
       override def isCompleted: Boolean = markedCancelled == markedCount
-      override def isReady: Boolean = markedPending > 0
+      override def isReady: Boolean     = markedPending > 0
     }
 
     // FIXME: Eliminate re-wraps
-    def subreceive: SubReceive = new SubReceive({
-      case ExposedPublishers(publishers) ⇒
-        publishers.zip(outputs) foreach {
-          case (pub, output) ⇒
-            output.subreceive(ExposedPublisher(pub))
-        }
+    def subreceive: SubReceive =
+      new SubReceive({
+        case ExposedPublishers(publishers) ⇒
+          publishers.zip(outputs) foreach {
+            case (pub, output) ⇒
+              output.subreceive(ExposedPublisher(pub))
+          }
 
-      case SubstreamRequestMore(id, demand) ⇒
-        if (demand < 1) // According to Reactive Streams Spec 3.9, with non-positive demand must yield onError
-          error(id, ReactiveStreamsCompliance.numberOfElementsInRequestMustBePositiveException)
-        else {
-          if (marked(id) && !pending(id)) markedPending += 1
-          pending(id) = true
-          outputs(id).subreceive(RequestMore(null, demand))
-        }
-      case SubstreamCancel(id) ⇒
-        if (unmarkCancelled) {
-          unmarkOutput(id)
-        }
-        if (marked(id) && !cancelled(id)) markedCancelled += 1
-        cancelled(id) = true
-        onCancel(id)
-        outputs(id).subreceive(Cancel(null))
-      case SubstreamSubscribePending(id) ⇒
-        outputs(id).subreceive(SubscribePending)
-    })
-
+        case SubstreamRequestMore(id, demand) ⇒
+          if (demand < 1) // According to Reactive Streams Spec 3.9, with non-positive demand must yield onError
+            error(
+                id,
+                ReactiveStreamsCompliance.numberOfElementsInRequestMustBePositiveException)
+          else {
+            if (marked(id) && !pending(id)) markedPending += 1
+            pending(id) = true
+            outputs(id).subreceive(RequestMore(null, demand))
+          }
+        case SubstreamCancel(id) ⇒
+          if (unmarkCancelled) {
+            unmarkOutput(id)
+          }
+          if (marked(id) && !cancelled(id)) markedCancelled += 1
+          cancelled(id) = true
+          onCancel(id)
+          outputs(id).subreceive(Cancel(null))
+        case SubstreamSubscribePending(id) ⇒
+          outputs(id).subreceive(SubscribePending)
+      })
   }
-
 }
 
 /**
  * INTERNAL API
  */
-private[akka] abstract class FanOut(val settings: ActorMaterializerSettings, val outputCount: Int) extends Actor with ActorLogging with Pump {
+private[akka] abstract class FanOut(
+    val settings: ActorMaterializerSettings, val outputCount: Int)
+    extends Actor with ActorLogging with Pump {
   import FanOut._
 
   protected val outputBunch = new OutputBunch(outputCount, self, this)
-  protected val primaryInputs: Inputs = new BatchingInputBuffer(settings.maxInputBufferSize, this) {
+  protected val primaryInputs: Inputs = new BatchingInputBuffer(
+      settings.maxInputBufferSize, this) {
     override def onError(e: Throwable): Unit = fail(e)
   }
 
@@ -264,8 +280,7 @@ private[akka] abstract class FanOut(val settings: ActorMaterializerSettings, val
   override def pumpFailed(e: Throwable): Unit = fail(e)
 
   protected def fail(e: Throwable): Unit = {
-    if (settings.debugLogging)
-      log.debug("fail due to: {}", e.getMessage)
+    if (settings.debugLogging) log.debug("fail due to: {}", e.getMessage)
     primaryInputs.cancel()
     outputBunch.cancel(e)
     pump()
@@ -281,7 +296,8 @@ private[akka] abstract class FanOut(val settings: ActorMaterializerSettings, val
     throw new IllegalStateException("This actor cannot be restarted")
   }
 
-  def receive = primaryInputs.subreceive.orElse[Any, Unit](outputBunch.subreceive)
+  def receive =
+    primaryInputs.subreceive.orElse[Any, Unit](outputBunch.subreceive)
 }
 
 /**
@@ -295,23 +311,27 @@ private[akka] object Unzip {
 /**
  * INTERNAL API
  */
-private[akka] class Unzip(_settings: ActorMaterializerSettings) extends FanOut(_settings, outputCount = 2) {
+private[akka] class Unzip(_settings: ActorMaterializerSettings)
+    extends FanOut(_settings, outputCount = 2) {
   outputBunch.markAllOutputs()
 
-  initialPhase(1, TransferPhase(primaryInputs.NeedsInput && outputBunch.AllOfMarkedOutputs) { () ⇒
-    primaryInputs.dequeueInputElement() match {
-      case (a, b) ⇒
-        outputBunch.enqueue(0, a)
-        outputBunch.enqueue(1, b)
+  initialPhase(
+      1,
+      TransferPhase(primaryInputs.NeedsInput && outputBunch.AllOfMarkedOutputs) {
+        () ⇒
+          primaryInputs.dequeueInputElement() match {
+            case (a, b) ⇒
+              outputBunch.enqueue(0, a)
+              outputBunch.enqueue(1, b)
 
-      case t: akka.japi.Pair[_, _] ⇒
-        outputBunch.enqueue(0, t.first)
-        outputBunch.enqueue(1, t.second)
+            case t: akka.japi.Pair [_, _] ⇒
+              outputBunch.enqueue(0, t.first)
+              outputBunch.enqueue(1, t.second)
 
-      case t ⇒
-        throw new IllegalArgumentException(
-          s"Unable to unzip elements of type ${t.getClass.getName}, " +
-            s"can only handle Tuple2 and akka.japi.Pair!")
-    }
-  })
+            case t ⇒
+              throw new IllegalArgumentException(
+                  s"Unable to unzip elements of type ${t.getClass.getName}, " +
+                  s"can only handle Tuple2 and akka.japi.Pair!")
+          }
+      })
 }

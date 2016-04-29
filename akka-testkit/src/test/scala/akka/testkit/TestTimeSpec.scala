@@ -8,12 +8,13 @@ class TestTimeSpec extends AkkaSpec(Map("akka.test.timefactor" -> 2.0)) {
   "A TestKit" must {
 
     "correctly dilate times" taggedAs TimingTest in {
-      1.second.dilated.toNanos should ===(1000000000L * testKitSettings.TestTimeFactor)
+      1.second.dilated.toNanos should ===(
+          1000000000L * testKitSettings.TestTimeFactor)
 
       val probe = TestProbe()
-      val now = System.nanoTime
+      val now   = System.nanoTime
       intercept[AssertionError] { probe.awaitCond(false, 1.second) }
-      val diff = System.nanoTime - now
+      val diff   = System.nanoTime - now
       val target = (1000000000L * testKitSettings.TestTimeFactor).toLong
       diff should be >= target
       diff should be < (target + 1000000000L) // 1 s margin for GC
@@ -33,6 +34,5 @@ class TestTimeSpec extends AkkaSpec(Map("akka.test.timefactor" -> 2.0)) {
         remaining
       }
     }
-
   }
 }

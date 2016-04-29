@@ -6,7 +6,7 @@ import akka.persistence._
 object SnapshotExample extends App {
   final case class ExampleState(received: List[String] = Nil) {
     def updated(s: String): ExampleState = copy(s :: received)
-    override def toString = received.reverse.toString
+    override def toString                = received.reverse.toString
   }
 
   class ExamplePersistentActor extends PersistentActor {
@@ -20,7 +20,9 @@ object SnapshotExample extends App {
       case SaveSnapshotSuccess(metadata)         => // ...
       case SaveSnapshotFailure(metadata, reason) => // ...
       case s: String =>
-        persist(s) { evt => state = state.updated(evt) }
+        persist(s) { evt =>
+          state = state.updated(evt)
+        }
     }
 
     def receiveRecover: Receive = {
@@ -30,11 +32,11 @@ object SnapshotExample extends App {
       case evt: String =>
         state = state.updated(evt)
     }
-
   }
 
   val system = ActorSystem("example")
-  val persistentActor = system.actorOf(Props(classOf[ExamplePersistentActor]), "persistentActor-3-scala")
+  val persistentActor = system.actorOf(
+      Props(classOf[ExamplePersistentActor]), "persistentActor-3-scala")
 
   persistentActor ! "a"
   persistentActor ! "b"

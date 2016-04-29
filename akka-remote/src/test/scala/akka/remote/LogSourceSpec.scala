@@ -22,8 +22,8 @@ object LogSourceSpec {
   }
 }
 
-class LogSourceSpec extends AkkaSpec(
-  """
+class LogSourceSpec
+    extends AkkaSpec("""
     akka.loglevel = INFO
     akka.actor.provider = "akka.remote.RemoteActorRefProvider"
     akka.remote.netty.tcp.port = 0
@@ -35,7 +35,8 @@ class LogSourceSpec extends AkkaSpec(
   val logProbe = TestProbe()
   system.eventStream.subscribe(system.actorOf(Props(new Actor {
     def receive = {
-      case i @ Info(_, _, msg: String) if msg contains "hello" ⇒ logProbe.ref ! i
+      case i @ Info(_, _, msg: String) if msg contains "hello" ⇒
+        logProbe.ref ! i
       case _ ⇒
     }
   }).withDeploy(Deploy.local), "logSniffer"), classOf[Logging.Info])
@@ -46,7 +47,8 @@ class LogSourceSpec extends AkkaSpec(
       reporter ! "hello"
       val info = logProbe.expectMsgType[Info]
       info.message should ===("hello")
-      val defaultAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
+      val defaultAddress =
+        system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
       info.logSource should include(defaultAddress.toString)
     }
   }

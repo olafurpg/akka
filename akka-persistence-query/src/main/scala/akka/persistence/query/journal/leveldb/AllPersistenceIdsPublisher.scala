@@ -17,8 +17,12 @@ import akka.stream.actor.ActorPublisherMessage.Request
  * INTERNAL API
  */
 private[akka] object AllPersistenceIdsPublisher {
-  def props(liveQuery: Boolean, maxBufSize: Int, writeJournalPluginId: String): Props =
-    Props(new AllPersistenceIdsPublisher(liveQuery, maxBufSize, writeJournalPluginId))
+  def props(liveQuery: Boolean,
+            maxBufSize: Int,
+            writeJournalPluginId: String): Props =
+    Props(
+        new AllPersistenceIdsPublisher(
+            liveQuery, maxBufSize, writeJournalPluginId))
 
   private case object Continue
 }
@@ -26,10 +30,13 @@ private[akka] object AllPersistenceIdsPublisher {
 /**
  * INTERNAL API
  */
-private[akka] class AllPersistenceIdsPublisher(liveQuery: Boolean, maxBufSize: Int, writeJournalPluginId: String)
-  extends ActorPublisher[String] with DeliveryBuffer[String] with ActorLogging {
+private[akka] class AllPersistenceIdsPublisher(
+    liveQuery: Boolean, maxBufSize: Int, writeJournalPluginId: String)
+    extends ActorPublisher[String] with DeliveryBuffer[String]
+    with ActorLogging {
 
-  val journal: ActorRef = Persistence(context.system).journalFor(writeJournalPluginId)
+  val journal: ActorRef =
+    Persistence(context.system).journalFor(writeJournalPluginId)
 
   def receive = init
 
@@ -44,8 +51,7 @@ private[akka] class AllPersistenceIdsPublisher(liveQuery: Boolean, maxBufSize: I
     case LeveldbJournal.CurrentPersistenceIds(allPersistenceIds) ⇒
       buf ++= allPersistenceIds
       deliverBuf()
-      if (!liveQuery && buf.isEmpty)
-        onCompleteThenStop()
+      if (!liveQuery && buf.isEmpty) onCompleteThenStop()
 
     case LeveldbJournal.PersistenceIdAdded(persistenceId) ⇒
       if (liveQuery) {
@@ -55,10 +61,8 @@ private[akka] class AllPersistenceIdsPublisher(liveQuery: Boolean, maxBufSize: I
 
     case _: Request ⇒
       deliverBuf()
-      if (!liveQuery && buf.isEmpty)
-        onCompleteThenStop()
+      if (!liveQuery && buf.isEmpty) onCompleteThenStop()
 
     case Cancel ⇒ context.stop(self)
   }
-
 }

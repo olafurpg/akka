@@ -18,14 +18,19 @@ import scala.collection.immutable
  * information with an address, then this must be done externally.
  */
 @SerialVersionUID(1L)
-final case class Address private (protocol: String, system: String, host: Option[String], port: Option[Int]) {
+final case class Address private (protocol: String,
+                                  system: String,
+                                  host: Option[String],
+                                  port: Option[Int]) {
   // Please note that local/non-local distinction must be preserved:
   // host.isDefined == hasGlobalScope
   // host.isEmpty == hasLocalScope
   // hasLocalScope == !hasGlobalScope
 
-  def this(protocol: String, system: String) = this(protocol, system, None, None)
-  def this(protocol: String, system: String, host: String, port: Int) = this(protocol, system, Option(host), Some(port))
+  def this(protocol: String, system: String) =
+    this(protocol, system, None, None)
+  def this(protocol: String, system: String, host: String, port: Int) =
+    this(protocol, system, Option(host), Some(port))
 
   /**
    * Returns true if this Address is only defined locally. It is not safe to send locally scoped addresses to remote
@@ -41,7 +46,8 @@ final case class Address private (protocol: String, system: String, host: Option
   def hasGlobalScope: Boolean = host.isDefined
 
   // store hashCode
-  @transient override lazy val hashCode: Int = scala.util.hashing.MurmurHash3.productHash(this)
+  @transient override lazy val hashCode: Int =
+    scala.util.hashing.MurmurHash3.productHash(this)
 
   /**
    * Returns the canonical String representation of this Address formatted as:
@@ -50,7 +56,8 @@ final case class Address private (protocol: String, system: String, host: Option
    */
   @transient
   override lazy val toString: String = {
-    val sb = (new java.lang.StringBuilder(protocol)).append("://").append(system)
+    val sb =
+      (new java.lang.StringBuilder(protocol)).append("://").append(system)
 
     if (host.isDefined) sb.append('@').append(host.get)
     if (port.isDefined) sb.append(':').append(port.get)
@@ -67,6 +74,7 @@ final case class Address private (protocol: String, system: String, host: Option
 }
 
 object Address {
+
   /**
    * Constructs a new Address with the specified protocol and system name
    */
@@ -75,7 +83,8 @@ object Address {
   /**
    * Constructs a new Address with the specified protocol, system name, host and port
    */
-  def apply(protocol: String, system: String, host: String, port: Int) = new Address(protocol, system, Some(host), Some(port))
+  def apply(protocol: String, system: String, host: String, port: Int) =
+    new Address(protocol, system, Some(host), Some(port))
 }
 
 private[akka] trait PathUtils {
@@ -83,7 +92,7 @@ private[akka] trait PathUtils {
     @tailrec
     def rec(pos: Int, acc: List[String]): List[String] = {
       val from = s.lastIndexOf('/', pos - 1)
-      val sub = s.substring(from + 1, pos)
+      val sub  = s.substring(from + 1, pos)
       val l =
         if ((fragment ne null) && acc.isEmpty) sub + "#" + fragment :: acc
         else sub :: acc
@@ -116,19 +125,26 @@ object RelativeActorPath extends PathUtils {
  * This object serves as extractor for Scala and as address parser for Java.
  */
 object AddressFromURIString {
-  def unapply(addr: String): Option[Address] = try unapply(new URI(addr)) catch { case _: URISyntaxException ⇒ None }
+  def unapply(addr: String): Option[Address] =
+    try unapply(new URI(addr)) catch { case _: URISyntaxException ⇒ None }
 
   def unapply(uri: URI): Option[Address] =
     if (uri eq null) None
-    else if (uri.getScheme == null || (uri.getUserInfo == null && uri.getHost == null)) None
-    else if (uri.getUserInfo == null) { // case 1: “akka://system”
+    else if (uri.getScheme == null ||
+             (uri.getUserInfo == null && uri.getHost == null)) None
+    else if (uri.getUserInfo == null) {
+      // case 1: “akka://system”
       if (uri.getPort != -1) None
       else Some(Address(uri.getScheme, uri.getHost))
-    } else { // case 2: “akka://system@host:port”
+    } else {
+      // case 2: “akka://system@host:port”
       if (uri.getHost == null || uri.getPort == -1) None
-      else Some(
-        if (uri.getUserInfo == null) Address(uri.getScheme, uri.getHost)
-        else Address(uri.getScheme, uri.getUserInfo, uri.getHost, uri.getPort))
+      else
+        Some(
+            if (uri.getUserInfo == null) Address(uri.getScheme, uri.getHost)
+            else
+              Address(
+                  uri.getScheme, uri.getUserInfo, uri.getHost, uri.getPort))
     }
 
   /**
@@ -154,7 +170,10 @@ object ActorPathExtractor extends PathUtils {
       val uri = new URI(addr)
       uri.getRawPath match {
         case null ⇒ None
-        case path ⇒ AddressFromURIString.unapply(uri).map((_, split(path, uri.getRawFragment).drop(1)))
+        case path ⇒
+          AddressFromURIString
+            .unapply(uri)
+            .map((_, split(path, uri.getRawFragment).drop(1)))
       }
     } catch {
       case _: URISyntaxException ⇒ None

@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.cluster.singleton
 
 import language.postfixOps
@@ -29,9 +28,9 @@ import akka.actor.ActorSelection
 import akka.cluster.MemberStatus
 
 object ClusterSingletonManagerStartupSpec extends MultiNodeConfig {
-  val first = role("first")
+  val first  = role("first")
   val second = role("second")
-  val third = role("third")
+  val third  = role("third")
 
   commonConfig(ConfigFactory.parseString("""
     akka.loglevel = INFO
@@ -41,6 +40,7 @@ object ClusterSingletonManagerStartupSpec extends MultiNodeConfig {
     """))
 
   case object EchoStarted
+
   /**
    * The singleton actor
    */
@@ -52,11 +52,16 @@ object ClusterSingletonManagerStartupSpec extends MultiNodeConfig {
   }
 }
 
-class ClusterSingletonManagerStartupMultiJvmNode1 extends ClusterSingletonManagerStartupSpec
-class ClusterSingletonManagerStartupMultiJvmNode2 extends ClusterSingletonManagerStartupSpec
-class ClusterSingletonManagerStartupMultiJvmNode3 extends ClusterSingletonManagerStartupSpec
+class ClusterSingletonManagerStartupMultiJvmNode1
+    extends ClusterSingletonManagerStartupSpec
+class ClusterSingletonManagerStartupMultiJvmNode2
+    extends ClusterSingletonManagerStartupSpec
+class ClusterSingletonManagerStartupMultiJvmNode3
+    extends ClusterSingletonManagerStartupSpec
 
-class ClusterSingletonManagerStartupSpec extends MultiNodeSpec(ClusterSingletonManagerStartupSpec) with STMultiNodeSpec with ImplicitSender {
+class ClusterSingletonManagerStartupSpec
+    extends MultiNodeSpec(ClusterSingletonManagerStartupSpec)
+    with STMultiNodeSpec with ImplicitSender {
   import ClusterSingletonManagerStartupSpec._
 
   override def initialParticipants = roles.size
@@ -70,17 +75,17 @@ class ClusterSingletonManagerStartupSpec extends MultiNodeSpec(ClusterSingletonM
 
   def createSingleton(): ActorRef = {
     system.actorOf(ClusterSingletonManager.props(
-      singletonProps = Props(classOf[Echo], testActor),
-      terminationMessage = PoisonPill,
-      settings = ClusterSingletonManagerSettings(system)),
-      name = "echo")
+                       singletonProps = Props(classOf[Echo], testActor),
+                       terminationMessage = PoisonPill,
+                       settings = ClusterSingletonManagerSettings(system)),
+                   name = "echo")
   }
 
   lazy val echoProxy: ActorRef = {
     system.actorOf(ClusterSingletonProxy.props(
-      singletonManagerPath = "/user/echo",
-      settings = ClusterSingletonProxySettings(system)),
-      name = "echoProxy")
+                       singletonManagerPath = "/user/echo",
+                       settings = ClusterSingletonProxySettings(system)),
+                   name = "echoProxy")
   }
 
   "Startup of Cluster Singleton" must {
@@ -105,6 +110,5 @@ class ClusterSingletonManagerStartupSpec extends MultiNodeSpec(ClusterSingletonM
 
       enterBarrier("done")
     }
-
   }
 }

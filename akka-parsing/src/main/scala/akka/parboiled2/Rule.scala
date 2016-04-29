@@ -46,16 +46,18 @@ sealed class Rule[-I <: HList, +O <: HList] extends RuleX {
    *   Rule[A, B:C] ~ Rule[D:B:C, E:F] = Rule[D:A, E:F]
    */
   @compileTimeOnly("Calls to `~` must be inside `rule` macro")
-  def ~[I2 <: HList, O2 <: HList](that: Rule[I2, O2])(implicit i: TailSwitch[I2, O @uncheckedVariance, I @uncheckedVariance],
-                                                      o: TailSwitch[O @uncheckedVariance, I2, O2]): Rule[i.Out, o.Out] = `n/a`
+  def ~[I2 <: HList, O2 <: HList](that: Rule[I2, O2])(
+      implicit i: TailSwitch[I2, O @uncheckedVariance, I @uncheckedVariance],
+      o: TailSwitch[O @uncheckedVariance, I2, O2]): Rule[i.Out, o.Out] = `n/a`
 
   /**
    * Same as `~` but with "cut" semantics, meaning that the parser will never backtrack across this boundary.
    * If the rule being concatenated doesn't match a parse error will be triggered immediately.
    */
   @compileTimeOnly("Calls to `~!~` must be inside `rule` macro")
-  def ~!~[I2 <: HList, O2 <: HList](that: Rule[I2, O2])(implicit i: TailSwitch[I2, O @uncheckedVariance, I @uncheckedVariance],
-                                                        o: TailSwitch[O @uncheckedVariance, I2, O2]): Rule[i.Out, o.Out] = `n/a`
+  def ~!~[I2 <: HList, O2 <: HList](that: Rule[I2, O2])(
+      implicit i: TailSwitch[I2, O @uncheckedVariance, I @uncheckedVariance],
+      o: TailSwitch[O @uncheckedVariance, I2, O2]): Rule[i.Out, o.Out] = `n/a`
 
   /**
    * Combines this rule with the given other one in a way that the resulting rule matches if this rule matches
@@ -83,49 +85,60 @@ sealed class Rule[-I <: HList, +O <: HList] extends RuleX {
    * Postfix shortcut for `optional`.
    */
   @compileTimeOnly("Calls to `.?` must be inside `rule` macro")
-  def ?(implicit l: Lifter[Option, I @uncheckedVariance, O @uncheckedVariance]): Rule[l.In, l.OptionalOut] = `n/a`
+  def ?(implicit l: Lifter[Option, I @uncheckedVariance, O @uncheckedVariance]
+      ): Rule[l.In, l.OptionalOut] = `n/a`
 
   /**
    * Postfix shortcut for `zeroOrMore`.
    */
   @compileTimeOnly("Calls to `.*` must be inside `rule` macro")
-  def *(implicit l: Lifter[immutable.Seq, I @uncheckedVariance, O @uncheckedVariance]): Rule[l.In, l.OptionalOut] with Repeated = `n/a`
+  def *(implicit l: Lifter[
+          immutable.Seq, I @uncheckedVariance, O @uncheckedVariance]
+      ): Rule[l.In, l.OptionalOut] with Repeated = `n/a`
 
   /**
    * Postfix shortcut for `zeroOrMore(...).separatedBy(...)`.
    */
   @compileTimeOnly("Calls to `.*` must be inside `rule` macro")
-  def *(separator: Rule0)(implicit l: Lifter[immutable.Seq, I @uncheckedVariance, O @uncheckedVariance]): Rule[l.In, l.OptionalOut] = `n/a`
+  def *(separator: Rule0)(
+      implicit l: Lifter[
+          immutable.Seq, I @uncheckedVariance, O @uncheckedVariance]
+  ): Rule[l.In, l.OptionalOut] = `n/a`
 
   /**
    * Postfix shortcut for `oneOrMore`.
    */
   @compileTimeOnly("Calls to `.+` must be inside `rule` macro")
-  def +(implicit l: Lifter[immutable.Seq, I @uncheckedVariance, O @uncheckedVariance]): Rule[l.In, l.StrictOut] with Repeated = `n/a`
+  def +(implicit l: Lifter[
+          immutable.Seq, I @uncheckedVariance, O @uncheckedVariance]
+      ): Rule[l.In, l.StrictOut] with Repeated = `n/a`
 
   /**
    * Postfix shortcut for `oneOrMore(...).separatedBy(...)`.
    */
   @compileTimeOnly("Calls to `.+` must be inside `rule` macro")
-  def +(separator: Rule0)(implicit l: Lifter[immutable.Seq, I @uncheckedVariance, O @uncheckedVariance]): Rule[l.In, l.StrictOut] = `n/a`
+  def +(separator: Rule0)(
+      implicit l: Lifter[
+          immutable.Seq, I @uncheckedVariance, O @uncheckedVariance]
+  ): Rule[l.In, l.StrictOut] = `n/a`
 }
 
 /**
  * THIS IS NOT PUBLIC API and might become hidden in future. Use only if you know what you are doing!
  */
 object Rule extends Rule0 {
+
   /**
    * THIS IS NOT PUBLIC API and might become hidden in future. Use only if you know what you are doing!
    */
   implicit class Runnable[L <: HList](rule: RuleN[L]) {
-    def run()(implicit scheme: Parser.DeliveryScheme[L]): scheme.Result = macro ParserMacros.runImpl[L]
+    def run()(implicit scheme: Parser.DeliveryScheme[L]): scheme.Result = macro ParserMacros
+      .runImpl[L]
   }
 }
 
 abstract class RuleDSL
-  extends RuleDSLBasics
-  with RuleDSLCombinators
-  with RuleDSLActions
+    extends RuleDSLBasics with RuleDSLCombinators with RuleDSLActions
 
 // phantom type for WithSeparatedBy pimp
 trait Repeated

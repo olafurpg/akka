@@ -42,54 +42,55 @@ private[http] object FrameEventParser extends ByteStringParser[FrameEvent] {
     startWith(ReadFrameHeader)
 
     trait Step extends ParseStep[FrameEvent] {
-      override def onTruncation(): Unit = failStage(new ProtocolException("Data truncated"))
+      override def onTruncation(): Unit =
+        failStage(new ProtocolException("Data truncated"))
     }
 
     object ReadFrameHeader extends Step {
       override def parse(reader: ByteReader): ParseResult[FrameEvent] = {
         import Protocol._
 
-        val flagsAndOp = reader.readByte()
+        val flagsAndOp    = reader.readByte()
         val maskAndLength = reader.readByte()
 
         val flags = flagsAndOp & FLAGS_MASK
-        val op = flagsAndOp & OP_MASK
+        val op    = flagsAndOp & OP_MASK
 
         val maskBit = (maskAndLength & MASK_MASK) != 0
         val length7 = maskAndLength & LENGTH_MASK
 
-        val length =
-          length7 match {
-            case 126 ⇒ reader.readShortBE().toLong
-            case 127 ⇒ reader.readLongBE()
-            case x   ⇒ x.toLong
-          }
+        val length = length7 match {
+          case 126 ⇒ reader.readShortBE().toLong
+          case 127 ⇒ reader.readLongBE()
+          case x   ⇒ x.toLong
+        }
 
-        if (length < 0) throw new ProtocolException("Highest bit of 64bit length was set")
+        if (length < 0)
+          throw new ProtocolException("Highest bit of 64bit length was set")
 
         val mask =
           if (maskBit) Some(reader.readIntBE())
           else None
 
         def isFlagSet(mask: Int): Boolean = (flags & mask) != 0
-        val header =
-          FrameHeader(Opcode.forCode(op.toByte),
-            mask,
-            length,
-            fin = isFlagSet(FIN_MASK),
-            rsv1 = isFlagSet(RSV1_MASK),
-            rsv2 = isFlagSet(RSV2_MASK),
-            rsv3 = isFlagSet(RSV3_MASK))
+        val header = FrameHeader(Opcode.forCode(op.toByte),
+                                 mask,
+                                 length,
+                                 fin = isFlagSet(FIN_MASK),
+                                 rsv1 = isFlagSet(RSV1_MASK),
+                                 rsv2 = isFlagSet(RSV2_MASK),
+                                 rsv3 = isFlagSet(RSV3_MASK))
 
-        val takeNow = (header.length min reader.remainingSize).toInt
+        val takeNow       = (header.length min reader.remainingSize).toInt
         val thisFrameData = reader.take(takeNow)
-        val noMoreData = thisFrameData.length == length
+        val noMoreData    = thisFrameData.length == length
 
         val nextState =
           if (noMoreData) ReadFrameHeader
           else new ReadData(length - thisFrameData.length)
 
-        ParseResult(Some(FrameStart(header, thisFrameData.compact)), nextState, true)
+        ParseResult(
+            Some(FrameStart(header, thisFrameData.compact)), nextState, true)
       }
     }
 
@@ -99,43 +100,53 @@ private[http] object FrameEventParser extends ByteStringParser[FrameEvent] {
       override def parse(reader: ByteReader): ParseResult[FrameEvent] =
         if (reader.remainingSize < remaining) {
           remaining -= reader.remainingSize
-          ParseResult(Some(FrameData(reader.takeAll(), lastPart = false)), this, true)
+          ParseResult(
+              Some(FrameData(reader.takeAll(), lastPart = false)), this, true)
         } else {
-          ParseResult(Some(FrameData(reader.take(remaining.toInt), lastPart = true)), ReadFrameHeader, true)
+          ParseResult(
+              Some(FrameData(reader.take(remaining.toInt), lastPart = true)),
+              ReadFrameHeader,
+              true)
         }
     }
   }
 
-  def mask(bytes: ByteString, _mask: Option[Int]): ByteString =
-    _mask match {
-      case Some(m) ⇒ mask(bytes, m)._1
-      case None    ⇒ bytes
-    }
+  def mask(bytes: ByteString, _mask: Option[Int]): ByteString = _mask match {
+    case Some(m) ⇒ mask(bytes, m)._1
+    case None    ⇒ bytes
+  }
 
   def mask(bytes: ByteString, mask: Int): (ByteString, Int) = {
     @tailrec def rec(bytes: Array[Byte], offset: Int, mask: Int): Int =
       if (offset >= bytes.length) mask
       else {
-        val newMask = Integer.rotateLeft(mask, 8) // we cycle through the mask in BE order
+        val newMask =
+          Integer.rotateLeft(mask, 8) // we cycle through the mask in BE order
         bytes(offset) = (bytes(offset) ^ (newMask & 0xff)).toByte
         rec(bytes, offset + 1, newMask)
       }
 
-    val buffer = bytes.toArray[Byte]
+    val buffer  = bytes.toArray[Byte]
     val newMask = rec(buffer, 0, mask)
     (ByteString(buffer), newMask)
   }
 
   def parseCloseCode(data: ByteString): Option[(Int, String)] = {
-    def invalid(reason: String) = Some((Protocol.CloseCodes.ProtocolError, s"Peer sent illegal close frame ($reason)."))
+    def invalid(reason: String) =
+      Some(
+          (Protocol.CloseCodes.ProtocolError,
+           s"Peer sent illegal close frame ($reason)."))
 
     if (data.length >= 2) {
-      val code = ((data(0) & 0xff) << 8) | (data(1) & 0xff)
+      val code    = ((data(0) & 0xff) << 8) | (data(1) & 0xff)
       val message = Utf8Decoder.decode(data.drop(2))
-      if (!Protocol.CloseCodes.isValid(code)) invalid(s"invalid close code '$code'")
-      else if (message.isFailure) invalid("close reason message is invalid UTF8")
+      if (!Protocol.CloseCodes.isValid(code))
+        invalid(s"invalid close code '$code'")
+      else if (message.isFailure)
+        invalid("close reason message is invalid UTF8")
       else Some((code, message.get))
-    } else if (data.length == 1) invalid("close code must be length 2 but was 1") // must be >= length 2 if not empty
+    } else if (data.length == 1)
+      invalid("close code must be length 2 but was 1") // must be >= length 2 if not empty
     else None
   }
 

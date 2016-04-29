@@ -11,7 +11,9 @@ import OverflowStrategies._
  */
 sealed abstract class DelayOverflowStrategy extends Serializable
 
-final case class BufferOverflowException(msg: String) extends RuntimeException(msg)
+final case class BufferOverflowException(msg: String)
+    extends RuntimeException(msg)
+
 /**
  * Represents a strategy that decides how to deal with a buffer that is full but is
  * about to receive a new element.
@@ -19,30 +21,37 @@ final case class BufferOverflowException(msg: String) extends RuntimeException(m
 sealed abstract class OverflowStrategy extends DelayOverflowStrategy
 
 private[akka] object OverflowStrategies {
+
   /**
    * INTERNAL API
    */
   private[akka] case object DropHead extends OverflowStrategy
+
   /**
    * INTERNAL API
    */
   private[akka] case object DropTail extends OverflowStrategy
+
   /**
    * INTERNAL API
    */
   private[akka] case object DropBuffer extends OverflowStrategy
+
   /**
    * INTERNAL API
    */
   private[akka] case object DropNew extends OverflowStrategy
+
   /**
    * INTERNAL API
    */
   private[akka] case object Backpressure extends OverflowStrategy
+
   /**
    * INTERNAL API
    */
   private[akka] case object Fail extends OverflowStrategy
+
   /**
    * INTERNAL API
    */
@@ -50,6 +59,7 @@ private[akka] object OverflowStrategies {
 }
 
 object OverflowStrategy {
+
   /**
    * If the buffer is full when a new element arrives, drops the oldest element from the buffer to make space for
    * the new element.
@@ -85,6 +95,7 @@ object OverflowStrategy {
 }
 
 object DelayOverflowStrategy {
+
   /**
    * If the buffer is full when a new element is available this strategy send next element downstream without waiting
    */

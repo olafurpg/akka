@@ -17,5 +17,4 @@ trait CurrentPersistenceIdsQuery extends ReadJournal {
    * actors that are created after the query is completed are not included in the stream.
    */
   def currentPersistenceIds(): Source[String, NotUsed]
-
 }

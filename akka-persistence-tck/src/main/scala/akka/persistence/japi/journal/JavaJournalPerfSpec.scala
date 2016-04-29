@@ -43,8 +43,10 @@ import org.scalatest.Informer
  */
 class JavaJournalPerfSpec(config: Config) extends JournalPerfSpec(config) {
   override protected def info: Informer = new Informer {
-    override def apply(message: String, payload: Option[Any]): Unit = System.out.println(message)
+    override def apply(message: String, payload: Option[Any]): Unit =
+      System.out.println(message)
   }
 
-  override protected def supportsRejectingNonSerializableObjects: CapabilityFlag = CapabilityFlag.on
+  override protected def supportsRejectingNonSerializableObjects: CapabilityFlag =
+    CapabilityFlag.on
 }

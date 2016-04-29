@@ -1,7 +1,6 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.actor
 
 import scala.concurrent.duration._
@@ -68,11 +67,13 @@ import akka.util.Helpers.ConfigOps
  */
 object ActorDSL extends dsl.Inbox with dsl.Creators {
 
-  protected object Extension extends ExtensionId[Extension] with ExtensionIdProvider {
+  protected object Extension
+      extends ExtensionId[Extension] with ExtensionIdProvider {
 
     override def lookup = Extension
 
-    override def createExtension(system: ExtendedActorSystem): Extension = new Extension(system)
+    override def createExtension(system: ExtendedActorSystem): Extension =
+      new Extension(system)
 
     /**
      * Java API: retrieve the ActorDSL extension for the given system.
@@ -80,16 +81,19 @@ object ActorDSL extends dsl.Inbox with dsl.Creators {
     override def get(system: ActorSystem): Extension = super.get(system)
   }
 
-  protected class Extension(val system: ExtendedActorSystem) extends akka.actor.Extension with InboxExtension {
+  protected class Extension(val system: ExtendedActorSystem)
+      extends akka.actor.Extension with InboxExtension {
 
-    private case class MkChild(props: Props, name: String) extends NoSerializationVerificationNeeded
-    private val boss = system.systemActorOf(Props(
-      new Actor {
+    private case class MkChild(props: Props, name: String)
+        extends NoSerializationVerificationNeeded
+    private val boss = system
+      .systemActorOf(Props(new Actor {
         def receive = {
           case MkChild(props, name) ⇒ sender() ! context.actorOf(props, name)
           case any                  ⇒ sender() ! any
         }
-      }), "dsl").asInstanceOf[RepointableActorRef]
+      }), "dsl")
+      .asInstanceOf[RepointableActorRef]
 
     lazy val config = system.settings.config.getConfig("akka.actor.dsl")
 
@@ -97,13 +101,16 @@ object ActorDSL extends dsl.Inbox with dsl.Creators {
 
     def mkChild(p: Props, name: String): ActorRef =
       if (boss.isStarted)
-        boss.underlying.asInstanceOf[ActorCell].attachChild(p, name, systemService = true)
+        boss.underlying
+          .asInstanceOf[ActorCell]
+          .attachChild(p, name, systemService = true)
       else {
         implicit val timeout = system.settings.CreationTimeout
-        Await.result(boss ? MkChild(p, name), timeout.duration).asInstanceOf[ActorRef]
+        Await
+          .result(boss ? MkChild(p, name), timeout.duration)
+          .asInstanceOf[ActorRef]
       }
   }
-
 }
 
 /**
@@ -144,6 +151,7 @@ abstract class Inbox {
 }
 
 object Inbox {
+
   /**
    * Create a new Inbox within the given system.
    */

@@ -28,6 +28,7 @@ import akka.dispatch.MessageDispatcher
  * implementation in the [[akka.routing.Pool]] configuration.
  */
 trait Resizer {
+
   /**
    * Is it time for resizing. Typically implemented with modulo of nth message, but
    * could be based on elapsed time or something else. The messageCounter starts with 0
@@ -51,25 +52,30 @@ trait Resizer {
    * This method is invoked only in the context of the Router actor.
    */
   def resize(currentRoutees: immutable.IndexedSeq[Routee]): Int
-
 }
 
 object Resizer {
   def fromConfig(parentConfig: Config): Option[Resizer] = {
     val defaultResizerConfig = parentConfig.getConfig("resizer")
-    val metricsBasedResizerConfig = parentConfig.getConfig("optimal-size-exploring-resizer")
-    (defaultResizerConfig.getBoolean("enabled"), metricsBasedResizerConfig.getBoolean("enabled")) match {
-      case (true, false)  ⇒ Some(DefaultResizer(defaultResizerConfig))
-      case (false, true)  ⇒ Some(OptimalSizeExploringResizer(metricsBasedResizerConfig))
+    val metricsBasedResizerConfig =
+      parentConfig.getConfig("optimal-size-exploring-resizer")
+    (defaultResizerConfig.getBoolean("enabled"),
+     metricsBasedResizerConfig.getBoolean("enabled")) match {
+      case (true, false) ⇒ Some(DefaultResizer(defaultResizerConfig))
+      case (false, true) ⇒
+        Some(OptimalSizeExploringResizer(metricsBasedResizerConfig))
       case (false, false) ⇒ None
       case (true, true) ⇒
-        throw new ResizerInitializationException(s"cannot enable both resizer and optimal-size-exploring-resizer", null)
+        throw new ResizerInitializationException(
+            s"cannot enable both resizer and optimal-size-exploring-resizer",
+            null)
     }
   }
 }
 
 @SerialVersionUID(1L)
-class ResizerInitializationException(message: String, cause: Throwable) extends AkkaException(message, cause)
+class ResizerInitializationException(message: String, cause: Throwable)
+    extends AkkaException(message, cause)
 
 case object DefaultResizer {
 
@@ -78,19 +84,18 @@ case object DefaultResizer {
    */
   def apply(resizerConfig: Config): DefaultResizer =
     DefaultResizer(
-      lowerBound = resizerConfig.getInt("lower-bound"),
-      upperBound = resizerConfig.getInt("upper-bound"),
-      pressureThreshold = resizerConfig.getInt("pressure-threshold"),
-      rampupRate = resizerConfig.getDouble("rampup-rate"),
-      backoffThreshold = resizerConfig.getDouble("backoff-threshold"),
-      backoffRate = resizerConfig.getDouble("backoff-rate"),
-      messagesPerResize = resizerConfig.getInt("messages-per-resize"))
+        lowerBound = resizerConfig.getInt("lower-bound"),
+        upperBound = resizerConfig.getInt("upper-bound"),
+        pressureThreshold = resizerConfig.getInt("pressure-threshold"),
+        rampupRate = resizerConfig.getDouble("rampup-rate"),
+        backoffThreshold = resizerConfig.getDouble("backoff-threshold"),
+        backoffRate = resizerConfig.getDouble("backoff-rate"),
+        messagesPerResize = resizerConfig.getInt("messages-per-resize"))
 
   def fromConfig(resizerConfig: Config): Option[DefaultResizer] =
     if (resizerConfig.getBoolean("resizer.enabled"))
       Some(DefaultResizer(resizerConfig.getConfig("resizer")))
-    else
-      None
+    else None
 }
 
 /**
@@ -125,29 +130,46 @@ case object DefaultResizer {
  * Use 1 to resize before each message.
  */
 @SerialVersionUID(1L)
-case class DefaultResizer(
-  val lowerBound: Int = 1,
-  val upperBound: Int = 10,
-  val pressureThreshold: Int = 1,
-  val rampupRate: Double = 0.2,
-  val backoffThreshold: Double = 0.3,
-  val backoffRate: Double = 0.1,
-  val messagesPerResize: Int = 10) extends Resizer {
+case class DefaultResizer(val lowerBound: Int = 1,
+                          val upperBound: Int = 10,
+                          val pressureThreshold: Int = 1,
+                          val rampupRate: Double = 0.2,
+                          val backoffThreshold: Double = 0.3,
+                          val backoffRate: Double = 0.1,
+                          val messagesPerResize: Int = 10)
+    extends Resizer {
 
   /**
    * Java API constructor for default values except bounds.
    */
-  def this(lower: Int, upper: Int) = this(lowerBound = lower, upperBound = upper)
+  def this(lower: Int, upper: Int) =
+    this(lowerBound = lower, upperBound = upper)
 
-  if (lowerBound < 0) throw new IllegalArgumentException("lowerBound must be >= 0, was: [%s]".format(lowerBound))
-  if (upperBound < 0) throw new IllegalArgumentException("upperBound must be >= 0, was: [%s]".format(upperBound))
-  if (upperBound < lowerBound) throw new IllegalArgumentException("upperBound must be >= lowerBound, was: [%s] < [%s]".format(upperBound, lowerBound))
-  if (rampupRate < 0.0) throw new IllegalArgumentException("rampupRate must be >= 0.0, was [%s]".format(rampupRate))
-  if (backoffThreshold > 1.0) throw new IllegalArgumentException("backoffThreshold must be <= 1.0, was [%s]".format(backoffThreshold))
-  if (backoffRate < 0.0) throw new IllegalArgumentException("backoffRate must be >= 0.0, was [%s]".format(backoffRate))
-  if (messagesPerResize <= 0) throw new IllegalArgumentException("messagesPerResize must be > 0, was [%s]".format(messagesPerResize))
+  if (lowerBound < 0)
+    throw new IllegalArgumentException(
+        "lowerBound must be >= 0, was: [%s]".format(lowerBound))
+  if (upperBound < 0)
+    throw new IllegalArgumentException(
+        "upperBound must be >= 0, was: [%s]".format(upperBound))
+  if (upperBound < lowerBound)
+    throw new IllegalArgumentException(
+        "upperBound must be >= lowerBound, was: [%s] < [%s]".format(
+            upperBound, lowerBound))
+  if (rampupRate < 0.0)
+    throw new IllegalArgumentException(
+        "rampupRate must be >= 0.0, was [%s]".format(rampupRate))
+  if (backoffThreshold > 1.0)
+    throw new IllegalArgumentException(
+        "backoffThreshold must be <= 1.0, was [%s]".format(backoffThreshold))
+  if (backoffRate < 0.0)
+    throw new IllegalArgumentException(
+        "backoffRate must be >= 0.0, was [%s]".format(backoffRate))
+  if (messagesPerResize <= 0)
+    throw new IllegalArgumentException(
+        "messagesPerResize must be > 0, was [%s]".format(messagesPerResize))
 
-  def isTimeForResize(messageCounter: Long): Boolean = (messageCounter % messagesPerResize == 0)
+  def isTimeForResize(messageCounter: Long): Boolean =
+    (messageCounter % messagesPerResize == 0)
 
   override def resize(currentRoutees: immutable.IndexedSeq[Routee]): Int =
     capacity(currentRoutees)
@@ -161,9 +183,9 @@ case class DefaultResizer(
    */
   def capacity(routees: immutable.IndexedSeq[Routee]): Int = {
     val currentSize = routees.size
-    val press = pressure(routees)
-    val delta = filter(press, currentSize)
-    val proposed = currentSize + delta
+    val press       = pressure(routees)
+    val delta       = filter(press, currentSize)
+    val proposed    = currentSize + delta
 
     if (proposed < lowerBound) delta + (lowerBound - proposed)
     else if (proposed > upperBound) delta - (proposed - upperBound)
@@ -193,15 +215,17 @@ case class DefaultResizer(
         a.underlying match {
           case cell: ActorCell ⇒
             pressureThreshold match {
-              case 1          ⇒ cell.mailbox.isScheduled && cell.mailbox.hasMessages
-              case i if i < 1 ⇒ cell.mailbox.isScheduled && cell.currentMessage != null
-              case threshold  ⇒ cell.mailbox.numberOfMessages >= threshold
+              case 1 ⇒ cell.mailbox.isScheduled && cell.mailbox.hasMessages
+              case i if i < 1 ⇒
+                cell.mailbox.isScheduled && cell.currentMessage != null
+              case threshold ⇒ cell.mailbox.numberOfMessages >= threshold
             }
           case cell ⇒
             pressureThreshold match {
-              case 1          ⇒ cell.hasMessages
-              case i if i < 1 ⇒ true // unstarted cells are always busy, for example
-              case threshold  ⇒ cell.numberOfMessages >= threshold
+              case 1 ⇒ cell.hasMessages
+              case i if i < 1 ⇒
+                true // unstarted cells are always busy, for example
+              case threshold ⇒ cell.numberOfMessages >= threshold
             }
         }
       case x ⇒
@@ -217,7 +241,8 @@ case class DefaultResizer(
    * @param capacity current number of routees
    * @return proposed change in the capacity
    */
-  def filter(pressure: Int, capacity: Int): Int = rampup(pressure, capacity) + backoff(pressure, capacity)
+  def filter(pressure: Int, capacity: Int): Int =
+    rampup(pressure, capacity) + backoff(pressure, capacity)
 
   /**
    * Computes a proposed positive (or zero) capacity delta using
@@ -237,7 +262,8 @@ case class DefaultResizer(
    * @return proposed decrease in capacity (as a negative number)
    */
   def backoff(pressure: Int, capacity: Int): Int =
-    if (backoffThreshold > 0.0 && backoffRate > 0.0 && capacity > 0 && pressure.toDouble / capacity < backoffThreshold)
+    if (backoffThreshold > 0.0 && backoffRate > 0.0 && capacity > 0 &&
+        pressure.toDouble / capacity < backoffThreshold)
       math.floor(-1.0 * backoffRate * capacity).toInt
     else 0
 }
@@ -246,19 +272,25 @@ case class DefaultResizer(
  * INTERNAL API
  */
 private[akka] final class ResizablePoolCell(
-  _system: ActorSystemImpl,
-  _ref: InternalActorRef,
-  _routerProps: Props,
-  _routerDispatcher: MessageDispatcher,
-  _routeeProps: Props,
-  _supervisor: InternalActorRef,
-  val pool: Pool)
-  extends RoutedActorCell(_system, _ref, _routerProps, _routerDispatcher, _routeeProps, _supervisor) {
+    _system: ActorSystemImpl,
+    _ref: InternalActorRef,
+    _routerProps: Props,
+    _routerDispatcher: MessageDispatcher,
+    _routeeProps: Props,
+    _supervisor: InternalActorRef,
+    val pool: Pool)
+    extends RoutedActorCell(_system,
+                            _ref,
+                            _routerProps,
+                            _routerDispatcher,
+                            _routeeProps,
+                            _supervisor) {
 
-  require(pool.resizer.isDefined, "RouterConfig must be a Pool with defined resizer")
-  val resizer = pool.resizer.get
+  require(pool.resizer.isDefined,
+          "RouterConfig must be a Pool with defined resizer")
+  val resizer                  = pool.resizer.get
   private val resizeInProgress = new AtomicBoolean
-  private val resizeCounter = new AtomicLong
+  private val resizeCounter    = new AtomicLong
 
   override protected def preSuperStart(): Unit = {
     // initial resize, before message send
@@ -269,7 +301,8 @@ private[akka] final class ResizablePoolCell(
 
   override def sendMessage(envelope: Envelope): Unit = {
     if (!routerConfig.isManagementMessage(envelope.message) &&
-      resizer.isTimeForResize(resizeCounter.getAndIncrement()) && resizeInProgress.compareAndSet(false, true)) {
+        resizer.isTimeForResize(resizeCounter.getAndIncrement()) &&
+        resizeInProgress.compareAndSet(false, true)) {
       super.sendMessage(Envelope(ResizablePoolActor.Resize, self, system))
     }
 
@@ -277,18 +310,21 @@ private[akka] final class ResizablePoolCell(
   }
 
   private[akka] def resize(initial: Boolean): Unit = {
-    if (resizeInProgress.get || initial) try {
-      tryReportMessageCount()
-      val requestedCapacity = resizer.resize(router.routees)
-      if (requestedCapacity > 0) {
-        val newRoutees = Vector.fill(requestedCapacity)(pool.newRoutee(routeeProps, this))
-        addRoutees(newRoutees)
-      } else if (requestedCapacity < 0) {
-        val currentRoutees = router.routees
-        val abandon = currentRoutees.drop(currentRoutees.length + requestedCapacity)
-        removeRoutees(abandon, stopChild = true)
-      }
-    } finally resizeInProgress.set(false)
+    if (resizeInProgress.get || initial)
+      try {
+        tryReportMessageCount()
+        val requestedCapacity = resizer.resize(router.routees)
+        if (requestedCapacity > 0) {
+          val newRoutees =
+            Vector.fill(requestedCapacity)(pool.newRoutee(routeeProps, this))
+          addRoutees(newRoutees)
+        } else if (requestedCapacity < 0) {
+          val currentRoutees = router.routees
+          val abandon =
+            currentRoutees.drop(currentRoutees.length + requestedCapacity)
+          removeRoutees(abandon, stopChild = true)
+        }
+      } finally resizeInProgress.set(false)
   }
 
   /**
@@ -296,11 +332,11 @@ private[akka] final class ResizablePoolCell(
    */
   private def tryReportMessageCount(): Unit = {
     resizer match {
-      case r: OptimalSizeExploringResizer ⇒ r.reportMessageCount(router.routees, resizeCounter.get())
-      case _                              ⇒ //ignore
+      case r: OptimalSizeExploringResizer ⇒
+        r.reportMessageCount(router.routees, resizeCounter.get())
+      case _ ⇒ //ignore
     }
   }
-
 }
 
 /**
@@ -314,18 +350,20 @@ private[akka] object ResizablePoolActor {
  * INTERNAL API
  */
 private[akka] class ResizablePoolActor(supervisorStrategy: SupervisorStrategy)
-  extends RouterPoolActor(supervisorStrategy) {
+    extends RouterPoolActor(supervisorStrategy) {
   import ResizablePoolActor._
 
   val resizerCell = context match {
     case x: ResizablePoolCell ⇒ x
     case _ ⇒
-      throw ActorInitializationException("Resizable router actor can only be used when resizer is defined, not in " + context.getClass)
+      throw ActorInitializationException(
+          "Resizable router actor can only be used when resizer is defined, not in " +
+          context.getClass)
   }
 
-  override def receive = ({
-    case Resize ⇒
-      resizerCell.resize(initial = false)
-  }: Actor.Receive) orElse super.receive
-
+  override def receive =
+    ({
+      case Resize ⇒
+        resizerCell.resize(initial = false)
+    }: Actor.Receive) orElse super.receive
 }

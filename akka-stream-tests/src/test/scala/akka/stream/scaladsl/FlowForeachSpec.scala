@@ -48,11 +48,9 @@ class FlowForeachSpec extends AkkaSpec {
     }
 
     "complete future with failure when function throws" in assertAllStagesStopped {
-      val error = new Exception with NoStackTrace
+      val error  = new Exception with NoStackTrace
       val future = Source.single(1).runForeach(_ ⇒ throw error)
       the[Exception] thrownBy Await.result(future, 3.seconds) should be(error)
     }
-
   }
-
 }

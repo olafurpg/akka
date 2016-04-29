@@ -1,53 +1,65 @@
 /**
  * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
  */
-
 package akka.agent
 
 import scala.concurrent.stm._
-import scala.concurrent.{ ExecutionContext, Future, Promise }
-import akka.util.{ SerializedSuspendableExecutionContext }
+import scala.concurrent.{ExecutionContext, Future, Promise}
+import akka.util.{SerializedSuspendableExecutionContext}
 
 object Agent {
+
   /**
    * Factory method for creating an Agent.
    */
-  def apply[T](initialValue: T)(implicit context: ExecutionContext): Agent[T] = new SecretAgent(initialValue, context)
+  def apply[T](initialValue: T)(implicit context: ExecutionContext): Agent[T] =
+    new SecretAgent(initialValue, context)
 
   /**
    * Java API: Factory method for creating an Agent.
    */
-  def create[T](initialValue: T, context: ExecutionContext): Agent[T] = Agent(initialValue)(context)
+  def create[T](initialValue: T, context: ExecutionContext): Agent[T] =
+    Agent(initialValue)(context)
 
   /**
    * Default agent implementation.
    */
-  private final class SecretAgent[T](initialValue: T, context: ExecutionContext) extends Agent[T] {
-    private val ref = Ref(initialValue)
+  private final class SecretAgent[T](
+      initialValue: T, context: ExecutionContext)
+      extends Agent[T] {
+    private val ref     = Ref(initialValue)
     private val updater = SerializedSuspendableExecutionContext(10)(context)
 
     def get(): T = ref.single.get
 
-    def send(newValue: T): Unit = withinTransaction(new Runnable { def run = ref.single.update(newValue) })
+    def send(newValue: T): Unit =
+      withinTransaction(new Runnable { def run = ref.single.update(newValue) })
 
-    def send(f: T ⇒ T): Unit = withinTransaction(new Runnable { def run = ref.single.transform(f) })
+    def send(f: T ⇒ T): Unit =
+      withinTransaction(new Runnable { def run = ref.single.transform(f) })
 
-    def sendOff(f: T ⇒ T)(implicit ec: ExecutionContext): Unit = withinTransaction(
-      new Runnable {
+    def sendOff(f: T ⇒ T)(implicit ec: ExecutionContext): Unit =
+      withinTransaction(
+          new Runnable {
         def run =
-          try updater.suspend() finally ec.execute(new Runnable { def run = try ref.single.transform(f) finally updater.resume() })
+          try updater.suspend() finally ec.execute(new Runnable {
+            def run = try ref.single.transform(f) finally updater.resume()
+          })
       })
 
-    def alter(newValue: T): Future[T] = doAlter({ ref.single.update(newValue); newValue })
+    def alter(newValue: T): Future[T] =
+      doAlter({ ref.single.update(newValue); newValue })
 
     def alter(f: T ⇒ T): Future[T] = doAlter(ref.single.transformAndGet(f))
 
     def alterOff(f: T ⇒ T)(implicit ec: ExecutionContext): Future[T] = {
       val result = Promise[T]()
-      withinTransaction(new Runnable {
+      withinTransaction(
+          new Runnable {
         def run = {
           updater.suspend()
-          result completeWith Future(try ref.single.transformAndGet(f) finally updater.resume())
+          result completeWith Future(
+              try ref.single.transformAndGet(f) finally updater.resume())
         }
       })
       result.future

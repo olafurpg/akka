@@ -4,13 +4,14 @@
 package akka.contrib.jul
 
 import com.typesafe.config.ConfigFactory
-import akka.actor.{ Actor, ActorLogging, Props }
+import akka.actor.{Actor, ActorLogging, Props}
 import akka.testkit.AkkaSpec
 import java.util.logging
 
 object JavaLoggerSpec {
 
-  val config = ConfigFactory.parseString("""
+  val config =
+    ConfigFactory.parseString("""
     akka {
       loglevel = INFO
       loggers = ["akka.contrib.jul.JavaLogger"]
@@ -30,7 +31,8 @@ class JavaLoggerSpec extends AkkaSpec(JavaLoggerSpec.config) {
 
   val logger = logging.Logger.getLogger("akka://JavaLoggerSpec/user/log")
   logger.setUseParentHandlers(false) // turn off output of test LogRecords
-  logger.addHandler(new logging.Handler {
+  logger.addHandler(
+      new logging.Handler {
     def publish(record: logging.LogRecord) {
       testActor ! record
     }
@@ -39,7 +41,8 @@ class JavaLoggerSpec extends AkkaSpec(JavaLoggerSpec.config) {
     def close() {}
   })
 
-  val producer = system.actorOf(Props[JavaLoggerSpec.LogProducer], name = "log")
+  val producer =
+    system.actorOf(Props[JavaLoggerSpec.LogProducer], name = "log")
 
   "JavaLogger" must {
 
@@ -54,7 +57,8 @@ class JavaLoggerSpec extends AkkaSpec(JavaLoggerSpec.config) {
       record.getLevel should ===(logging.Level.SEVERE)
       record.getMessage should ===("Simulated error")
       record.getThrown.isInstanceOf[RuntimeException] should ===(true)
-      record.getSourceClassName should ===(classOf[JavaLoggerSpec.LogProducer].getName)
+      record.getSourceClassName should ===(
+          classOf[JavaLoggerSpec.LogProducer].getName)
       record.getSourceMethodName should ===(null)
     }
 
@@ -69,9 +73,9 @@ class JavaLoggerSpec extends AkkaSpec(JavaLoggerSpec.config) {
       record.getLevel should ===(logging.Level.INFO)
       record.getMessage should ===("3 is the magic number")
       record.getThrown should ===(null)
-      record.getSourceClassName should ===(classOf[JavaLoggerSpec.LogProducer].getName)
+      record.getSourceClassName should ===(
+          classOf[JavaLoggerSpec.LogProducer].getName)
       record.getSourceMethodName should ===(null)
     }
   }
-
 }

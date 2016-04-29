@@ -39,5 +39,4 @@ private[akka] trait FastMerge { self: ReplicatedData ⇒
     ancestor = null
     this
   }
-
 }

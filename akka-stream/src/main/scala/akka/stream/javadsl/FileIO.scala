@@ -4,9 +4,9 @@
 package akka.stream.javadsl
 
 import java.io.File
-import java.nio.file.{ Path, StandardOpenOption }
+import java.nio.file.{Path, StandardOpenOption}
 import java.util
-import akka.stream.{ scaladsl, javadsl }
+import akka.stream.{scaladsl, javadsl}
 import akka.stream.IOResult
 import akka.util.ByteString
 import java.util.concurrent.CompletionStage
@@ -31,7 +31,8 @@ object FileIO {
    * @param f The file to write to
    */
   @deprecated("Use `toPath` instead.", "2.4.5")
-  def toFile(f: File): javadsl.Sink[ByteString, CompletionStage[IOResult]] = toPath(f.toPath)
+  def toFile(f: File): javadsl.Sink[ByteString, CompletionStage[IOResult]] =
+    toPath(f.toPath)
 
   /**
    * Creates a Sink that writes incoming [[ByteString]] elements to the given file.
@@ -61,8 +62,9 @@ object FileIO {
    * @param options File open options
    */
   @deprecated("Use `toPath` instead.", "2.4.5")
-  def toFile(f: File, options: util.Set[StandardOpenOption]): javadsl.Sink[ByteString, CompletionStage[IOResult]] =
-    toPath(f.toPath)
+  def toFile(f: File,
+             options: util.Set[StandardOpenOption]
+  ): javadsl.Sink[ByteString, CompletionStage[IOResult]] = toPath(f.toPath)
 
   /**
    * Creates a Sink that writes incoming [[ByteString]] elements to the given file.
@@ -76,8 +78,11 @@ object FileIO {
    * @param f The file to write to
    * @param options File open options
    */
-  def toPath(f: Path, options: util.Set[StandardOpenOption]): javadsl.Sink[ByteString, CompletionStage[IOResult]] =
-    new Sink(scaladsl.FileIO.toPath(f, options.asScala.toSet).toCompletionStage())
+  def toPath(f: Path,
+             options: util.Set[StandardOpenOption]
+  ): javadsl.Sink[ByteString, CompletionStage[IOResult]] =
+    new Sink(
+        scaladsl.FileIO.toPath(f, options.asScala.toSet).toCompletionStage())
 
   /**
    * Creates a Source from a files contents.
@@ -91,7 +96,9 @@ object FileIO {
    * and a possible exception if IO operation was not completed successfully.
    */
   @deprecated("Use `fromPath` instead.", "2.4.5")
-  def fromFile(f: File): javadsl.Source[ByteString, CompletionStage[IOResult]] = fromPath(f.toPath)
+  def fromFile(
+      f: File): javadsl.Source[ByteString, CompletionStage[IOResult]] =
+    fromPath(f.toPath)
 
   /**
    * Creates a Source from a files contents.
@@ -104,7 +111,9 @@ object FileIO {
    * It materializes a [[java.util.concurrent.CompletionStage]] of [[IOResult]] containing the number of bytes read from the source file upon completion,
    * and a possible exception if IO operation was not completed successfully.
    */
-  def fromPath(f: Path): javadsl.Source[ByteString, CompletionStage[IOResult]] = fromPath(f, 8192)
+  def fromPath(
+      f: Path): javadsl.Source[ByteString, CompletionStage[IOResult]] =
+    fromPath(f, 8192)
 
   /**
    * Creates a synchronous Source from a files contents.
@@ -118,7 +127,9 @@ object FileIO {
    * and a possible exception if IO operation was not completed successfully.
    */
   @deprecated("Use `fromPath` instead.", "2.4.5")
-  def fromFile(f: File, chunkSize: Int): javadsl.Source[ByteString, CompletionStage[IOResult]] =
+  def fromFile(
+      f: File,
+      chunkSize: Int): javadsl.Source[ByteString, CompletionStage[IOResult]] =
     fromPath(f.toPath, chunkSize)
 
   /**
@@ -132,6 +143,8 @@ object FileIO {
    * It materializes a [[java.util.concurrent.CompletionStage]] of [[IOResult]] containing the number of bytes read from the source file upon completion,
    * and a possible exception if IO operation was not completed successfully.
    */
-  def fromPath(f: Path, chunkSize: Int): javadsl.Source[ByteString, CompletionStage[IOResult]] =
+  def fromPath(
+      f: Path,
+      chunkSize: Int): javadsl.Source[ByteString, CompletionStage[IOResult]] =
     new Source(scaladsl.FileIO.fromPath(f, chunkSize).toCompletionStage())
 }

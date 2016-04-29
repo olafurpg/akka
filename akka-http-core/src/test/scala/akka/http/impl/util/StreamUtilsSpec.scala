@@ -4,7 +4,7 @@
 package akka.http.impl.util
 
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.scaladsl.{Sink, Source}
 import akka.testkit.AkkaSpec
 
 import scala.concurrent.Await
@@ -17,7 +17,8 @@ class StreamUtilsSpec extends AkkaSpec {
   "captureTermination" should {
     "signal completion" when {
       "upstream terminates" in {
-        val (newSource, whenCompleted) = StreamUtils.captureTermination(Source(List(1, 2, 3)))
+        val (newSource, whenCompleted) =
+          StreamUtils.captureTermination(Source(List(1, 2, 3)))
 
         newSource.runWith(Sink.ignore)
 
@@ -26,7 +27,8 @@ class StreamUtilsSpec extends AkkaSpec {
 
       "upstream fails" in {
         val ex = new RuntimeException("ex")
-        val (newSource, whenCompleted) = StreamUtils.captureTermination(Source.failed[Int](ex))
+        val (newSource, whenCompleted) =
+          StreamUtils.captureTermination(Source.failed[Int](ex))
         intercept[RuntimeException] {
           Await.result(newSource.runWith(Sink.head), 3.second)
         } should be theSameInstanceAs ex
@@ -35,7 +37,8 @@ class StreamUtilsSpec extends AkkaSpec {
       }
 
       "downstream cancels" in {
-        val (newSource, whenCompleted) = StreamUtils.captureTermination(Source(List(1, 2, 3)))
+        val (newSource, whenCompleted) =
+          StreamUtils.captureTermination(Source(List(1, 2, 3)))
 
         newSource.runWith(Sink.head)
 
@@ -43,5 +46,4 @@ class StreamUtilsSpec extends AkkaSpec {
       }
     }
   }
-
 }

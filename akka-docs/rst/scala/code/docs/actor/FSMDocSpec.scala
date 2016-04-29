@@ -5,7 +5,7 @@ package docs.actor
 
 import language.postfixOps
 
-import akka.testkit.{ AkkaSpec => MyFavoriteTestFrameWorkPlusAkkaTestKit }
+import akka.testkit.{AkkaSpec => MyFavoriteTestFrameWorkPlusAkkaTestKit}
 import akka.util.ByteString
 
 //#test-code
@@ -28,12 +28,13 @@ object FSMDocSpec {
   //#simple-state
   // states
   sealed trait State
-  case object Idle extends State
+  case object Idle   extends State
   case object Active extends State
 
   sealed trait Data
   case object Uninitialized extends Data
-  final case class Todo(target: ActorRef, queue: immutable.Seq[Any]) extends Data
+  final case class Todo(target: ActorRef, queue: immutable.Seq[Any])
+      extends Data
   //#simple-state
   //#test-code
 }
@@ -43,7 +44,7 @@ class FSMDocSpec extends MyFavoriteTestFrameWorkPlusAkkaTestKit {
 
   //#fsm-code-elided
   //#simple-imports
-  import akka.actor.{ ActorRef, FSM }
+  import akka.actor.{ActorRef, FSM}
   import scala.concurrent.duration._
   //#simple-imports
   //#simple-fsm
@@ -83,7 +84,8 @@ class FSMDocSpec extends MyFavoriteTestFrameWorkPlusAkkaTestKit {
         goto(Active) using t.copy(queue = v :+ obj)
 
       case Event(e, s) =>
-        log.warning("received unhandled request {} in state {}/{}", e, stateName, s)
+        log.warning(
+            "received unhandled request {} in state {}/{}", e, stateName, s)
         stay
     }
     //#unhandled-elided
@@ -94,11 +96,11 @@ class FSMDocSpec extends MyFavoriteTestFrameWorkPlusAkkaTestKit {
   //#simple-fsm
   object DemoCode {
     trait StateType
-    case object SomeState extends StateType
+    case object SomeState  extends StateType
     case object Processing extends StateType
-    case object Error extends StateType
-    case object Idle extends StateType
-    case object Active extends StateType
+    case object Error      extends StateType
+    case object Idle       extends StateType
+    case object Active     extends StateType
 
     class Dummy extends FSM[StateType, Int] {
       class X
@@ -115,9 +117,10 @@ class FSMDocSpec extends MyFavoriteTestFrameWorkPlusAkkaTestKit {
 
       //#transition-syntax
       onTransition {
-        case Idle -> Active => setTimer("timeout", Tick, 1 second, repeat = true)
-        case Active -> _    => cancelTimer("timeout")
-        case x -> Idle      => log.info("entering Idle from " + x)
+        case Idle -> Active =>
+          setTimer("timeout", Tick, 1 second, repeat = true)
+        case Active -> _ => cancelTimer("timeout")
+        case x -> Idle   => log.info("entering Idle from " + x)
       }
       //#transition-syntax
 
@@ -138,17 +141,20 @@ class FSMDocSpec extends MyFavoriteTestFrameWorkPlusAkkaTestKit {
       //#stop-syntax
 
       //#transform-syntax
-      when(SomeState)(transform {
+      when(SomeState)(
+          transform {
         case Event(bytes: ByteString, read) => stay using (read + bytes.length)
       } using {
-        case s @ FSM.State(state, read, timeout, stopReason, replies) if read > 1000 =>
+        case s @ FSM.State(state, read, timeout, stopReason, replies)
+            if read > 1000 =>
           goto(Processing)
       })
       //#transform-syntax
 
       //#alt-transform-syntax
       val processingTrigger: PartialFunction[State, State] = {
-        case s @ FSM.State(state, read, timeout, stopReason, replies) if read > 1000 =>
+        case s @ FSM.State(state, read, timeout, stopReason, replies)
+            if read > 1000 =>
           goto(Processing)
       }
 
@@ -175,7 +181,6 @@ class FSMDocSpec extends MyFavoriteTestFrameWorkPlusAkkaTestKit {
           goto(Error)
       }
       //#unhandled-syntax
-
     }
 
     //#logging-fsm
@@ -186,14 +191,13 @@ class FSMDocSpec extends MyFavoriteTestFrameWorkPlusAkkaTestKit {
       onTermination {
         case StopEvent(FSM.Failure(_), state, data) =>
           val lastEvents = getLog.mkString("\n\t")
-          log.warning("Failure in state " + state + " with data " + data + "\n" +
-            "Events leading up to this point:\n\t" + lastEvents)
+          log.warning("Failure in state " + state + " with data " + data +
+              "\n" + "Events leading up to this point:\n\t" + lastEvents)
       }
       // ...
       //#body-elided
     }
     //#logging-fsm
-
   }
   //#fsm-code-elided
 

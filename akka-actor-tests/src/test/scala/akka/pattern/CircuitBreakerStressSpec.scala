@@ -17,20 +17,23 @@ import java.util.concurrent.TimeoutException
 object CircuitBreakerStressSpec {
   case object JobDone
   case object GetResult
-  case class Result(doneCount: Int, timeoutCount: Int, failCount: Int, circCount: Int)
+  case class Result(
+      doneCount: Int, timeoutCount: Int, failCount: Int, circCount: Int)
 
-  class StressActor(breaker: CircuitBreaker) extends Actor with ActorLogging with PipeToSupport {
+  class StressActor(breaker: CircuitBreaker)
+      extends Actor with ActorLogging with PipeToSupport {
     import context.dispatcher
 
-    private var doneCount = 0
+    private var doneCount    = 0
     private var timeoutCount = 0
-    private var failCount = 0
-    private var circCount = 0
+    private var failCount    = 0
+    private var circCount    = 0
 
     private def job = {
       val promise = Promise[JobDone.type]()
 
-      context.system.scheduler.scheduleOnce(ThreadLocalRandom.current.nextInt(300).millisecond) {
+      context.system.scheduler
+        .scheduleOnce(ThreadLocalRandom.current.nextInt(300).millisecond) {
         promise.success(JobDone)
       }
 
@@ -63,7 +66,8 @@ class CircuitBreakerStressSpec extends AkkaSpec with ImplicitSender {
   muteDeadLetters(classOf[AnyRef])(system)
 
   "A CircuitBreaker" in {
-    val breaker = CircuitBreaker(system.scheduler, 5, 200.millisecond, 200.seconds)
+    val breaker =
+      CircuitBreaker(system.scheduler, 5, 200.millisecond, 200.seconds)
     val stressActors = Vector.fill(3) {
       system.actorOf(Props(classOf[StressActor], breaker))
     }
@@ -77,7 +81,5 @@ class CircuitBreakerStressSpec extends AkkaSpec with ImplicitSender {
       val result = expectMsgType[Result]
       result.failCount should be(0)
     }
-
   }
-
 }
