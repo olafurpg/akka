@@ -11,9 +11,9 @@ import akka.event.BusLogging
 class FusingSpec extends StreamSpec {
 
   final val Debug = false
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
-  def graph(async: Boolean) =
+  def graph(async: Boolean): _root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed] =
     Source.unfold(1)(x ⇒ Some(x → x)).filter(_ % 2 == 1)
       .alsoTo(Flow[Int].fold(0)(_ + _).to(Sink.head.named("otherSink")).addAttributes(if (async) Attributes.asyncBoundary else Attributes.none))
       .via(Flow[Int].fold(1)(_ + _).named("mainSink"))

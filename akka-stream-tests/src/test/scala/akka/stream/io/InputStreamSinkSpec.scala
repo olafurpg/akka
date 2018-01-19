@@ -28,25 +28,25 @@ import scala.util.control.NoStackTrace
 class InputStreamSinkSpec extends StreamSpec(UnboundedMailboxConfig) {
   import system.dispatcher
 
-  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  val timeout = 300.milliseconds
+  val timeout: _root_.scala.concurrent.duration.FiniteDuration = 300.milliseconds
   def randomByteString(size: Int): ByteString = {
     val a = new Array[Byte](size)
     ThreadLocalRandom.current().nextBytes(a)
     ByteString(a)
   }
 
-  val byteString = randomByteString(3)
-  val byteArray = byteString.toArray
+  val byteString: _root_.akka.util.ByteString = randomByteString(3)
+  val byteArray: _root_.scala.Array[_root_.scala.Byte] = byteString.toArray
 
   def readN(is: InputStream, n: Int): (Int, ByteString) = {
     val buf = new Array[Byte](n)
     val r = is.read(buf)
     (r, ByteString.fromArray(buf, 0, r))
   }
-  def testSink(probe: TestProbe) = TestSinkStage(new InputStreamSinkStage(timeout), probe)
+  def testSink(probe: TestProbe): _root_.akka.stream.scaladsl.Sink[_root_.akka.util.ByteString, _root_.java.io.InputStream] = TestSinkStage(new InputStreamSinkStage(timeout), probe)
 
   "InputStreamSink" must {
     "read bytes from InputStream" in assertAllStagesStopped {

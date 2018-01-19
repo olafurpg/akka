@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 class FlowScanAsyncSpec extends StreamSpec {
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
-  implicit val executionContext = materializer.executionContext
+  implicit val executionContext: _root_.scala.concurrent.ExecutionContextExecutor = materializer.executionContext
 
   "A ScanAsync" must {
 

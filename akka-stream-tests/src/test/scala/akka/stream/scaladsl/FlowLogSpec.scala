@@ -23,7 +23,7 @@ class FlowLogSpec extends StreamSpec("""
 
   implicit val mat: Materializer = ActorMaterializer()
 
-  val logProbe = {
+  val logProbe: _root_.akka.testkit.TestProbe = {
     val p = TestProbe()
     system.eventStream.subscribe(p.ref, classOf[Logging.LogEvent])
     p
@@ -69,8 +69,8 @@ class FlowLogSpec extends StreamSpec("""
 
         val debugging: javadsl.Flow[Integer, Integer, NotUsed] = javadsl.Flow.of(classOf[Integer])
           .log("log-1")
-          .log("log-2", new akka.japi.function.Function[Integer, Integer] { def apply(i: Integer) = i })
-          .log("log-3", new akka.japi.function.Function[Integer, Integer] { def apply(i: Integer) = i }, log)
+          .log("log-2", new akka.japi.function.Function[Integer, Integer] { def apply(i: Integer): _root_.java.lang.Integer = i })
+          .log("log-3", new akka.japi.function.Function[Integer, Integer] { def apply(i: Integer): _root_.java.lang.Integer = i }, log)
           .log("log-4", log)
 
         javadsl.Source.single[Integer](1).via(debugging).runWith(javadsl.Sink.ignore(), mat)
@@ -163,8 +163,8 @@ class FlowLogSpec extends StreamSpec("""
 
         javadsl.Source.single[Integer](1)
           .log("log-1")
-          .log("log-2", new akka.japi.function.Function[Integer, Integer] { def apply(i: Integer) = i })
-          .log("log-3", new akka.japi.function.Function[Integer, Integer] { def apply(i: Integer) = i }, log)
+          .log("log-2", new akka.japi.function.Function[Integer, Integer] { def apply(i: Integer): _root_.java.lang.Integer = i })
+          .log("log-3", new akka.japi.function.Function[Integer, Integer] { def apply(i: Integer): _root_.java.lang.Integer = i }, log)
           .log("log-4", log)
           .runWith(javadsl.Sink.ignore(), mat)
 

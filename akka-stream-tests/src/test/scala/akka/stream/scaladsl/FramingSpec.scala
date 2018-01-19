@@ -20,8 +20,8 @@ import scala.util.Random
 
 class FramingSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system)
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   class Rechunker extends GraphStage[FlowShape[ByteString, ByteString]] {
 
@@ -69,9 +69,9 @@ class FramingSpec extends StreamSpec {
       }
   }
 
-  val rechunk = Flow[ByteString].via(new Rechunker).named("rechunker")
+  val rechunk: _root_.akka.stream.scaladsl.Flow[_root_.akka.util.ByteString, _root_.akka.util.ByteString, _root_.akka.NotUsed] = Flow[ByteString].via(new Rechunker).named("rechunker")
 
-  override def expectedTestDuration = 2.minutes
+  override def expectedTestDuration: _root_.scala.concurrent.duration.FiniteDuration = 2.minutes
 
   "Delimiter bytes based framing" must {
 

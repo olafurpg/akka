@@ -11,7 +11,7 @@ import akka.testkit.TimingTest
 
 class TickSourceSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A Flow based on tick publisher" must {
     "produce ticks" taggedAs TimingTest in assertAllStagesStopped {

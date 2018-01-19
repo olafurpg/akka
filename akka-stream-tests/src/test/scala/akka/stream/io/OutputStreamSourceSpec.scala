@@ -30,17 +30,17 @@ class OutputStreamSourceSpec extends StreamSpec(UnboundedMailboxConfig) {
 
   import system.dispatcher
 
-  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  val timeout = 3.seconds
-  val bytesArray = Array.fill[Byte](3)(Random.nextInt(1024).asInstanceOf[Byte])
-  val byteString = ByteString(bytesArray)
+  val timeout: _root_.scala.concurrent.duration.FiniteDuration = 3.seconds
+  val bytesArray: _root_.scala.Array[_root_.scala.Byte] = Array.fill[Byte](3)(Random.nextInt(1024).asInstanceOf[Byte])
+  val byteString: _root_.akka.util.ByteString = ByteString(bytesArray)
 
-  def expectTimeout[T](f: Future[T], timeout: Duration) =
+  def expectTimeout[T](f: Future[T], timeout: Duration): _root_.org.scalatest.`package`.Assertion =
     the[Exception] thrownBy Await.result(f, timeout) shouldBe a[TimeoutException]
 
-  def expectSuccess[T](f: Future[T], value: T) =
+  def expectSuccess[T](f: Future[T], value: T): _root_.org.scalatest.`package`.Assertion =
     Await.result(f, remainingOrDefault) should be(value)
 
   def assertNoBlockedThreads(): Unit = {

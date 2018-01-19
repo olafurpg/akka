@@ -16,7 +16,7 @@ class GraphMatValueSpec extends StreamSpec {
 
   import GraphDSL.Implicits._
 
-  val foldSink = Sink.fold[Int, Int](0)(_ + _)
+  val foldSink: _root_.akka.stream.scaladsl.Sink[_root_.scala.Int, _root_.scala.concurrent.Future[_root_.scala.Int]] = Sink.fold[Int, Int](0)(_ + _)
 
   "A Graph with materialized value" must {
 

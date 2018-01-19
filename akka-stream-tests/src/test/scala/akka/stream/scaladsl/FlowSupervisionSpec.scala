@@ -17,11 +17,11 @@ import akka.NotUsed
 class FlowSupervisionSpec extends StreamSpec {
   import ActorAttributes.supervisionStrategy
 
-  implicit val materializer = ActorMaterializer()(system)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()(system)
 
-  val exc = new RuntimeException("simulated exc") with NoStackTrace
+  val exc: _root_.scala.`package`.RuntimeException with _root_.scala.util.control.NoStackTrace {} = new RuntimeException("simulated exc") with NoStackTrace
 
-  val failingMap = Flow[Int].map(n ⇒ if (n == 3) throw exc else n)
+  val failingMap: _root_.akka.stream.scaladsl.Flow[_root_.scala.Int, _root_.scala.Int, _root_.akka.NotUsed] = Flow[Int].map(n ⇒ if (n == 3) throw exc else n)
 
   def run(f: Flow[Int, Int, NotUsed]): immutable.Seq[Int] =
     Await.result(Source((1 to 5).toSeq ++ (1 to 5)).via(f).limit(1000).runWith(Sink.seq), 3.seconds)

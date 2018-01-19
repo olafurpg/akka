@@ -13,7 +13,7 @@ class GraphMergePrioritizedSpec extends TwoStreamsSetup {
   override type Outputs = Int
 
   override def fixture(b: GraphDSL.Builder[_]): Fixture = new Fixture(b) {
-    val mergePrioritized = b add MergePrioritized[Outputs](Seq(2, 8))
+    val mergePrioritized: _root_.akka.stream.UniformFanInShape[GraphMergePrioritizedSpec.this.Outputs, GraphMergePrioritizedSpec.this.Outputs] = b add MergePrioritized[Outputs](Seq(2, 8))
 
     override def left: Inlet[Outputs] = mergePrioritized.in(0)
     override def right: Inlet[Outputs] = mergePrioritized.in(1)

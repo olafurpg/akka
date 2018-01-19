@@ -14,12 +14,12 @@ import scala.collection.immutable
 
 class FlowJoinSpec extends StreamSpec(ConfigFactory.parseString("akka.loglevel=INFO")) {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 16)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  implicit val defaultPatience =
+  implicit val defaultPatience: FlowJoinSpec.this.PatienceConfig =
     PatienceConfig(timeout = Span(2, Seconds), interval = Span(200, Millis))
 
   "A Flow using join" must {

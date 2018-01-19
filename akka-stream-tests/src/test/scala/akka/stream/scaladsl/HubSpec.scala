@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 
 class HubSpec extends StreamSpec {
 
-  implicit val mat = ActorMaterializer()
+  implicit val mat: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "MergeHub" must {
 

@@ -18,7 +18,7 @@ object ActorRefBackpressureSinkSpec {
   val ackMessage = "ack"
 
   class Fw(ref: ActorRef) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case `initMessage` ⇒
         sender() ! ackMessage
         ref forward initMessage
@@ -35,7 +35,7 @@ object ActorRefBackpressureSinkSpec {
   class Fw2(ref: ActorRef) extends Actor {
     var actorRef: ActorRef = Actor.noSender
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case TriggerAckMessage ⇒
         actorRef ! ackMessage
       case msg ⇒
@@ -48,9 +48,9 @@ object ActorRefBackpressureSinkSpec {
 
 class ActorRefBackpressureSinkSpec extends StreamSpec {
   import ActorRefBackpressureSinkSpec._
-  implicit val mat = ActorMaterializer()
+  implicit val mat: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
-  def createActor[T](c: Class[T]) =
+  def createActor[T](c: Class[T]): _root_.akka.actor.ActorRef =
     system.actorOf(Props(c, testActor).withDispatcher("akka.test.stream-dispatcher"))
 
   "An ActorRefBackpressureSink" must {

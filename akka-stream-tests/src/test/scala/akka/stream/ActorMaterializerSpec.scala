@@ -98,7 +98,7 @@ class ActorMaterializerSpec extends StreamSpec with ImplicitSender {
 object ActorMaterializerSpec {
   class ActorWithMaterializer(p: TestProbe) extends Actor {
     private val settings: ActorMaterializerSettings = ActorMaterializerSettings(context.system).withDispatcher("akka.test.stream-dispatcher")
-    implicit val mat = ActorMaterializer(settings)(context)
+    implicit val mat: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)(context)
 
     Source.repeat("hello")
       .alsoTo(Flow[String].take(1).to(Sink.actorRef(p.ref, "one")))
@@ -106,6 +106,6 @@ object ActorMaterializerSpec {
         p.ref ! signal
       }))
 
-    def receive = Actor.emptyBehavior
+    def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
   }
 }

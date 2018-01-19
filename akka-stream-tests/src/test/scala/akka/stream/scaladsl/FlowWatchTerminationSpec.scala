@@ -15,9 +15,9 @@ import scala.concurrent.duration._
 
 class FlowWatchTerminationSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "A WatchTermination" must {
 

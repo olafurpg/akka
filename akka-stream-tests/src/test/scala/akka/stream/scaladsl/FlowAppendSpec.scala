@@ -12,8 +12,8 @@ import org.scalatest.Matchers
 
 class FlowAppendSpec extends StreamSpec with River {
 
-  val settings = ActorMaterializerSettings(system)
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "Flow" should {
     "append Flow" in riverOf[String] { subscriber ⇒
@@ -45,10 +45,10 @@ class FlowAppendSpec extends StreamSpec with River {
 
 trait River { self: Matchers ⇒
 
-  val elements = 1 to 10
-  val otherFlow = Flow[Int].map(_.toString)
+  val elements: _root_.scala.collection.immutable.Range.Inclusive = 1 to 10
+  val otherFlow: _root_.akka.stream.scaladsl.Flow[_root_.scala.Int, _root_.java.lang.String, _root_.akka.NotUsed] = Flow[Int].map(_.toString)
 
-  def riverOf[T](flowConstructor: Subscriber[T] ⇒ Unit)(implicit system: ActorSystem) = {
+  def riverOf[T](flowConstructor: Subscriber[T] ⇒ Unit)(implicit system: ActorSystem): _root_.akka.stream.testkit.TestSubscriber.ManualProbe#Self = {
     val subscriber = TestSubscriber.manualProbe[T]()
 
     flowConstructor(subscriber)

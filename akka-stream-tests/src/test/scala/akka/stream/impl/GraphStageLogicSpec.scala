@@ -19,13 +19,13 @@ import scala.concurrent.duration.Duration
 
 class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with ScalaFutures {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   object emit1234 extends GraphStage[FlowShape[Int, Int]] {
-    val in = Inlet[Int]("in")
-    val out = Outlet[Int]("out")
-    override val shape = FlowShape(in, out)
-    override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
+    val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out")
+    override val shape: _root_.akka.stream.FlowShape[_root_.scala.Int, _root_.scala.Int] = FlowShape(in, out)
+    override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic = new GraphStageLogic(shape) {
       setHandler(in, eagerTerminateInput)
       setHandler(out, eagerTerminateOutput)
       override def preStart(): Unit = {
@@ -36,10 +36,10 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
   }
 
   class SubstreamEmit extends GraphStage[SourceShape[Source[Int, NotUsed]]] {
-    val out = Outlet[Source[Int, NotUsed]]("out")
-    override val shape = SourceShape(out)
+    val out: _root_.akka.stream.Outlet[_root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed]] = Outlet[Source[Int, NotUsed]]("out")
+    override val shape: _root_.akka.stream.SourceShape[_root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed]] = SourceShape(out)
 
-    override def createLogic(attr: Attributes) = new GraphStageLogic(shape) with OutHandler {
+    override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic with _root_.akka.stream.stage.OutHandler {} = new GraphStageLogic(shape) with OutHandler {
 
       setHandler(out, this)
 
@@ -59,10 +59,10 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
   }
 
   object emit5678 extends GraphStage[FlowShape[Int, Int]] {
-    val in = Inlet[Int]("in")
-    val out = Outlet[Int]("out")
-    override val shape = FlowShape(in, out)
-    override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
+    val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out")
+    override val shape: _root_.akka.stream.FlowShape[_root_.scala.Int, _root_.scala.Int] = FlowShape(in, out)
+    override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic = new GraphStageLogic(shape) {
       setHandler(in, new InHandler {
         override def onPush(): Unit = push(out, grab(in))
         override def onUpstreamFinish(): Unit = {
@@ -78,10 +78,10 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
   }
 
   object passThrough extends GraphStage[FlowShape[Int, Int]] {
-    val in = Inlet[Int]("in")
-    val out = Outlet[Int]("out")
-    override val shape = FlowShape(in, out)
-    override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
+    val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out")
+    override val shape: _root_.akka.stream.FlowShape[_root_.scala.Int, _root_.scala.Int] = FlowShape(in, out)
+    override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic = new GraphStageLogic(shape) {
       setHandler(in, new InHandler {
         override def onPush(): Unit = push(out, grab(in))
         override def onUpstreamFinish(): Unit = complete(out)
@@ -97,8 +97,8 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
   }
 
   object emitEmptyIterable extends GraphStage[SourceShape[Int]] {
-    val out = Outlet[Int]("out")
-    override val shape = SourceShape(out)
+    val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out")
+    override val shape: _root_.akka.stream.SourceShape[_root_.scala.Int] = SourceShape(out)
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
       setHandler(out, new OutHandler {
@@ -109,7 +109,7 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
   }
 
   private case class ReadNEmitN(n: Int) extends GraphStage[FlowShape[Int, Int]] {
-    override val shape = FlowShape(Inlet[Int]("readN.in"), Outlet[Int]("readN.out"))
+    override val shape: _root_.akka.stream.FlowShape[_root_.scala.Int, _root_.scala.Int] = FlowShape(Inlet[Int]("readN.in"), Outlet[Int]("readN.out"))
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
       new GraphStageLogic(shape) {
@@ -120,7 +120,7 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
   }
 
   private case class ReadNEmitRestOnComplete(n: Int) extends GraphStage[FlowShape[Int, Int]] {
-    override val shape = FlowShape(Inlet[Int]("readN.in"), Outlet[Int]("readN.out"))
+    override val shape: _root_.akka.stream.FlowShape[_root_.scala.Int, _root_.scala.Int] = FlowShape(Inlet[Int]("readN.in"), Outlet[Int]("readN.out"))
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
       new GraphStageLogic(shape) {
@@ -182,10 +182,10 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
 
     "invoke lifecycle hooks in the right order" in assertAllStagesStopped {
       val g = new GraphStage[FlowShape[Int, Int]] {
-        val in = Inlet[Int]("in")
-        val out = Outlet[Int]("out")
-        override val shape = FlowShape(in, out)
-        override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
+        val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in")
+        val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out")
+        override val shape: _root_.akka.stream.FlowShape[_root_.scala.Int, _root_.scala.Int] = FlowShape(in, out)
+        override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic = new GraphStageLogic(shape) {
           setHandler(in, eagerTerminateInput)
           setHandler(out, new OutHandler {
             override def onPull(): Unit = {
@@ -205,10 +205,10 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
 
     "not double-terminate a single stage" in new Builder {
       object g extends GraphStage[FlowShape[Int, Int]] {
-        val in = Inlet[Int]("in")
-        val out = Outlet[Int]("out")
-        override val shape = FlowShape(in, out)
-        override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
+        val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in")
+        val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out")
+        override val shape: _root_.akka.stream.FlowShape[_root_.scala.Int, _root_.scala.Int] = FlowShape(in, out)
+        override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic = new GraphStageLogic(shape) {
           setHandler(in, eagerTerminateInput)
           setHandler(out, eagerTerminateOutput)
           override def postStop(): Unit = testActor ! "postStop2"
@@ -238,9 +238,9 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
 
     "not allow push from constructor" in {
       object source extends GraphStage[SourceShape[Int]] {
-        val out = Outlet[Int]("out")
-        override val shape = SourceShape(out)
-        override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
+        val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out")
+        override val shape: _root_.akka.stream.SourceShape[_root_.scala.Int] = SourceShape(out)
+        override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic = new GraphStageLogic(shape) {
           push(out, 1)
         }
       }
@@ -251,9 +251,9 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
 
     "not allow pull from constructor" in {
       object sink extends GraphStage[SinkShape[Int]] {
-        val in = Inlet[Int]("in")
-        override val shape = SinkShape(in)
-        override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
+        val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in")
+        override val shape: _root_.akka.stream.SinkShape[_root_.scala.Int] = SinkShape(in)
+        override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic = new GraphStageLogic(shape) {
           pull(in)
         }
       }
@@ -266,11 +266,11 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
       val ex = intercept[IllegalStateException] {
         Source.maybe[String]
           .via(new GraphStage[FlowShape[String, String]] {
-            val in = Inlet[String]("in")
-            val out = Outlet[String]("out")
+            val in: _root_.akka.stream.Inlet[_root_.scala.Predef.String] = Inlet[String]("in")
+            val out: _root_.akka.stream.Outlet[_root_.scala.Predef.String] = Outlet[String]("out")
             override val shape: FlowShape[String, String] = FlowShape(in, out)
 
-            override def createLogic(inheritedAttributes: Attributes) =
+            override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic =
               new GraphStageLogic(shape) {
                 // ups, we forgot to actually set the handlers
               }
@@ -285,14 +285,14 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
       val ex = intercept[IllegalStateException] {
         Source.maybe[String]
           .via(new GraphStage[FlowShape[String, String]] {
-            val in = Inlet[String]("in")
-            val out = Outlet[String]("out")
+            val in: _root_.akka.stream.Inlet[_root_.scala.Predef.String] = Inlet[String]("in")
+            val out: _root_.akka.stream.Outlet[_root_.scala.Predef.String] = Outlet[String]("out")
             override val shape: FlowShape[String, String] = FlowShape(in, out)
 
-            override def createLogic(inheritedAttributes: Attributes) =
+            override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic =
               new GraphStageLogic(shape) {
                 setHandler(in, new InHandler {
-                  override def onPush() = ???
+                  override def onPush(): _root_.scala.Nothing = ???
                 })
                 // ups we forgot the out handler
               }
@@ -310,14 +310,14 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
       val ex = intercept[IllegalStateException] {
         Source.maybe[String]
           .via(new GraphStage[FlowShape[String, String]] {
-            val in = Inlet[String]("in")
-            val out = Outlet[String]("out")
+            val in: _root_.akka.stream.Inlet[_root_.scala.Predef.String] = Inlet[String]("in")
+            val out: _root_.akka.stream.Outlet[_root_.scala.Predef.String] = Outlet[String]("out")
             override val shape: FlowShape[String, String] = FlowShape(in, out)
 
-            override def createLogic(inheritedAttributes: Attributes) =
+            override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic =
               new GraphStageLogic(shape) {
                 setHandler(in, new InHandler {
-                  override def onPush() = ???
+                  override def onPush(): _root_.scala.Nothing = ???
                 })
                 // ups we forgot the out handler
               }
@@ -332,14 +332,14 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
       val ex = intercept[IllegalStateException] {
         Source.maybe[String].async
           .via(new GraphStage[FlowShape[String, String]] {
-            val in = Inlet[String]("in")
-            val out = Outlet[String]("out")
+            val in: _root_.akka.stream.Inlet[_root_.scala.Predef.String] = Inlet[String]("in")
+            val out: _root_.akka.stream.Outlet[_root_.scala.Predef.String] = Outlet[String]("out")
             override val shape: FlowShape[String, String] = FlowShape(in, out)
 
-            override def createLogic(inheritedAttributes: Attributes) =
+            override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic =
               new GraphStageLogic(shape) {
                 setHandler(in, new InHandler {
-                  override def onPush() = ???
+                  override def onPush(): _root_.scala.Nothing = ???
                 })
                 // ups we forgot the out handler
               }
@@ -354,14 +354,14 @@ class GraphStageLogicSpec extends StreamSpec with GraphInterpreterSpecKit with S
       val ex = intercept[IllegalStateException] {
         Source.maybe[String]
           .via(new GraphStage[FlowShape[String, String]] {
-            val in = Inlet[String]("in")
-            val out = Outlet[String]("out")
+            val in: _root_.akka.stream.Inlet[_root_.scala.Predef.String] = Inlet[String]("in")
+            val out: _root_.akka.stream.Outlet[_root_.scala.Predef.String] = Outlet[String]("out")
             override val shape: FlowShape[String, String] = FlowShape(in, out)
 
-            override def createLogic(inheritedAttributes: Attributes) =
+            override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic =
               new GraphStageLogic(shape) {
                 setHandler(in, new InHandler {
-                  override def onPush() = ???
+                  override def onPush(): _root_.scala.Nothing = ???
                 })
                 // ups we forgot the out handler
               }

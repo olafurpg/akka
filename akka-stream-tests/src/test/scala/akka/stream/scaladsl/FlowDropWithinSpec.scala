@@ -9,7 +9,7 @@ import akka.stream.testkit._
 
 class FlowDropWithinSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A DropWithin" must {
 

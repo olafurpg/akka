@@ -12,8 +12,8 @@ import akka.stream.{ ActorMaterializer, ActorMaterializerSettings }
 import akka.util.ByteString
 
 class CompressionSpec extends StreamSpec {
-  val settings = ActorMaterializerSettings(system)
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   def gzip(s: String): ByteString = new GzipCompressor().compressAndFinish(ByteString(s))
 

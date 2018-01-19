@@ -14,9 +14,9 @@ import scala.util.Random
 import scala.util.control.NoStackTrace
 
 class FlowThrottleSpec extends StreamSpec {
-  implicit val materializer = ActorMaterializer(ActorMaterializerSettings(system).withInputBuffer(1, 1))
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system).withInputBuffer(1, 1))
 
-  def genByteString(length: Int) =
+  def genByteString(length: Int): _root_.akka.util.ByteString =
     ByteString(new Random().shuffle(0 to 255).take(length).map(_.toByte).toArray)
 
   "Throttle for single cost elements" must {

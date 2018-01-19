@@ -10,10 +10,10 @@ import scala.util.control.NoStackTrace
 
 class FlowStatefulMapConcatSpec extends StreamSpec with ScriptedTest {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 16)
-  implicit val materializer = ActorMaterializer(settings)
-  val ex = new Exception("TEST") with NoStackTrace
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
+  val ex: _root_.scala.`package`.Exception with _root_.scala.util.control.NoStackTrace {} = new Exception("TEST") with NoStackTrace
 
   "A StatefulMapConcat" must {
 

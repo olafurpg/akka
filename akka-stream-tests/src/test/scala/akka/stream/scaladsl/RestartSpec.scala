@@ -19,7 +19,7 @@ import scala.util.{ Failure, Success }
 
 class RestartSpec extends StreamSpec(Map("akka.test.single-expect-default" -> "10s")) with DefaultTimeout {
 
-  implicit val mat = ActorMaterializer()
+  implicit val mat: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
   import system.dispatcher
 
   private val shortMinBackoff = 10.millis

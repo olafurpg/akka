@@ -17,9 +17,9 @@ import com.typesafe.config.ConfigFactory
 object AttributesSpec {
 
   class AttributesSource(_initialAttributes: Attributes = Attributes.none) extends GraphStageWithMaterializedValue[SourceShape[Any], Attributes] {
-    val out = Outlet[Any]("out")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Any] = Outlet[Any]("out")
     override protected def initialAttributes: Attributes = _initialAttributes
-    override val shape = SourceShape.of(out)
+    override val shape: _root_.akka.stream.SourceShape[_root_.scala.Any] = SourceShape.of(out)
 
     override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Attributes) = {
       val logic = new GraphStageLogic(shape) {
@@ -35,11 +35,11 @@ object AttributesSpec {
 
   class AttributesFlow(_initialAttributes: Attributes = Attributes.none) extends GraphStageWithMaterializedValue[FlowShape[Any, Any], Attributes] {
 
-    val in = Inlet[Any]("in")
-    val out = Outlet[Any]("out")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Any] = Inlet[Any]("in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Any] = Outlet[Any]("out")
 
     override protected def initialAttributes: Attributes = _initialAttributes
-    override val shape = FlowShape(in, out)
+    override val shape: _root_.akka.stream.FlowShape[_root_.scala.Any, _root_.scala.Any] = FlowShape(in, out)
     override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Attributes) = {
       val logic = new GraphStageLogic(shape) {
 
@@ -55,10 +55,10 @@ object AttributesSpec {
 
   class AttributesSink(_initialAttributes: Attributes = Attributes.none) extends GraphStageWithMaterializedValue[SinkShape[Any], Attributes] {
 
-    val in = Inlet[Any]("in")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Any] = Inlet[Any]("in")
 
     override protected def initialAttributes: Attributes = _initialAttributes
-    override val shape = SinkShape(in)
+    override val shape: _root_.akka.stream.SinkShape[_root_.scala.Any] = SinkShape(in)
     override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Attributes) = {
       val logic = new GraphStageLogic(shape) {
         override def preStart(): Unit = {
@@ -77,8 +77,8 @@ object AttributesSpec {
   }
 
   class ThreadNameSnitchingStage(initialDispatcher: String) extends GraphStage[SourceShape[String]] {
-    val out = Outlet[String]("out")
-    override val shape = SourceShape.of(out)
+    val out: _root_.akka.stream.Outlet[_root_.scala.Predef.String] = Outlet[String]("out")
+    override val shape: _root_.akka.stream.SourceShape[_root_.scala.Predef.String] = SourceShape.of(out)
     override protected def initialAttributes: Attributes = ActorAttributes.dispatcher(initialDispatcher)
     def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
       setHandler(out, new OutHandler {
@@ -109,10 +109,10 @@ class AttributesSpec extends StreamSpec(ConfigFactory.parseString(
 
   import AttributesSpec._
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 16)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "an attributes instance" must {
 

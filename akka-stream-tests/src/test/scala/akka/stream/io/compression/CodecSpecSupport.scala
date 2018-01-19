@@ -12,23 +12,23 @@ import org.scalatest.{ BeforeAndAfterAll, Matchers, Suite }
 
 trait CodecSpecSupport extends Matchers with BeforeAndAfterAll { self: Suite ⇒
 
-  def readAs(string: String, charset: String = "UTF8") = equal(string).matcher[String] compose { (_: ByteString).decodeString(charset) }
-  def hexDump(bytes: ByteString) = bytes.map("%02x".format(_)).mkString
-  def fromHexDump(dump: String) = dump.grouped(2).toArray.map(chars ⇒ Integer.parseInt(new String(chars), 16).toByte)
+  def readAs(string: String, charset: String = "UTF8"): _root_.org.scalatest.matchers.Matcher[_root_.akka.util.ByteString] = equal(string).matcher[String] compose { (_: ByteString).decodeString(charset) }
+  def hexDump(bytes: ByteString): _root_.scala.Predef.String = bytes.map("%02x".format(_)).mkString
+  def fromHexDump(dump: String): _root_.scala.Array[_root_.scala.Byte] = dump.grouped(2).toArray.map(chars ⇒ Integer.parseInt(new String(chars), 16).toByte)
 
-  def printBytes(i: Int, id: String) = {
+  def printBytes(i: Int, id: String): _root_.scala.Int = {
     def byte(i: Int) = (i & 0xFF).toHexString
     println(id + ": " + byte(i) + ":" + byte(i >> 8) + ":" + byte(i >> 16) + ":" + byte(i >> 24))
     i
   }
 
-  lazy val emptyTextBytes = ByteString(emptyText, "UTF8")
-  lazy val smallTextBytes = ByteString(smallText, "UTF8")
-  lazy val largeTextBytes = ByteString(largeText, "UTF8")
+  lazy val emptyTextBytes: _root_.akka.util.ByteString = ByteString(emptyText, "UTF8")
+  lazy val smallTextBytes: _root_.akka.util.ByteString = ByteString(smallText, "UTF8")
+  lazy val largeTextBytes: _root_.akka.util.ByteString = ByteString(largeText, "UTF8")
 
   val emptyText = ""
   val smallText = "Yeah!"
-  val largeText =
+  val largeText: _root_.java.lang.String =
     """Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore
 magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
 gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing
@@ -69,8 +69,8 @@ Consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
 voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus
 est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy e""".replace("\r\n", "\n")
 
-  implicit val system = ActorSystem(getClass.getSimpleName)
-  implicit val materializer = ActorMaterializer()
+  implicit val system: _root_.akka.actor.ActorSystem = ActorSystem(getClass.getSimpleName)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
-  override def afterAll() = TestKit.shutdownActorSystem(system)
+  override def afterAll(): _root_.scala.Unit = TestKit.shutdownActorSystem(system)
 }

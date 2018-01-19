@@ -16,8 +16,8 @@ import scala.concurrent.{ Await, Future, Promise }
 
 class FutureFlattenSourceSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
-  implicit def ec = system.dispatcher
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
+  implicit def ec: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
 
   "Future source" must {
 
@@ -198,7 +198,7 @@ class FutureFlattenSourceSpec extends StreamSpec {
     }
 
     class FailingMatGraphStage extends GraphStageWithMaterializedValue[SourceShape[Int], String] {
-      val out = Outlet[Int]("whatever")
+      val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("whatever")
       override val shape: SourceShape[Int] = SourceShape(out)
       override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, String) = {
         throw TE("INNER_FAILED")

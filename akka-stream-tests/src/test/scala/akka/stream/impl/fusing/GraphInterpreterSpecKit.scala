@@ -178,7 +178,7 @@ object GraphInterpreterSpecKit {
 trait GraphInterpreterSpecKit extends StreamSpec {
 
   import GraphInterpreterSpecKit._
-  val logger = Logging(system, "InterpreterSpecKit")
+  val logger: _root_.akka.event.LoggingAdapter = Logging(system, "InterpreterSpecKit")
 
   abstract class Builder {
     private var _interpreter: GraphInterpreter = _
@@ -190,12 +190,12 @@ trait GraphInterpreterSpecKit extends StreamSpec {
     def step(): Unit = interpreter.execute(eventLimit = 1)
 
     object Upstream extends UpstreamBoundaryStageLogic[Int] {
-      override val out = Outlet[Int]("up")
+      override val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("up")
       out.id = 0
       override def toString = "Upstream"
 
       setHandler(out, new OutHandler {
-        override def onPull() = {
+        override def onPull(): _root_.scala.Unit = {
           // TODO handler needed but should it do anything?
         }
 
@@ -204,10 +204,10 @@ trait GraphInterpreterSpecKit extends StreamSpec {
     }
 
     object Downstream extends DownstreamBoundaryStageLogic[Int] {
-      override val in = Inlet[Int]("down")
+      override val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("down")
       in.id = 0
       setHandler(in, new InHandler {
-        override def onPush() = {
+        override def onPush(): _root_.scala.Unit = {
           // TODO handler needed but should it do anything?
         }
 
@@ -290,13 +290,13 @@ trait GraphInterpreterSpecKit extends StreamSpec {
     def clearEvents(): Unit = lastEvent = Set.empty
 
     class UpstreamProbe[T](override val toString: String) extends UpstreamBoundaryStageLogic[T] {
-      val out = Outlet[T]("out")
+      val out: _root_.akka.stream.Outlet[T] = Outlet[T]("out")
       out.id = 0
 
       setHandler(out, new OutHandler {
         override def onPull(): Unit = lastEvent += RequestOne(UpstreamProbe.this)
         override def onDownstreamFinish(): Unit = lastEvent += Cancel(UpstreamProbe.this)
-        override def toString = s"${UpstreamProbe.this.toString}.outHandler"
+        override def toString: _root_.scala.Predef.String = s"${UpstreamProbe.this.toString}.outHandler"
       })
 
       def onNext(elem: T, eventLimit: Int = Int.MaxValue): Unit = {
@@ -319,14 +319,14 @@ trait GraphInterpreterSpecKit extends StreamSpec {
     }
 
     class DownstreamProbe[T](override val toString: String) extends DownstreamBoundaryStageLogic[T] {
-      val in = Inlet[T]("in")
+      val in: _root_.akka.stream.Inlet[T] = Inlet[T]("in")
       in.id = 0
 
       setHandler(in, new InHandler {
         override def onPush(): Unit = lastEvent += OnNext(DownstreamProbe.this, grab(in))
         override def onUpstreamFinish(): Unit = lastEvent += OnComplete(DownstreamProbe.this)
         override def onUpstreamFailure(ex: Throwable): Unit = lastEvent += OnError(DownstreamProbe.this, ex)
-        override def toString = s"${DownstreamProbe.this.toString}.inHandler"
+        override def toString: _root_.scala.Predef.String = s"${DownstreamProbe.this.toString}.inHandler"
       })
 
       def requestOne(eventLimit: Int = Int.MaxValue): Unit = {
@@ -345,12 +345,12 @@ trait GraphInterpreterSpecKit extends StreamSpec {
   }
 
   abstract class PortTestSetup(chasing: Boolean = false) extends TestSetup {
-    val out = new UpstreamPortProbe[Int]
-    val in = new DownstreamPortProbe[Int]
+    val out: PortTestSetup.this.UpstreamPortProbe[_root_.scala.Int] = new UpstreamPortProbe[Int]
+    val in: PortTestSetup.this.DownstreamPortProbe[_root_.scala.Int] = new DownstreamPortProbe[Int]
 
     class EventPropagateStage extends GraphStage[FlowShape[Int, Int]] {
-      val in = Inlet[Int]("Propagate.in")
-      val out = Outlet[Int]("Propagate.out")
+      val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("Propagate.in")
+      val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("Propagate.out")
       in.id = 0
       out.id = 0
       override val shape: FlowShape[Int, Int] = FlowShape(in, out)
@@ -400,8 +400,8 @@ trait GraphInterpreterSpecKit extends StreamSpec {
           }
         }
 
-        override def onUpstreamFinish() = lastEvent += OnComplete(DownstreamPortProbe.this)
-        override def onUpstreamFailure(ex: Throwable) = lastEvent += OnError(DownstreamPortProbe.this, ex)
+        override def onUpstreamFinish(): _root_.scala.Unit = lastEvent += OnComplete(DownstreamPortProbe.this)
+        override def onUpstreamFailure(ex: Throwable): _root_.scala.Unit = lastEvent += OnError(DownstreamPortProbe.this, ex)
       })
     }
 
@@ -425,8 +425,8 @@ trait GraphInterpreterSpecKit extends StreamSpec {
 
   abstract class FailingStageSetup(initFailOnNextEvent: Boolean = false) extends TestSetup {
 
-    val upstream = new UpstreamPortProbe[Int]
-    val downstream = new DownstreamPortProbe[Int]
+    val upstream: FailingStageSetup.this.UpstreamPortProbe[_root_.scala.Int] = new UpstreamPortProbe[Int]
+    val downstream: FailingStageSetup.this.DownstreamPortProbe[_root_.scala.Int] = new DownstreamPortProbe[Int]
 
     private var _failOnNextEvent: Boolean = initFailOnNextEvent
     private var _failOnPostStop: Boolean = false
@@ -434,7 +434,7 @@ trait GraphInterpreterSpecKit extends StreamSpec {
     def failOnNextEvent(): Unit = _failOnNextEvent = true
     def failOnPostStop(): Unit = _failOnPostStop = true
 
-    def testException = TE("test")
+    def testException: _root_.akka.stream.testkit.Utils.TE = TE("test")
 
     private val stagein = Inlet[Int]("sandwitch.in")
     private val stageout = Outlet[Int]("sandwitch.out")
@@ -473,7 +473,7 @@ trait GraphInterpreterSpecKit extends StreamSpec {
     }
 
     private val sandwitchStage = new GraphStage[FlowShape[Int, Int]] {
-      override def shape = stageshape
+      override def shape: _root_.akka.stream.FlowShape[_root_.scala.Int, _root_.scala.Int] = stageshape
       override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = insideOutStage
       override def toString = "sandwitchStage"
     }
@@ -497,9 +497,9 @@ trait GraphInterpreterSpecKit extends StreamSpec {
 
   abstract class OneBoundedSetupWithDecider[T](decider: Decider, ops: GraphStageWithMaterializedValue[Shape, Any]*) extends Builder {
 
-    val upstream = new UpstreamOneBoundedProbe[T]
-    val downstream = new DownstreamOneBoundedPortProbe[T]
-    var lastEvent = Set.empty[TestEvent]
+    val upstream: OneBoundedSetupWithDecider.this.UpstreamOneBoundedProbe[T] = new UpstreamOneBoundedProbe[T]
+    val downstream: OneBoundedSetupWithDecider.this.DownstreamOneBoundedPortProbe[T] = new DownstreamOneBoundedPortProbe[T]
+    var lastEvent: _root_.scala.collection.immutable.Set[OneBoundedSetupWithDecider.this.TestEvent] = Set.empty[TestEvent]
 
     sealed trait TestEvent
 
@@ -534,7 +534,7 @@ trait GraphInterpreterSpecKit extends StreamSpec {
     }
 
     class UpstreamOneBoundedProbe[TT] extends UpstreamBoundaryStageLogic[TT] {
-      val out = Outlet[TT]("out")
+      val out: _root_.akka.stream.Outlet[TT] = Outlet[TT]("out")
       out.id = 0
 
       setHandler(out, new OutHandler {
@@ -568,7 +568,7 @@ trait GraphInterpreterSpecKit extends StreamSpec {
     }
 
     class DownstreamOneBoundedPortProbe[TT] extends DownstreamBoundaryStageLogic[TT] {
-      val in = Inlet[TT]("in")
+      val in: _root_.akka.stream.Inlet[TT] = Inlet[TT]("in")
       in.id = 0
 
       setHandler(in, new InHandler {
@@ -578,8 +578,8 @@ trait GraphInterpreterSpecKit extends StreamSpec {
           lastEvent += OnNext(grab(in))
         }
 
-        override def onUpstreamFinish() = lastEvent += OnComplete
-        override def onUpstreamFailure(ex: Throwable) = lastEvent += OnError(ex)
+        override def onUpstreamFinish(): _root_.scala.Unit = lastEvent += OnComplete
+        override def onUpstreamFailure(ex: Throwable): _root_.scala.Unit = lastEvent += OnError(ex)
       })
 
       def requestOne(): Unit = {

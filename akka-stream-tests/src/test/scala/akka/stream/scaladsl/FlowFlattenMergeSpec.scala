@@ -16,14 +16,14 @@ import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestLatch
 
 class FlowFlattenMergeSpec extends StreamSpec {
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
   import system.dispatcher
 
-  def src10(i: Int) = Source(i until (i + 10))
-  def blocked = Source.fromFuture(Promise[Int].future)
+  def src10(i: Int): _root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed] = Source(i until (i + 10))
+  def blocked: _root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed] = Source.fromFuture(Promise[Int].future)
 
-  val toSeq = Flow[Int].grouped(1000).toMat(Sink.head)(Keep.right)
-  val toSet = toSeq.mapMaterializedValue(_.map(_.toSet))
+  val toSeq: _root_.akka.stream.scaladsl.Sink[_root_.scala.Int, _root_.scala.concurrent.Future[_root_.scala.collection.immutable.Seq[_root_.scala.Int]]] = Flow[Int].grouped(1000).toMat(Sink.head)(Keep.right)
+  val toSet: _root_.akka.stream.scaladsl.Sink[_root_.scala.Int, _root_.scala.concurrent.Future[_root_.scala.collection.immutable.Set[_root_.scala.Int]]] = toSeq.mapMaterializedValue(_.map(_.toSet))
 
   "A FattenMerge" must {
 
@@ -96,8 +96,8 @@ class FlowFlattenMergeSpec extends StreamSpec {
     "bubble up substream materialization exception" in assertAllStagesStopped {
       val matFail = TE("fail!")
       object FailingInnerMat extends GraphStage[SourceShape[String]] {
-        val out = Outlet[String]("out")
-        val shape = SourceShape(out)
+        val out: _root_.akka.stream.Outlet[_root_.scala.Predef.String] = Outlet[String]("out")
+        val shape: _root_.akka.stream.SourceShape[_root_.scala.Predef.String] = SourceShape(out)
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
           throw matFail
         }
@@ -185,7 +185,7 @@ class FlowFlattenMergeSpec extends StreamSpec {
 
     val attributesSource = Source.fromGraph(
       new GraphStage[SourceShape[Attributes]] {
-        val out = Outlet[Attributes]("AttributesSource.out")
+        val out: _root_.akka.stream.Outlet[_root_.akka.stream.Attributes] = Outlet[Attributes]("AttributesSource.out")
         override val shape: SourceShape[Attributes] = SourceShape(out)
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with OutHandler {
           override def onPull(): Unit = {

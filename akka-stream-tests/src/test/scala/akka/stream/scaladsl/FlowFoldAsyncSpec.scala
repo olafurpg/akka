@@ -19,9 +19,9 @@ import scala.util.control.NoStackTrace
 import akka.testkit.LongRunningTest
 
 class FlowFoldAsyncSpec extends StreamSpec {
-  implicit val materializer = ActorMaterializer()
-  implicit def ec = materializer.executionContext
-  val timeout = Timeout(3.seconds)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
+  implicit def ec: _root_.scala.concurrent.ExecutionContextExecutor = materializer.executionContext
+  val timeout: _root_.org.scalatest.concurrent.PatienceConfiguration.Timeout = Timeout(3.seconds)
 
   "A FoldAsync" must {
     val input = 1 to 100

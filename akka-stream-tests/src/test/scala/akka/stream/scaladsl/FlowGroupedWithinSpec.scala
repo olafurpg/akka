@@ -17,9 +17,9 @@ import akka.util.ConstantFun
 
 class FlowGroupedWithinSpec extends StreamSpec with ScriptedTest {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A GroupedWithin" must {
 

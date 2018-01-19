@@ -16,17 +16,17 @@ class BidiFlowSpec extends StreamSpec {
   import Attributes._
   import GraphDSL.Implicits._
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
-  val bidi = BidiFlow.fromFlows(
+  val bidi: _root_.akka.stream.scaladsl.BidiFlow[_root_.scala.Int, _root_.scala.Long, _root_.akka.util.ByteString, _root_.java.lang.String, _root_.akka.NotUsed] = BidiFlow.fromFlows(
     Flow[Int].map(x ⇒ x.toLong + 2).withAttributes(name("top")),
     Flow[ByteString].map(_.decodeString("UTF-8")).withAttributes(name("bottom")))
 
-  val inverse = BidiFlow.fromFlows(
+  val inverse: _root_.akka.stream.scaladsl.BidiFlow[_root_.scala.Long, _root_.scala.Int, _root_.java.lang.String, _root_.akka.util.ByteString, _root_.akka.NotUsed] = BidiFlow.fromFlows(
     Flow[Long].map(x ⇒ x.toInt + 2).withAttributes(name("top")),
     Flow[String].map(ByteString(_)).withAttributes(name("bottom")))
 
-  val bidiMat = BidiFlow.fromGraph(GraphDSL.create(Sink.head[Int]) { implicit b ⇒ s ⇒
+  val bidiMat: _root_.akka.stream.scaladsl.BidiFlow[_root_.scala.Int, _root_.scala.Long, _root_.akka.util.ByteString, _root_.scala.Predef.String, _root_.scala.concurrent.Future[_root_.scala.Int]] = BidiFlow.fromGraph(GraphDSL.create(Sink.head[Int]) { implicit b ⇒ s ⇒
     Source.single(42) ~> s
 
     val top = b.add(Flow[Int].map(x ⇒ x.toLong + 2))
@@ -35,7 +35,7 @@ class BidiFlowSpec extends StreamSpec {
   })
 
   val str = "Hello World"
-  val bytes = ByteString(str)
+  val bytes: _root_.akka.util.ByteString = ByteString(str)
 
   "A BidiFlow" must {
 

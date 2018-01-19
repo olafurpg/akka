@@ -25,11 +25,11 @@ import scala.concurrent.duration._
 
 class FileSinkSpec extends StreamSpec(UnboundedMailboxConfig) {
 
-  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
-  implicit val materializer = ActorMaterializer(settings)
-  val fs = Jimfs.newFileSystem("FileSinkSpec", Configuration.unix())
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
+  val fs: _root_.java.nio.file.FileSystem = Jimfs.newFileSystem("FileSinkSpec", Configuration.unix())
 
-  val TestLines = {
+  val TestLines: _root_.scala.collection.immutable.List[_root_.scala.Predef.String] = {
     val b = ListBuffer[String]()
     b.append("a" * 1000 + "\n")
     b.append("b" * 1000 + "\n")
@@ -40,7 +40,7 @@ class FileSinkSpec extends StreamSpec(UnboundedMailboxConfig) {
     b.toList
   }
 
-  val TestByteStrings = TestLines.map(ByteString(_))
+  val TestByteStrings: _root_.scala.collection.immutable.List[_root_.akka.util.ByteString] = TestLines.map(ByteString(_))
 
   "FileSink" must {
     "write lines to a file" in assertAllStagesStopped {

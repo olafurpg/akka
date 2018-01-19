@@ -12,7 +12,7 @@ import akka.actor.PoisonPill
 import akka.actor.Status
 
 class ActorRefSourceSpec extends StreamSpec {
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A ActorRefSource" must {
 

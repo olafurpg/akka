@@ -15,7 +15,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class ByteStringParserSpec extends StreamSpec {
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "ByteStringParser" must {
 
@@ -112,9 +112,9 @@ class ByteStringParserSpec extends StreamSpec {
 
     "complete eagerly" in {
       object DummyParser extends ByteStringParser[ByteString] {
-        def createLogic(inheritedAttributes: Attributes) = new ParsingLogic {
+        def createLogic(inheritedAttributes: Attributes): DummyParser.this.ParsingLogic = new ParsingLogic {
           startWith(new ParseStep[ByteString] {
-            def parse(reader: ByteReader) = ParseResult(Some(reader.takeAll()), this)
+            def parse(reader: ByteReader): _root_.akka.stream.impl.io.ByteStringParser.ParseResult[_root_.akka.util.ByteString] = ParseResult(Some(reader.takeAll()), this)
           })
         }
       }
@@ -134,10 +134,10 @@ class ByteStringParserSpec extends StreamSpec {
 
     "fail eagerly on truncation" in {
       object DummyParser extends ByteStringParser[ByteString] {
-        def createLogic(inheritedAttributes: Attributes) = new ParsingLogic {
+        def createLogic(inheritedAttributes: Attributes): DummyParser.this.ParsingLogic = new ParsingLogic {
           startWith(new ParseStep[ByteString] {
             // take more data than there is in first chunk
-            def parse(reader: ByteReader) = ParseResult(Some(reader.take(5)), this, false)
+            def parse(reader: ByteReader): _root_.akka.stream.impl.io.ByteStringParser.ParseResult[_root_.akka.util.ByteString] = ParseResult(Some(reader.take(5)), this, false)
           })
         }
       }

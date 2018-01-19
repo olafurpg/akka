@@ -148,7 +148,7 @@ abstract class CoderSpec(codecName: String) extends WordSpec with CodecSpecSuppo
     extraTests()
   }
 
-  def encode(s: String) = ourEncode(ByteString(s, "UTF8"))
+  def encode(s: String): _root_.akka.util.ByteString = ourEncode(ByteString(s, "UTF8"))
   def ourEncode(bytes: ByteString): ByteString = newCompressor().compressAndFinish(bytes)
   def ourDecode(bytes: ByteString): ByteString =
     Source.single(bytes)
@@ -156,7 +156,7 @@ abstract class CoderSpec(codecName: String) extends WordSpec with CodecSpecSuppo
       .join
       .awaitResult(3.seconds)
 
-  lazy val corruptContent = {
+  lazy val corruptContent: _root_.akka.util.ByteString = {
     val content = encode(largeText).toArray
     content(14) = 36.toByte
     ByteString(content)

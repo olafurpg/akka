@@ -30,12 +30,12 @@ object FileSourceSpec {
 
 class FileSourceSpec extends StreamSpec(UnboundedMailboxConfig) {
 
-  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  val fs = Jimfs.newFileSystem("FileSourceSpec", Configuration.unix())
+  val fs: _root_.java.nio.file.FileSystem = Jimfs.newFileSystem("FileSourceSpec", Configuration.unix())
 
-  val TestText = {
+  val TestText: _root_.java.lang.String = {
     ("a" * 1000) +
       ("b" * 1000) +
       ("c" * 1000) +
@@ -44,22 +44,22 @@ class FileSourceSpec extends StreamSpec(UnboundedMailboxConfig) {
       ("f" * 1000)
   }
 
-  val testFile = {
+  val testFile: _root_.java.nio.file.Path = {
     val f = Files.createTempFile(fs.getPath("/"), "file-source-spec", ".tmp")
     Files.newBufferedWriter(f, UTF_8).append(TestText).close()
     f
   }
 
-  val notExistingFile = {
+  val notExistingFile: _root_.java.nio.file.Path = {
     // this way we make sure it doesn't accidentally exist
     val f = Files.createTempFile(fs.getPath("/"), "not-existing-file", ".tmp")
     Files.delete(f)
     f
   }
 
-  val LinesCount = 2000 + new Random().nextInt(300)
+  val LinesCount: _root_.scala.Int = 2000 + new Random().nextInt(300)
 
-  val manyLines = {
+  val manyLines: _root_.java.nio.file.Path = {
     val f = Files.createTempFile(fs.getPath("/"), s"file-source-spec-lines_$LinesCount", "tmp")
     val w = Files.newBufferedWriter(f, UTF_8)
     (1 to LinesCount).foreach { l ⇒

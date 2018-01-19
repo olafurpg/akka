@@ -13,10 +13,10 @@ import akka.stream.testkit.Utils._
 
 class FlowBufferSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 1, maxSize = 1)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "Buffer" must {
 

@@ -26,7 +26,7 @@ import scala.annotation.tailrec
 
 class FlowMapAsyncUnorderedSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A Flow with mapAsyncUnordered" must {
 

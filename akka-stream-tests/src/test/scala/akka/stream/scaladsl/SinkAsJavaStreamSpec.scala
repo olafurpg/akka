@@ -15,8 +15,8 @@ import akka.stream.testkit.scaladsl.TestSource
 import akka.util.ByteString
 
 class SinkAsJavaStreamSpec extends StreamSpec(UnboundedMailboxConfig) {
-  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "Java Stream Sink" must {
 

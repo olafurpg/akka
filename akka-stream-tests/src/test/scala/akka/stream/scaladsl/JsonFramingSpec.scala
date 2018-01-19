@@ -17,7 +17,7 @@ import scala.concurrent.duration._
 
 class JsonFramingSpec extends AkkaSpec {
 
-  implicit val mat = ActorMaterializer()
+  implicit val mat: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "collecting multiple json" should {
     "parse json array" in {

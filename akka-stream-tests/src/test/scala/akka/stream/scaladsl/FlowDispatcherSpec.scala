@@ -10,9 +10,9 @@ import akka.stream.ActorMaterializerSettings
 
 class FlowDispatcherSpec extends StreamSpec(s"my-dispatcher = $${akka.test.stream-dispatcher}") {
 
-  val defaultSettings = ActorMaterializerSettings(system)
+  val defaultSettings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
 
-  def testDispatcher(settings: ActorMaterializerSettings = defaultSettings, dispatcher: String = "akka.test.stream-dispatcher") = {
+  def testDispatcher(settings: ActorMaterializerSettings = defaultSettings, dispatcher: String = "akka.test.stream-dispatcher"): _root_.scala.Unit = {
 
     implicit val materializer = ActorMaterializer(settings)
 

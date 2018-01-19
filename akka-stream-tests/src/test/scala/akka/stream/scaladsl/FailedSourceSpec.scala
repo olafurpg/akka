@@ -15,7 +15,7 @@ import scala.util.control.NoStackTrace
 
 class FailedSourceSpec extends StreamSpec with DefaultTimeout {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "The Failed Source" must {
     "emit error immediately" in {

@@ -14,12 +14,12 @@ import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration._
 
 class StageActorRefSpec extends StreamSpec with ImplicitSender {
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   import StageActorRefSpec._
   import ControlProtocol._
 
-  def sumStage(probe: ActorRef) = SumTestStage(probe)
+  def sumStage(probe: ActorRef): _root_.akka.stream.scaladsl.StageActorRefSpec.SumTestStage = SumTestStage(probe)
 
   "A Graph Stage's ActorRef" must {
 
@@ -179,7 +179,7 @@ object StageActorRefSpec {
   import ControlProtocol._
 
   case class SumTestStage(probe: ActorRef) extends GraphStageWithMaterializedValue[SinkShape[Int], Future[Int]] {
-    val in = Inlet[Int]("IntSum.in")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("IntSum.in")
     override val shape: SinkShape[Int] = SinkShape.of(in)
 
     override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[Int]) = {

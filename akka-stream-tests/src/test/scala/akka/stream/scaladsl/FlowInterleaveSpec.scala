@@ -11,7 +11,7 @@ class FlowInterleaveSpec extends BaseTwoStreamsSetup {
 
   override type Outputs = Int
 
-  override def setup(p1: Publisher[Int], p2: Publisher[Int]) = {
+  override def setup(p1: Publisher[Int], p2: Publisher[Int]): _root_.akka.stream.testkit.TestSubscriber.Probe[FlowInterleaveSpec.this.Outputs] = {
     val subscriber = TestSubscriber.probe[Outputs]()
     Source.fromPublisher(p1).interleave(Source.fromPublisher(p2), 2).runWith(Sink.fromSubscriber(subscriber))
     subscriber

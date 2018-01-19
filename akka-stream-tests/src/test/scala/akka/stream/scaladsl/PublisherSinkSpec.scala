@@ -13,7 +13,7 @@ import scala.concurrent.Await
 
 class PublisherSinkSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A PublisherSink" must {
 

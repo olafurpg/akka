@@ -16,12 +16,12 @@ class GraphUnzipWithSpec extends StreamSpec {
 
   import GraphDSL.Implicits._
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 16)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  val TestException = new RuntimeException("test") with NoStackTrace
+  val TestException: _root_.scala.`package`.RuntimeException with _root_.scala.util.control.NoStackTrace {} = new RuntimeException("test") with NoStackTrace
 
   type LeftOutput = Int
   type RightOutput = String
@@ -35,7 +35,7 @@ class GraphUnzipWithSpec extends StreamSpec {
   val f: (Int ⇒ (Int, String)) = b ⇒ (b + b, b + "+" + b)
 
   def fixture(b: GraphDSL.Builder[_]): Fixture = new Fixture(b) {
-    val unzip = b.add(UnzipWith[Int, Int, String](f))
+    val unzip: _root_.akka.stream.FanOutShape2[_root_.scala.Int, _root_.scala.Int, _root_.scala.Predef.String] = b.add(UnzipWith[Int, Int, String](f))
 
     override def in: Inlet[Int] = unzip.in
 
@@ -44,7 +44,7 @@ class GraphUnzipWithSpec extends StreamSpec {
     override def right: Outlet[String] = unzip.out1
   }
 
-  def setup(p: Publisher[Int]) = {
+  def setup(p: Publisher[Int]): (_root_.akka.stream.testkit.TestSubscriber.Probe[GraphUnzipWithSpec.this.LeftOutput], _root_.akka.stream.testkit.TestSubscriber.Probe[GraphUnzipWithSpec.this.RightOutput]) = {
     val leftSubscriber = TestSubscriber.probe[LeftOutput]()
     val rightSubscriber = TestSubscriber.probe[RightOutput]()
 

@@ -13,11 +13,11 @@ import scala.util.control.NoStackTrace
 
 class FlowRecoverWithSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  val ex = new RuntimeException("ex") with NoStackTrace
+  val ex: _root_.scala.`package`.RuntimeException with _root_.scala.util.control.NoStackTrace {} = new RuntimeException("ex") with NoStackTrace
 
   "A RecoverWith" must {
     "recover when there is a handler" in assertAllStagesStopped {
@@ -162,8 +162,8 @@ class FlowRecoverWithSpec extends StreamSpec {
     "fail correctly when materialization of recover source fails" in assertAllStagesStopped {
       val matFail = TE("fail!")
       object FailingInnerMat extends GraphStage[SourceShape[String]] {
-        val out = Outlet[String]("out")
-        val shape = SourceShape(out)
+        val out: _root_.akka.stream.Outlet[_root_.scala.Predef.String] = Outlet[String]("out")
+        val shape: _root_.akka.stream.SourceShape[_root_.scala.Predef.String] = SourceShape(out)
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
           throw matFail
         }

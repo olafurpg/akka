@@ -16,7 +16,7 @@ import scala.concurrent.duration._
 
 class KeepGoingStageSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   trait PingCmd extends NoSerializationVerificationNeeded
   case class Register(probe: ActorRef) extends PingCmd
@@ -40,7 +40,7 @@ class KeepGoingStageSpec extends StreamSpec {
   }
 
   class PingableSink(keepAlive: Boolean) extends GraphStageWithMaterializedValue[SinkShape[Int], Future[PingRef]] {
-    val shape = SinkShape[Int](Inlet("ping.in"))
+    val shape: _root_.akka.stream.SinkShape[_root_.scala.Int] = SinkShape[Int](Inlet("ping.in"))
 
     override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[PingRef]) = {
       val promise = Promise[PingRef]()

@@ -16,7 +16,7 @@ object GraphOpsIntegrationSpec {
       override def inlets: immutable.Seq[Inlet[_]] = List(in1, in2)
       override def outlets: immutable.Seq[Outlet[_]] = List(out1, out2)
 
-      override def deepCopy() = ShufflePorts(
+      override def deepCopy(): _root_.akka.stream.scaladsl.GraphOpsIntegrationSpec.Shuffle.ShufflePorts[In, Out] = ShufflePorts(
         in1.carbonCopy(), in2.carbonCopy(),
         out1.carbonCopy(), out2.carbonCopy())
     }
@@ -38,10 +38,10 @@ class GraphOpsIntegrationSpec extends StreamSpec {
   import akka.stream.scaladsl.GraphOpsIntegrationSpec._
   import GraphDSL.Implicits._
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 16)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "GraphDSLs" must {
 

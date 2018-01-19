@@ -10,9 +10,9 @@ import akka.stream._
 import org.reactivestreams.Subscriber
 
 object GraphFlowSpec {
-  val source1 = Source(0 to 3)
+  val source1: _root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed] = Source(0 to 3)
 
-  val partialGraph = GraphDSL.create() { implicit b ⇒
+  val partialGraph: _root_.akka.stream.Graph[_root_.akka.stream.FlowShape[_root_.scala.Int, _root_.scala.Predef.String], _root_.akka.NotUsed] = GraphDSL.create() { implicit b ⇒
     import GraphDSL.Implicits._
     val source2 = Source(4 to 9)
     val source3 = Source.empty[Int]
@@ -32,17 +32,17 @@ object GraphFlowSpec {
   }
 
   val stdRequests = 10
-  val stdResult = Set(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+  val stdResult: _root_.scala.collection.immutable.Set[_root_.scala.Int] = Set(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 }
 
 class GraphFlowSpec extends StreamSpec {
 
   import GraphFlowSpec._
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 16)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   def validateProbe(probe: TestSubscriber.ManualProbe[Int], requests: Int, result: Set[Int]): Unit = {
     val subscription = probe.expectSubscription()

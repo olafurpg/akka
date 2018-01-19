@@ -15,12 +15,12 @@ import akka.stream.ActorMaterializerSettings
 
 class FlowCompileSpec extends StreamSpec {
 
-  val intSeq = Source(Seq(1, 2, 3))
-  val strSeq = Source(Seq("a", "b", "c"))
+  val intSeq: _root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed] = Source(Seq(1, 2, 3))
+  val strSeq: _root_.akka.stream.scaladsl.Source[_root_.java.lang.String, _root_.akka.NotUsed] = Source(Seq("a", "b", "c"))
 
   import scala.concurrent.ExecutionContext.Implicits.global
-  val intFut = Source.fromFuture(Future { 3 })
-  implicit val materializer = ActorMaterializer(ActorMaterializerSettings(system))
+  val intFut: _root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed] = Source.fromFuture(Future { 3 })
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
 
   "Flow" should {
     "not run" in {

@@ -22,8 +22,8 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     val balance = Balance[Int](2)
 
     "implement identity" in new TestSetup {
-      val source = new UpstreamProbe[Int]("source")
-      val sink = new DownstreamProbe[Int]("sink")
+      val source: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source")
+      val sink: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink")
 
       builder(identity)
         .connect(source, identity.in)
@@ -40,12 +40,12 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement chained identity" in new TestSetup {
-      val source = new UpstreamProbe[Int]("source")
-      val sink = new DownstreamProbe[Int]("sink")
+      val source: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source")
+      val sink: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink")
 
       // Constructing an assembly by hand and resolving ambiguities
       val (logics, _, _) = GraphInterpreterSpecKit.createLogics(Array(identity), Array(source), Array(sink))
-      val connections = GraphInterpreterSpecKit.createLinearFlowConnections(logics)
+      val connections: _root_.scala.Array[_root_.akka.stream.impl.fusing.GraphInterpreter.Connection] = GraphInterpreterSpecKit.createLinearFlowConnections(logics)
 
       manualInit(logics, connections)
 
@@ -58,8 +58,8 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
       lastEvents() should ===(Set(OnNext(sink, 1)))
     }
     "implement detacher stage" in new TestSetup {
-      val source = new UpstreamProbe[Int]("source")
-      val sink = new DownstreamProbe[Int]("sink")
+      val source: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source")
+      val sink: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink")
 
       builder(detach)
         .connect(source, detach.shape.in)
@@ -92,9 +92,9 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement Zip" in new TestSetup {
-      val source1 = new UpstreamProbe[Int]("source1")
-      val source2 = new UpstreamProbe[String]("source2")
-      val sink = new DownstreamProbe[(Int, String)]("sink")
+      val source1: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source1")
+      val source2: $anon.this.UpstreamProbe[_root_.scala.Predef.String] = new UpstreamProbe[String]("source2")
+      val sink: $anon.this.DownstreamProbe[(_root_.scala.Int, _root_.scala.Predef.String)] = new DownstreamProbe[(Int, String)]("sink")
 
       builder(zip)
         .connect(source1, zip.in0)
@@ -115,9 +115,9 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement Broadcast" in new TestSetup {
-      val source = new UpstreamProbe[Int]("source")
-      val sink1 = new DownstreamProbe[Int]("sink1")
-      val sink2 = new DownstreamProbe[Int]("sink2")
+      val source: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source")
+      val sink1: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink1")
+      val sink2: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink2")
 
       builder(bcast)
         .connect(source, bcast.in)
@@ -139,9 +139,9 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement broadcast-zip" in new TestSetup {
-      val source = new UpstreamProbe[Int]("source")
-      val sink = new DownstreamProbe[(Int, Int)]("sink")
-      val zip = new Zip[Int, Int]
+      val source: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source")
+      val sink: $anon.this.DownstreamProbe[(_root_.scala.Int, _root_.scala.Int)] = new DownstreamProbe[(Int, Int)]("sink")
+      val zip: _root_.akka.stream.scaladsl.Zip[_root_.scala.Int, _root_.scala.Int] = new Zip[Int, Int]
 
       builder(zip, bcast)
         .connect(source, bcast.in)
@@ -165,12 +165,12 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement zip-broadcast" in new TestSetup {
-      val source1 = new UpstreamProbe[Int]("source1")
-      val source2 = new UpstreamProbe[Int]("source2")
-      val sink1 = new DownstreamProbe[(Int, Int)]("sink")
-      val sink2 = new DownstreamProbe[(Int, Int)]("sink2")
-      val zip = new Zip[Int, Int]
-      val bcast = Broadcast[(Int, Int)](2)
+      val source1: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source1")
+      val source2: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source2")
+      val sink1: $anon.this.DownstreamProbe[(_root_.scala.Int, _root_.scala.Int)] = new DownstreamProbe[(Int, Int)]("sink")
+      val sink2: $anon.this.DownstreamProbe[(_root_.scala.Int, _root_.scala.Int)] = new DownstreamProbe[(Int, Int)]("sink2")
+      val zip: _root_.akka.stream.scaladsl.Zip[_root_.scala.Int, _root_.scala.Int] = new Zip[Int, Int]
+      val bcast: _root_.akka.stream.scaladsl.Broadcast[(_root_.scala.Int, _root_.scala.Int)] = Broadcast[(Int, Int)](2)
 
       builder(bcast, zip)
         .connect(source1, zip.in0)
@@ -196,9 +196,9 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement merge" in new TestSetup {
-      val source1 = new UpstreamProbe[Int]("source1")
-      val source2 = new UpstreamProbe[Int]("source2")
-      val sink = new DownstreamProbe[Int]("sink")
+      val source1: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source1")
+      val source2: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source2")
+      val sink: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink")
 
       builder(merge)
         .connect(source1, merge.in(0))
@@ -235,9 +235,9 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement balance" in new TestSetup {
-      val source = new UpstreamProbe[Int]("source")
-      val sink1 = new DownstreamProbe[Int]("sink1")
-      val sink2 = new DownstreamProbe[Int]("sink2")
+      val source: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source")
+      val sink1: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink1")
+      val sink2: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink2")
 
       builder(balance)
         .connect(source, balance.in)
@@ -261,8 +261,8 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement non-divergent cycle" in new TestSetup {
-      val source = new UpstreamProbe[Int]("source")
-      val sink = new DownstreamProbe[Int]("sink")
+      val source: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source")
+      val sink: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink")
 
       builder(merge, balance)
         .connect(source, merge.in(0))
@@ -290,8 +290,8 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement divergent cycle" in new TestSetup {
-      val source = new UpstreamProbe[Int]("source")
-      val sink = new DownstreamProbe[Int]("sink")
+      val source: $anon.this.UpstreamProbe[_root_.scala.Int] = new UpstreamProbe[Int]("source")
+      val sink: $anon.this.DownstreamProbe[_root_.scala.Int] = new DownstreamProbe[Int]("sink")
 
       builder(detach, balance, merge)
         .connect(source, merge.in(0))
@@ -328,9 +328,9 @@ class GraphInterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
     }
 
     "implement buffer" in new TestSetup {
-      val source = new UpstreamProbe[String]("source")
-      val sink = new DownstreamProbe[String]("sink")
-      val buffer = Buffer[String](2, OverflowStrategy.backpressure)
+      val source: $anon.this.UpstreamProbe[_root_.scala.Predef.String] = new UpstreamProbe[String]("source")
+      val sink: $anon.this.DownstreamProbe[_root_.scala.Predef.String] = new DownstreamProbe[String]("sink")
+      val buffer: _root_.akka.stream.impl.fusing.Buffer[_root_.scala.Predef.String] = Buffer[String](2, OverflowStrategy.backpressure)
 
       builder(buffer)
         .connect(source, buffer.in)

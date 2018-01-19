@@ -17,7 +17,7 @@ class GraphZipNSpec extends TwoStreamsSetup {
   override type Outputs = immutable.Seq[Int]
 
   override def fixture(b: GraphDSL.Builder[_]): Fixture = new Fixture(b) {
-    val zipN = b.add(ZipN[Int](2))
+    val zipN: _root_.akka.stream.UniformFanInShape[_root_.scala.Int, _root_.scala.collection.immutable.Seq[_root_.scala.Int]] = b.add(ZipN[Int](2))
 
     override def left: Inlet[Int] = zipN.in(0)
     override def right: Inlet[Int] = zipN.in(1)

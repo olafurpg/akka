@@ -19,7 +19,7 @@ import scala.concurrent.Future
 
 class LazySourceSpec extends StreamSpec with DefaultTimeout with ScalaFutures {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A lazy source" should {
     "work like a normal source, happy path" in assertAllStagesStopped {
@@ -94,8 +94,8 @@ class LazySourceSpec extends StreamSpec with DefaultTimeout with ScalaFutures {
     "fail correctly when materialization of inner source fails" in assertAllStagesStopped {
       val matFail = TE("fail!")
       object FailingInnerMat extends GraphStage[SourceShape[String]] {
-        val out = Outlet[String]("out")
-        val shape = SourceShape(out)
+        val out: _root_.akka.stream.Outlet[_root_.scala.Predef.String] = Outlet[String]("out")
+        val shape: _root_.akka.stream.SourceShape[_root_.scala.Predef.String] = SourceShape(out)
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
           throw matFail
         }

@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 
 class FlowKillSwitchSpec extends StreamSpec {
 
-  implicit val mat = ActorMaterializer()
+  implicit val mat: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A UniqueKillSwitch" must {
 

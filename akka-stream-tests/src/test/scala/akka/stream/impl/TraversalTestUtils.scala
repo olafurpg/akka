@@ -12,60 +12,60 @@ object TraversalTestUtils {
 
   // --- These test classes do not use the optimized linear builder, for testing the composite builder instead
   class CompositeTestSource extends AtomicModule[SourceShape[Any], Any] {
-    val out = Outlet[Any]("testSourceC.out")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Any] = Outlet[Any]("testSourceC.out")
     override val shape: Shape = SourceShape(out)
-    override val traversalBuilder = TraversalBuilder.atomic(this, Attributes.name("testSource"))
+    override val traversalBuilder: _root_.akka.stream.impl.TraversalBuilder = TraversalBuilder.atomic(this, Attributes.name("testSource"))
 
     override def withAttributes(attributes: Attributes): AtomicModule[SourceShape[Any], Any] = ???
     override def toString = "TestSource"
   }
 
   class CompositeTestSink extends AtomicModule[SinkShape[Any], Any] {
-    val in = Inlet[Any]("testSinkC.in")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Any] = Inlet[Any]("testSinkC.in")
     override val shape: Shape = SinkShape(in)
-    override val traversalBuilder = TraversalBuilder.atomic(this, Attributes.name("testSink"))
+    override val traversalBuilder: _root_.akka.stream.impl.TraversalBuilder = TraversalBuilder.atomic(this, Attributes.name("testSink"))
 
     override def withAttributes(attributes: Attributes): AtomicModule[SinkShape[Any], Any] = ???
     override def toString = "TestSink"
   }
 
   class CompositeTestFlow(tag: String) extends AtomicModule[FlowShape[Any, Any], Any] {
-    val in = Inlet[Any](s"testFlowC$tag.in")
-    val out = Outlet[Any](s"testFlowC$tag.out")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Any] = Inlet[Any](s"testFlowC$tag.in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Any] = Outlet[Any](s"testFlowC$tag.out")
     override val shape: Shape = FlowShape(in, out)
-    override val traversalBuilder = TraversalBuilder.atomic(this, Attributes.name(s"testFlow$tag"))
+    override val traversalBuilder: _root_.akka.stream.impl.TraversalBuilder = TraversalBuilder.atomic(this, Attributes.name(s"testFlow$tag"))
 
     override def withAttributes(attributes: Attributes): AtomicModule[FlowShape[Any, Any], Any] = ???
-    override def toString = s"TestFlow$tag"
+    override def toString: _root_.scala.Predef.String = s"TestFlow$tag"
   }
 
   // --- These test classes DO use the optimized linear builder, for testing the composite builder instead
   class LinearTestSource extends AtomicModule[SourceShape[Any], Any] {
-    val out = Outlet[Any]("testSource.out")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Any] = Outlet[Any]("testSource.out")
     override val shape: Shape = SourceShape(out)
-    override val traversalBuilder = LinearTraversalBuilder.fromModule(this, Attributes.name("testSource"))
+    override val traversalBuilder: _root_.akka.stream.impl.LinearTraversalBuilder = LinearTraversalBuilder.fromModule(this, Attributes.name("testSource"))
 
     override def withAttributes(attributes: Attributes): AtomicModule[SourceShape[Any], Any] = ???
     override def toString = "TestSource"
   }
 
   class LinearTestSink extends AtomicModule[SinkShape[Any], Any] {
-    val in = Inlet[Any]("testSink.in")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Any] = Inlet[Any]("testSink.in")
     override val shape: Shape = SinkShape(in)
-    override val traversalBuilder = LinearTraversalBuilder.fromModule(this, Attributes.name("testSink"))
+    override val traversalBuilder: _root_.akka.stream.impl.LinearTraversalBuilder = LinearTraversalBuilder.fromModule(this, Attributes.name("testSink"))
 
     override def withAttributes(attributes: Attributes): AtomicModule[SinkShape[Any], Any] = ???
     override def toString = "TestSink"
   }
 
   class LinearTestFlow(tag: String) extends AtomicModule[FlowShape[Any, Any], Any] {
-    val in = Inlet[Any](s"testFlow$tag.in")
-    val out = Outlet[Any](s"testFlow$tag.out")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Any] = Inlet[Any](s"testFlow$tag.in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Any] = Outlet[Any](s"testFlow$tag.out")
     override val shape: Shape = FlowShape(in, out)
-    override val traversalBuilder = LinearTraversalBuilder.fromModule(this, Attributes.name(s"testFlow$tag"))
+    override val traversalBuilder: _root_.akka.stream.impl.LinearTraversalBuilder = LinearTraversalBuilder.fromModule(this, Attributes.name(s"testFlow$tag"))
 
     override def withAttributes(attributes: Attributes): AtomicModule[FlowShape[Any, Any], Any] = ???
-    override def toString = s"TestFlow$tag"
+    override def toString: _root_.scala.Predef.String = s"TestFlow$tag"
   }
 
   class MaterializationResult(
@@ -76,7 +76,7 @@ object TraversalTestUtils {
     val attributesAssignments: List[(AtomicModule[Shape, Any], Attributes)],
     val islandAssignments:     List[(AtomicModule[Shape, Any], Attributes, IslandTag)]) {
 
-    override def toString = {
+    override def toString: _root_.scala.Predef.String = {
       outlets.iterator.zip(inlets.iterator).mkString("connections: ", ", ", "")
     }
   }

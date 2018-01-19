@@ -15,12 +15,12 @@ import scala.concurrent.duration._
 import scala.util.control.NoStackTrace
 
 class QueueSinkSpec extends StreamSpec {
-  implicit val ec = system.dispatcher
-  implicit val materializer = ActorMaterializer()
+  implicit val ec: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
-  val ex = new RuntimeException("ex") with NoStackTrace
+  val ex: _root_.scala.`package`.RuntimeException with _root_.scala.util.control.NoStackTrace {} = new RuntimeException("ex") with NoStackTrace
 
-  val noMsgTimeout = 300.millis
+  val noMsgTimeout: _root_.scala.concurrent.duration.FiniteDuration = 300.millis
 
   "An QueueSinkSpec" must {
 

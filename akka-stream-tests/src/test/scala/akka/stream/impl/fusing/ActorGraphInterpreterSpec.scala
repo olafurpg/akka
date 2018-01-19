@@ -21,7 +21,7 @@ import scala.concurrent.duration._
 import org.reactivestreams.{ Publisher, Subscriber, Subscription }
 
 class ActorGraphInterpreterSpec extends StreamSpec {
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "ActorGraphInterpreter" must {
 
@@ -49,11 +49,11 @@ class ActorGraphInterpreterSpec extends StreamSpec {
 
     "be able to interpret a simple bidi stage" in assertAllStagesStopped {
       val identityBidi = new GraphStage[BidiShape[Int, Int, Int, Int]] {
-        val in1 = Inlet[Int]("in1")
-        val in2 = Inlet[Int]("in2")
-        val out1 = Outlet[Int]("out1")
-        val out2 = Outlet[Int]("out2")
-        val shape = BidiShape(in1, out1, in2, out2)
+        val in1: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in1")
+        val in2: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in2")
+        val out1: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out1")
+        val out2: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out2")
+        val shape: _root_.akka.stream.BidiShape[_root_.scala.Int, _root_.scala.Int, _root_.scala.Int, _root_.scala.Int] = BidiShape(in1, out1, in2, out2)
 
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
           setHandler(in1, new InHandler {
@@ -90,11 +90,11 @@ class ActorGraphInterpreterSpec extends StreamSpec {
 
     "be able to interpret and reuse a simple bidi stage" in assertAllStagesStopped {
       val identityBidi = new GraphStage[BidiShape[Int, Int, Int, Int]] {
-        val in1 = Inlet[Int]("in1")
-        val in2 = Inlet[Int]("in2")
-        val out1 = Outlet[Int]("out1")
-        val out2 = Outlet[Int]("out2")
-        val shape = BidiShape(in1, out1, in2, out2)
+        val in1: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in1")
+        val in2: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in2")
+        val out1: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out1")
+        val out2: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out2")
+        val shape: _root_.akka.stream.BidiShape[_root_.scala.Int, _root_.scala.Int, _root_.scala.Int, _root_.scala.Int] = BidiShape(in1, out1, in2, out2)
 
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
           setHandler(in1, new InHandler {
@@ -136,11 +136,11 @@ class ActorGraphInterpreterSpec extends StreamSpec {
 
     "be able to interpret and resuse a simple bidi stage" in assertAllStagesStopped {
       val identityBidi = new GraphStage[BidiShape[Int, Int, Int, Int]] {
-        val in1 = Inlet[Int]("in1")
-        val in2 = Inlet[Int]("in2")
-        val out1 = Outlet[Int]("out1")
-        val out2 = Outlet[Int]("out2")
-        val shape = BidiShape(in1, out1, in2, out2)
+        val in1: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in1")
+        val in2: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in2")
+        val out1: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out1")
+        val out2: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out2")
+        val shape: _root_.akka.stream.BidiShape[_root_.scala.Int, _root_.scala.Int, _root_.scala.Int, _root_.scala.Int] = BidiShape(in1, out1, in2, out2)
 
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
           setHandler(in1, new InHandler {
@@ -185,11 +185,11 @@ class ActorGraphInterpreterSpec extends StreamSpec {
       // to its upstream, and loops back downstream elementd to its downstream.
 
       val rotatedBidi = new GraphStage[BidiShape[Int, Int, Int, Int]] {
-        val in1 = Inlet[Int]("in1")
-        val in2 = Inlet[Int]("in2")
-        val out1 = Outlet[Int]("out1")
-        val out2 = Outlet[Int]("out2")
-        val shape = BidiShape(in1, out1, in2, out2)
+        val in1: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in1")
+        val in2: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("in2")
+        val out1: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out1")
+        val out2: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("out2")
+        val shape: _root_.akka.stream.BidiShape[_root_.scala.Int, _root_.scala.Int, _root_.scala.Int, _root_.scala.Int] = BidiShape(in1, out1, in2, out2)
 
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
           setHandler(in1, new InHandler {

@@ -17,8 +17,8 @@ import scala.concurrent.duration._
 
 class OutputStreamSinkSpec extends StreamSpec(UnboundedMailboxConfig) {
 
-  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "OutputStreamSink" must {
     "write bytes to void OutputStream" in assertAllStagesStopped {
@@ -42,7 +42,7 @@ class OutputStreamSinkSpec extends StreamSpec(UnboundedMailboxConfig) {
       Source.failed(new TE("Boom!"))
         .runWith(StreamConverters.fromOutputStream(() ⇒ new OutputStream {
           override def write(i: Int): Unit = ()
-          override def close() = p.ref ! "closed"
+          override def close(): _root_.scala.Unit = p.ref ! "closed"
         }))
 
       p.expectMsg("closed")
@@ -54,7 +54,7 @@ class OutputStreamSinkSpec extends StreamSpec(UnboundedMailboxConfig) {
         .runWith(StreamConverters.fromOutputStream(() ⇒ new OutputStream {
           override def write(i: Int): Unit = ()
           override def write(bytes: Array[Byte]): Unit = p.ref ! ByteString(bytes).utf8String
-          override def close() = p.ref ! "closed"
+          override def close(): _root_.scala.Unit = p.ref ! "closed"
         }))
 
       p.expectMsg("closed")

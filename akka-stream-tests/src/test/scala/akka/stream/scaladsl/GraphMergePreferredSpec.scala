@@ -15,7 +15,7 @@ class GraphMergePreferredSpec extends TwoStreamsSetup {
   override type Outputs = Int
 
   override def fixture(b: GraphDSL.Builder[_]): Fixture = new Fixture(b) {
-    val merge = b.add(MergePreferred[Outputs](1))
+    val merge: _root_.akka.stream.scaladsl.MergePreferred.MergePreferredShape[GraphMergePreferredSpec.this.Outputs] = b.add(MergePreferred[Outputs](1))
 
     override def left: Inlet[Outputs] = merge.preferred
     override def right: Inlet[Outputs] = merge.in(0)

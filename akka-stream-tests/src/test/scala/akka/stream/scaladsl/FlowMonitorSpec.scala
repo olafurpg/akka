@@ -12,9 +12,9 @@ import scala.concurrent.duration._
 
 class FlowMonitorSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "A FlowMonitor" must {
     "return Finished when stream is completed" in {

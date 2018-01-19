@@ -22,8 +22,8 @@ import akka.stream.testkit.scaladsl.TestSink
 
 class SourceSpec extends StreamSpec with DefaultTimeout {
 
-  implicit val materializer = ActorMaterializer()
-  implicit val config = PatienceConfig(timeout = Span(timeout.duration.toMillis, Millis))
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
+  implicit val config: SourceSpec.this.PatienceConfig = PatienceConfig(timeout = Span(timeout.duration.toMillis, Millis))
 
   "Single Source" must {
     "produce element" in {

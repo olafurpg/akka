@@ -28,9 +28,9 @@ import akka.stream.impl.fusing.GraphStages.SimpleLinearGraphStage
 
 object TlsSpec {
 
-  val rnd = new Random
+  val rnd: _root_.scala.util.Random = new Random
 
-  def initWithTrust(trustPath: String) = {
+  def initWithTrust(trustPath: String): _root_.javax.net.ssl.SSLContext = {
     val password = "changeme"
 
     val keyStore = KeyStore.getInstance(KeyStore.getDefaultType)
@@ -61,9 +61,9 @@ object TlsSpec {
 
     private val in = Inlet[ByteString]("in")
     private val out = Outlet[ByteString]("out")
-    override val shape = FlowShape(in, out)
+    override val shape: _root_.akka.stream.FlowShape[_root_.akka.util.ByteString, _root_.akka.util.ByteString] = FlowShape(in, out)
 
-    override def createLogic(attr: Attributes) = new TimerGraphStageLogic(shape) {
+    override def createLogic(attr: Attributes): _root_.akka.stream.stage.TimerGraphStageLogic = new TimerGraphStageLogic(shape) {
       override def preStart(): Unit = scheduleOnce((), duration)
 
       var last: ByteString = _
@@ -88,7 +88,7 @@ class TlsSpec extends StreamSpec("akka.loglevel=DEBUG\nakka.actor.debug.receive=
   import TlsSpec._
 
   import system.dispatcher
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   import GraphDSL.Implicits._
 
@@ -128,13 +128,13 @@ class TlsSpec extends StreamSpec("akka.loglevel=DEBUG\nakka.actor.debug.receive=
 
     object ClientInitiates extends CommunicationSetup {
       def decorateFlow(leftClosing: TLSClosing, rightClosing: TLSClosing,
-                       rhs: Flow[SslTlsInbound, SslTlsOutbound, Any]) =
+                       rhs: Flow[SslTlsInbound, SslTlsOutbound, Any]): _root_.akka.stream.scaladsl.Flow[_root_.akka.stream.TLSProtocol.SslTlsOutbound, _root_.akka.stream.TLSProtocol.SslTlsInbound, _root_.akka.NotUsed] =
         clientTls(leftClosing) atop serverTls(rightClosing).reversed join rhs
     }
 
     object ServerInitiates extends CommunicationSetup {
       def decorateFlow(leftClosing: TLSClosing, rightClosing: TLSClosing,
-                       rhs: Flow[SslTlsInbound, SslTlsOutbound, Any]) =
+                       rhs: Flow[SslTlsInbound, SslTlsOutbound, Any]): _root_.akka.stream.scaladsl.Flow[_root_.akka.stream.TLSProtocol.SslTlsOutbound, _root_.akka.stream.TLSProtocol.SslTlsInbound, _root_.akka.NotUsed] =
         serverTls(leftClosing) atop clientTls(rightClosing).reversed join rhs
     }
 
@@ -149,7 +149,7 @@ class TlsSpec extends StreamSpec("akka.loglevel=DEBUG\nakka.actor.debug.receive=
     object ClientInitiatesViaTcp extends CommunicationSetup {
       var binding: Tcp.ServerBinding = null
       def decorateFlow(leftClosing: TLSClosing, rightClosing: TLSClosing,
-                       rhs: Flow[SslTlsInbound, SslTlsOutbound, Any]) = {
+                       rhs: Flow[SslTlsInbound, SslTlsOutbound, Any]): _root_.akka.stream.scaladsl.Flow[_root_.akka.stream.TLSProtocol.SslTlsOutbound, _root_.akka.stream.TLSProtocol.SslTlsInbound, _root_.akka.NotUsed] = {
         binding = server(serverTls(rightClosing).reversed join rhs)
         clientTls(leftClosing) join Tcp().outgoingConnection(binding.localAddress)
       }
@@ -159,7 +159,7 @@ class TlsSpec extends StreamSpec("akka.loglevel=DEBUG\nakka.actor.debug.receive=
     object ServerInitiatesViaTcp extends CommunicationSetup {
       var binding: Tcp.ServerBinding = null
       def decorateFlow(leftClosing: TLSClosing, rightClosing: TLSClosing,
-                       rhs: Flow[SslTlsInbound, SslTlsOutbound, Any]) = {
+                       rhs: Flow[SslTlsInbound, SslTlsOutbound, Any]): _root_.akka.stream.scaladsl.Flow[_root_.akka.stream.TLSProtocol.SslTlsOutbound, _root_.akka.stream.TLSProtocol.SslTlsInbound, _root_.akka.NotUsed] = {
         binding = server(clientTls(rightClosing).reversed join rhs)
         serverTls(leftClosing) join Tcp().outgoingConnection(binding.localAddress)
       }
@@ -200,47 +200,47 @@ class TlsSpec extends StreamSpec("akka.loglevel=DEBUG\nakka.actor.debug.receive=
       def inputs: immutable.Seq[SslTlsOutbound]
       def output: ByteString
 
-      protected def send(str: String) = SendBytes(ByteString(str))
-      protected def send(ch: Char) = SendBytes(ByteString(ch.toByte))
+      protected def send(str: String): _root_.akka.stream.TLSProtocol.SendBytes = SendBytes(ByteString(str))
+      protected def send(ch: Char): _root_.akka.stream.TLSProtocol.SendBytes = SendBytes(ByteString(ch.toByte))
     }
 
     object SingleBytes extends PayloadScenario {
       val str = "0123456789"
-      def inputs = str.map(ch ⇒ SendBytes(ByteString(ch.toByte)))
-      def output = ByteString(str)
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = str.map(ch ⇒ SendBytes(ByteString(ch.toByte)))
+      def output: _root_.akka.util.ByteString = ByteString(str)
     }
 
     object MediumMessages extends PayloadScenario {
-      val strs = "0123456789" map (d ⇒ d.toString * (rnd.nextInt(9000) + 1000))
-      def inputs = strs map (s ⇒ SendBytes(ByteString(s)))
-      def output = ByteString((strs :\ "")(_ ++ _))
+      val strs: _root_.scala.collection.immutable.IndexedSeq[_root_.scala.Predef.String] = "0123456789" map (d ⇒ d.toString * (rnd.nextInt(9000) + 1000))
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = strs map (s ⇒ SendBytes(ByteString(s)))
+      def output: _root_.akka.util.ByteString = ByteString((strs :\ "")(_ ++ _))
     }
 
     object LargeMessages extends PayloadScenario {
       // TLS max packet size is 16384 bytes
-      val strs = "0123456789" map (d ⇒ d.toString * (rnd.nextInt(9000) + 17000))
-      def inputs = strs map (s ⇒ SendBytes(ByteString(s)))
-      def output = ByteString((strs :\ "")(_ ++ _))
+      val strs: _root_.scala.collection.immutable.IndexedSeq[_root_.scala.Predef.String] = "0123456789" map (d ⇒ d.toString * (rnd.nextInt(9000) + 17000))
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = strs map (s ⇒ SendBytes(ByteString(s)))
+      def output: _root_.akka.util.ByteString = ByteString((strs :\ "")(_ ++ _))
     }
 
     object EmptyBytesFirst extends PayloadScenario {
-      def inputs = List(ByteString.empty, ByteString("hello")).map(SendBytes)
-      def output = ByteString("hello")
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = List(ByteString.empty, ByteString("hello")).map(SendBytes)
+      def output: _root_.akka.util.ByteString = ByteString("hello")
     }
 
     object EmptyBytesInTheMiddle extends PayloadScenario {
-      def inputs = List(ByteString("hello"), ByteString.empty, ByteString(" world")).map(SendBytes)
-      def output = ByteString("hello world")
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = List(ByteString("hello"), ByteString.empty, ByteString(" world")).map(SendBytes)
+      def output: _root_.akka.util.ByteString = ByteString("hello world")
     }
 
     object EmptyBytesLast extends PayloadScenario {
-      def inputs = List(ByteString("hello"), ByteString.empty).map(SendBytes)
-      def output = ByteString("hello")
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = List(ByteString("hello"), ByteString.empty).map(SendBytes)
+      def output: _root_.akka.util.ByteString = ByteString("hello")
     }
 
     // this demonstrates that cancellation is ignored so that the five results make it back
     object CancellingRHS extends PayloadScenario {
-      override def flow =
+      override def flow: _root_.akka.stream.scaladsl.Flow[_root_.akka.stream.TLSProtocol.SslTlsInbound, _root_.akka.stream.TLSProtocol.SslTlsOutbound, _root_.akka.NotUsed] =
         Flow[SslTlsInbound]
           .mapConcat {
             case SessionTruncated       ⇒ SessionTruncated :: Nil
@@ -249,15 +249,15 @@ class TlsSpec extends StreamSpec("akka.loglevel=DEBUG\nakka.actor.debug.receive=
           .take(5)
           .mapAsync(5)(x ⇒ later(500.millis, system.scheduler)(Future.successful(x)))
           .via(super.flow)
-      override def rightClosing = IgnoreCancel
+      override def rightClosing: _root_.akka.stream.IgnoreCancel.type = IgnoreCancel
 
-      val str = "abcdef" * 100
-      def inputs = str.map(send)
-      def output = ByteString(str.take(5))
+      val str: _root_.scala.Predef.String = "abcdef" * 100
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = str.map(send)
+      def output: _root_.akka.util.ByteString = ByteString(str.take(5))
     }
 
     object CancellingRHSIgnoresBoth extends PayloadScenario {
-      override def flow =
+      override def flow: _root_.akka.stream.scaladsl.Flow[_root_.akka.stream.TLSProtocol.SslTlsInbound, _root_.akka.stream.TLSProtocol.SslTlsOutbound, _root_.akka.NotUsed] =
         Flow[SslTlsInbound]
           .mapConcat {
             case SessionTruncated       ⇒ SessionTruncated :: Nil
@@ -266,38 +266,38 @@ class TlsSpec extends StreamSpec("akka.loglevel=DEBUG\nakka.actor.debug.receive=
           .take(5)
           .mapAsync(5)(x ⇒ later(500.millis, system.scheduler)(Future.successful(x)))
           .via(super.flow)
-      override def rightClosing = IgnoreBoth
+      override def rightClosing: _root_.akka.stream.IgnoreBoth.type = IgnoreBoth
 
-      val str = "abcdef" * 100
-      def inputs = str.map(send)
-      def output = ByteString(str.take(5))
+      val str: _root_.scala.Predef.String = "abcdef" * 100
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = str.map(send)
+      def output: _root_.akka.util.ByteString = ByteString(str.take(5))
     }
 
     object LHSIgnoresBoth extends PayloadScenario {
-      override def leftClosing = IgnoreBoth
+      override def leftClosing: _root_.akka.stream.IgnoreBoth.type = IgnoreBoth
       val str = "0123456789"
-      def inputs = str.map(ch ⇒ SendBytes(ByteString(ch.toByte)))
-      def output = ByteString(str)
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = str.map(ch ⇒ SendBytes(ByteString(ch.toByte)))
+      def output: _root_.akka.util.ByteString = ByteString(str)
     }
 
     object BothSidesIgnoreBoth extends PayloadScenario {
-      override def leftClosing = IgnoreBoth
-      override def rightClosing = IgnoreBoth
+      override def leftClosing: _root_.akka.stream.IgnoreBoth.type = IgnoreBoth
+      override def rightClosing: _root_.akka.stream.IgnoreBoth.type = IgnoreBoth
       val str = "0123456789"
-      def inputs = str.map(ch ⇒ SendBytes(ByteString(ch.toByte)))
-      def output = ByteString(str)
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = str.map(ch ⇒ SendBytes(ByteString(ch.toByte)))
+      def output: _root_.akka.util.ByteString = ByteString(str)
     }
 
     object SessionRenegotiationBySender extends PayloadScenario {
-      def inputs = List(send("hello"), NegotiateNewSession, send("world"))
-      def output = ByteString("helloNEWSESSIONworld")
+      def inputs: _root_.scala.collection.immutable.List[_root_.scala.Product with _root_.scala.Serializable with _root_.akka.stream.TLSProtocol.SslTlsOutbound {}] = List(send("hello"), NegotiateNewSession, send("world"))
+      def output: _root_.akka.util.ByteString = ByteString("helloNEWSESSIONworld")
     }
 
     // difference is that the RHS engine will now receive the handshake while trying to send
     object SessionRenegotiationByReceiver extends PayloadScenario {
-      val str = "abcdef" * 100
-      def inputs = str.map(send) ++ Seq(NegotiateNewSession) ++ "hello world".map(send)
-      def output = ByteString(str + "NEWSESSIONhello world")
+      val str: _root_.scala.Predef.String = "abcdef" * 100
+      def inputs: _root_.scala.collection.immutable.Seq[_root_.akka.stream.TLSProtocol.SslTlsOutbound] = str.map(send) ++ Seq(NegotiateNewSession) ++ "hello world".map(send)
+      def output: _root_.akka.util.ByteString = ByteString(str + "NEWSESSIONhello world")
     }
 
     val logCipherSuite = Flow[SslTlsInbound]
@@ -318,15 +318,15 @@ class TlsSpec extends StreamSpec("akka.loglevel=DEBUG\nakka.actor.debug.receive=
       }
 
     object SessionRenegotiationFirstOne extends PayloadScenario {
-      override def flow = logCipherSuite
-      def inputs = NegotiateNewSession.withCipherSuites("TLS_RSA_WITH_AES_128_CBC_SHA") :: send("hello") :: Nil
-      def output = ByteString("TLS_RSA_WITH_AES_128_CBC_SHAhello")
+      override def flow: _root_.akka.stream.scaladsl.Flow[_root_.akka.stream.TLSProtocol.SslTlsInbound, _root_.akka.stream.TLSProtocol.SendBytes, _root_.akka.NotUsed] = logCipherSuite
+      def inputs: _root_.scala.collection.immutable.List[_root_.scala.Product with _root_.scala.Serializable with _root_.akka.stream.TLSProtocol.SslTlsOutbound {}] = NegotiateNewSession.withCipherSuites("TLS_RSA_WITH_AES_128_CBC_SHA") :: send("hello") :: Nil
+      def output: _root_.akka.util.ByteString = ByteString("TLS_RSA_WITH_AES_128_CBC_SHAhello")
     }
 
     object SessionRenegotiationFirstTwo extends PayloadScenario {
-      override def flow = logCipherSuite
-      def inputs = NegotiateNewSession.withCipherSuites("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA") :: send("hello") :: Nil
-      def output = ByteString("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHAhello")
+      override def flow: _root_.akka.stream.scaladsl.Flow[_root_.akka.stream.TLSProtocol.SslTlsInbound, _root_.akka.stream.TLSProtocol.SendBytes, _root_.akka.NotUsed] = logCipherSuite
+      def inputs: _root_.scala.collection.immutable.List[_root_.scala.Product with _root_.scala.Serializable with _root_.akka.stream.TLSProtocol.SslTlsOutbound {}] = NegotiateNewSession.withCipherSuites("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA") :: send("hello") :: Nil
+      def output: _root_.akka.util.ByteString = ByteString("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHAhello")
     }
 
     val scenarios =
@@ -353,13 +353,13 @@ class TlsSpec extends StreamSpec("akka.loglevel=DEBUG\nakka.actor.debug.receive=
           Source(scenario.inputs)
             .via(commPattern.decorateFlow(scenario.leftClosing, scenario.rightClosing, onRHS))
             .via(new SimpleLinearGraphStage[SslTlsInbound] {
-              override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) with InHandler with OutHandler {
+              override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic with _root_.akka.stream.stage.InHandler with _root_.akka.stream.stage.OutHandler {} = new GraphStageLogic(shape) with InHandler with OutHandler {
                 setHandlers(in, out, this)
 
-                override def onPush() = push(out, grab(in))
-                override def onPull() = pull(in)
+                override def onPush(): _root_.scala.Unit = push(out, grab(in))
+                override def onPull(): _root_.scala.Unit = pull(in)
 
-                override def onDownstreamFinish() = {
+                override def onDownstreamFinish(): _root_.scala.Unit = {
                   system.log.debug("me cancelled")
                   completeStage()
                 }

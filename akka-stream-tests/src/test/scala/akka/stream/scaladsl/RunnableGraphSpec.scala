@@ -9,7 +9,7 @@ import akka.stream.testkit.StreamSpec
 
 class RunnableGraphSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A RunnableGraph" must {
 

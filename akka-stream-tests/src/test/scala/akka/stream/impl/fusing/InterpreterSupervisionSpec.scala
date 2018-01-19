@@ -16,7 +16,7 @@ class InterpreterSupervisionSpec extends StreamSpec with GraphInterpreterSpecKit
   import Supervision.resumingDecider
   import Supervision.restartingDecider
 
-  val TE = new Exception("TEST") with NoStackTrace {
+  val TE: _root_.scala.`package`.Exception with _root_.scala.util.control.NoStackTrace {} = new Exception("TEST") with NoStackTrace {
     override def toString = "TE"
   }
 

@@ -13,7 +13,7 @@ import akka.actor.Props
 
 object ActorRefSinkSpec {
   case class Fw(ref: ActorRef) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case msg ⇒ ref forward msg
     }
   }
@@ -21,7 +21,7 @@ object ActorRefSinkSpec {
 
 class ActorRefSinkSpec extends StreamSpec {
   import ActorRefSinkSpec._
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A ActorRefSink" must {
 

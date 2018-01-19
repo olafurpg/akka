@@ -15,7 +15,7 @@ import scala.util.control.NoStackTrace
 
 class MaybeSourceSpec extends StreamSpec with DefaultTimeout {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "The Maybe Source" must {
 

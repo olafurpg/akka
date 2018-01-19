@@ -30,11 +30,11 @@ class SubstreamSubscriptionTimeoutSpec(conf: String) extends StreamSpec(conf) {
     this(300.millis)
   }
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 2)
 
-  implicit val dispatcher = system.dispatcher
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val dispatcher: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "groupBy and splitwhen" must {
 

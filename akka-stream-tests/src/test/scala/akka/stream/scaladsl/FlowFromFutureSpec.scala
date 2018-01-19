@@ -13,9 +13,9 @@ import akka.stream.testkit.Utils._
 
 class FlowFromFutureSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "A Flow based on a Future" must {
     "produce one element from already successful Future" in assertAllStagesStopped {

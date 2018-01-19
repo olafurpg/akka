@@ -37,17 +37,17 @@ object TcpHelper {
   class TestClient(connection: ActorRef) extends Actor {
     connection ! Tcp.Register(self, keepOpenOnPeerClosed = true, useResumeWriting = false)
 
-    var queuedWrites = Queue.empty[ByteString]
+    var queuedWrites: _root_.scala.collection.immutable.Queue[_root_.akka.util.ByteString] = Queue.empty[ByteString]
     var writePending = false
 
     var toRead = 0
-    var readBuffer = ByteString.empty
+    var readBuffer: _root_.akka.util.ByteString = ByteString.empty
     var readTo: ActorRef = context.system.deadLetters
 
     var closeAfterWrite: Option[Tcp.CloseCommand] = None
 
     // FIXME: various close scenarios
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case ClientWrite(bytes) if !writePending ⇒
         writePending = true
         connection ! Tcp.Write(bytes, WriteAck)
@@ -95,7 +95,7 @@ object TcpHelper {
     IO(Tcp) ! Tcp.Bind(self, serverAddress, pullMode = true)
     var listener: ActorRef = _
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case b @ Tcp.Bound(_) ⇒
         listener = sender()
         listener ! Tcp.ResumeAccepting(1)
@@ -116,14 +116,14 @@ object TcpHelper {
 trait TcpHelper { this: TestKitBase ⇒
   import akka.stream.io.TcpHelper._
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 4, maxSize = 4)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   class Server(val address: InetSocketAddress = temporaryServerAddress()) {
-    val serverProbe = TestProbe()
-    val serverRef = system.actorOf(testServerProps(address, serverProbe.ref))
+    val serverProbe: _root_.akka.testkit.TestProbe = TestProbe()
+    val serverRef: _root_.akka.actor.ActorRef = system.actorOf(testServerProps(address, serverProbe.ref))
     serverProbe.expectMsgType[Tcp.Bound]
 
     def waitAccept(): ServerConnection = new ServerConnection(serverProbe.expectMsgType[ActorRef])
@@ -131,7 +131,7 @@ trait TcpHelper { this: TestKitBase ⇒
   }
 
   class ServerConnection(val connectionActor: ActorRef) {
-    val connectionProbe = TestProbe()
+    val connectionProbe: _root_.akka.testkit.TestProbe = TestProbe()
 
     def write(bytes: ByteString): Unit = connectionActor ! ClientWrite(bytes)
 
@@ -159,8 +159,8 @@ trait TcpHelper { this: TestKitBase ⇒
   }
 
   class TcpReadProbe() {
-    val subscriberProbe = TestSubscriber.manualProbe[ByteString]()
-    lazy val tcpReadSubscription = subscriberProbe.expectSubscription()
+    val subscriberProbe: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.akka.util.ByteString] = TestSubscriber.manualProbe[ByteString]()
+    lazy val tcpReadSubscription: _root_.org.reactivestreams.Subscription = subscriberProbe.expectSubscription()
 
     def read(count: Int): ByteString = {
       var result = ByteString.empty
@@ -175,8 +175,8 @@ trait TcpHelper { this: TestKitBase ⇒
   }
 
   class TcpWriteProbe() {
-    val publisherProbe = TestPublisher.manualProbe[ByteString]()
-    lazy val tcpWriteSubscription = publisherProbe.expectSubscription()
+    val publisherProbe: _root_.akka.stream.testkit.TestPublisher.ManualProbe[_root_.akka.util.ByteString] = TestPublisher.manualProbe[ByteString]()
+    lazy val tcpWriteSubscription: _root_.akka.stream.testkit.StreamTestKit.PublisherProbeSubscription[_root_.akka.util.ByteString] = publisherProbe.expectSubscription()
     var demand = 0L
 
     def write(bytes: ByteString): Unit = {

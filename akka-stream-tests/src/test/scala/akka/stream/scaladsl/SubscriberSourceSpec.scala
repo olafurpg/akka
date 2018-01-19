@@ -12,7 +12,7 @@ import scala.concurrent.Await
 
 class SubscriberSourceSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A SubscriberSource" must {
 

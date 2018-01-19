@@ -23,7 +23,7 @@ class FlowIterableSpec extends AbstractFlowIteratorSpec {
   override def createSource(elements: Int): Source[Int, NotUsed] =
     Source(1 to elements)
 
-  implicit def mmaterializer = super.materializer
+  implicit def mmaterializer: _root_.akka.stream.ActorMaterializer = super.materializer
 
   "produce onError when iterator throws" in {
     val iterable = new immutable.Iterable[Int] {
@@ -73,11 +73,11 @@ class FlowIterableSpec extends AbstractFlowIteratorSpec {
 
 abstract class AbstractFlowIteratorSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 2)
 
   private val m = ActorMaterializer(settings)
-  implicit final def materializer = m
+  implicit final def materializer: _root_.akka.stream.ActorMaterializer = m
 
   def testName: String
 

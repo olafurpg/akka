@@ -30,7 +30,7 @@ import java.util.concurrent.ThreadLocalRandom
 object FlowGroupBySpec {
 
   implicit class Lift[M](val f: SubFlow[Int, M, Source[Int, M]#Repr, RunnableGraph[M]]) extends AnyVal {
-    def lift(key: Int ⇒ Int) = f.prefixAndTail(1).map(p ⇒ key(p._1.head) → (Source.single(p._1.head) ++ p._2)).concatSubstreams
+    def lift(key: Int ⇒ Int): _root_.akka.stream.scaladsl.Source[(_root_.scala.Int, _root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed]), M] = f.prefixAndTail(1).map(p ⇒ key(p._1.head) → (Source.single(p._1.head) ++ p._2)).concatSubstreams
   }
 
 }
@@ -38,32 +38,32 @@ object FlowGroupBySpec {
 class FlowGroupBySpec extends StreamSpec {
   import FlowGroupBySpec._
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 2)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   case class StreamPuppet(p: Publisher[Int]) {
-    val probe = TestSubscriber.manualProbe[Int]()
+    val probe: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.scala.Int] = TestSubscriber.manualProbe[Int]()
     p.subscribe(probe)
-    val subscription = probe.expectSubscription()
+    val subscription: _root_.org.reactivestreams.Subscription = probe.expectSubscription()
 
     def request(demand: Int): Unit = subscription.request(demand)
     def expectNext(elem: Int): Unit = probe.expectNext(elem)
     def expectNoMsg(max: FiniteDuration): Unit = probe.expectNoMsg(max)
     def expectComplete(): Unit = probe.expectComplete()
-    def expectError(e: Throwable) = probe.expectError(e)
+    def expectError(e: Throwable): probe.Self = probe.expectError(e)
     def cancel(): Unit = subscription.cancel()
   }
 
   class SubstreamsSupport(groupCount: Int = 2, elementCount: Int = 6, maxSubstreams: Int = -1) {
-    val source = Source(1 to elementCount).runWith(Sink.asPublisher(false))
-    val max = if (maxSubstreams > 0) maxSubstreams else groupCount
-    val groupStream = Source.fromPublisher(source).groupBy(max, _ % groupCount).lift(_ % groupCount).runWith(Sink.asPublisher(false))
-    val masterSubscriber = TestSubscriber.manualProbe[(Int, Source[Int, _])]()
+    val source: _root_.org.reactivestreams.Publisher[_root_.scala.Int] = Source(1 to elementCount).runWith(Sink.asPublisher(false))
+    val max: _root_.scala.Int = if (maxSubstreams > 0) maxSubstreams else groupCount
+    val groupStream: _root_.org.reactivestreams.Publisher[(_root_.scala.Int, _root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed])] = Source.fromPublisher(source).groupBy(max, _ % groupCount).lift(_ % groupCount).runWith(Sink.asPublisher(false))
+    val masterSubscriber: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[(_root_.scala.Int, akka.stream.scaladsl.Source[Int, _])] = TestSubscriber.manualProbe[(Int, Source[Int, _])]()
 
     groupStream.subscribe(masterSubscriber)
-    val masterSubscription = masterSubscriber.expectSubscription()
+    val masterSubscription: _root_.org.reactivestreams.Subscription = masterSubscriber.expectSubscription()
 
     def getSubFlow(expectedKey: Int): Source[Int, _] = {
       masterSubscription.request(1)
@@ -87,7 +87,7 @@ class FlowGroupBySpec extends StreamSpec {
   "groupBy" must {
     "work in the happy case" in assertAllStagesStopped {
       new SubstreamsSupport(groupCount = 2) {
-        val s1 = StreamPuppet(getSubFlow(1).runWith(Sink.asPublisher(false)))
+        val s1: FlowGroupBySpec.this.StreamPuppet = StreamPuppet(getSubFlow(1).runWith(Sink.asPublisher(false)))
         masterSubscriber.expectNoMsg(100.millis)
 
         s1.expectNoMsg(100.millis)
@@ -95,7 +95,7 @@ class FlowGroupBySpec extends StreamSpec {
         s1.expectNext(1)
         s1.expectNoMsg(100.millis)
 
-        val s2 = StreamPuppet(getSubFlow(0).runWith(Sink.asPublisher(false)))
+        val s2: FlowGroupBySpec.this.StreamPuppet = StreamPuppet(getSubFlow(0).runWith(Sink.asPublisher(false)))
 
         s2.expectNoMsg(100.millis)
         s2.request(2)
@@ -150,7 +150,7 @@ class FlowGroupBySpec extends StreamSpec {
       new SubstreamsSupport(groupCount = 2) {
         StreamPuppet(getSubFlow(1).runWith(Sink.asPublisher(false))).cancel()
 
-        val substream = StreamPuppet(getSubFlow(0).runWith(Sink.asPublisher(false)))
+        val substream: FlowGroupBySpec.this.StreamPuppet = StreamPuppet(getSubFlow(0).runWith(Sink.asPublisher(false)))
         substream.request(2)
         substream.expectNext(2)
         substream.expectNext(4)
@@ -423,7 +423,7 @@ class FlowGroupBySpec extends StreamSpec {
       val map = new util.HashMap[Int, SubFlowState]()
 
       final class ProbeSink(val attributes: Attributes, shape: SinkShape[ByteString])(implicit system: ActorSystem) extends SinkModule[ByteString, TestSubscriber.Probe[ByteString]](shape) {
-        override def create(context: MaterializationContext) = {
+        override def create(context: MaterializationContext): (_root_.akka.stream.testkit.TestSubscriber.Probe[_root_.akka.util.ByteString], _root_.akka.stream.testkit.TestSubscriber.Probe[_root_.akka.util.ByteString]) = {
           val promise = probes.get(probesWriterTop)
           val probe = TestSubscriber.probe[ByteString]()
           promise.success(probe)

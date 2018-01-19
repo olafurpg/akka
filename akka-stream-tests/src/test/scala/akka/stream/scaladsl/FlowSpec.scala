@@ -25,17 +25,17 @@ import akka.stream.impl.fusing.GraphInterpreterShell
 object FlowSpec {
   class Fruit
   class Apple extends Fruit
-  val apples = () ⇒ Iterator.continually(new Apple)
+  val apples: _root_.scala.Function0[_root_.scala.collection.Iterator[_root_.akka.stream.scaladsl.FlowSpec.Apple]] = () ⇒ Iterator.continually(new Apple)
 
 }
 
 class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.receive=off\nakka.loglevel=INFO")) {
   import FlowSpec._
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 2)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   val identity: Flow[Any, Any, NotUsed] ⇒ Flow[Any, Any, NotUsed] = in ⇒ in.map(e ⇒ e)
   val identity2: Flow[Any, Any, NotUsed] ⇒ Flow[Any, Any, NotUsed] = in ⇒ identity(in)
@@ -280,9 +280,9 @@ class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.re
     "adapt speed to the currently slowest subscriber" in {
       new ChainSetup(identity, settings.withInputBuffer(initialSize = 1, maxSize = 1),
         toFanoutPublisher(1)) {
-        val downstream2 = TestSubscriber.manualProbe[Any]()
+        val downstream2: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.scala.Any] = TestSubscriber.manualProbe[Any]()
         publisher.subscribe(downstream2)
-        val downstream2Subscription = downstream2.expectSubscription()
+        val downstream2Subscription: _root_.org.reactivestreams.Subscription = downstream2.expectSubscription()
 
         downstreamSubscription.request(5)
         upstream.expectRequest(upstreamSubscription, 1) // because initialInputBufferSize=1
@@ -307,9 +307,9 @@ class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.re
     "support slow subscriber with fan-out 2" in {
       new ChainSetup(identity, settings.withInputBuffer(initialSize = 1, maxSize = 1),
         toFanoutPublisher(2)) {
-        val downstream2 = TestSubscriber.manualProbe[Any]()
+        val downstream2: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.scala.Any] = TestSubscriber.manualProbe[Any]()
         publisher.subscribe(downstream2)
-        val downstream2Subscription = downstream2.expectSubscription()
+        val downstream2Subscription: _root_.org.reactivestreams.Subscription = downstream2.expectSubscription()
 
         downstreamSubscription.request(5)
 
@@ -359,9 +359,9 @@ class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.re
         upstream.expectRequest(upstreamSubscription, 1)
 
         // link now while an upstream element is already requested
-        val downstream2 = TestSubscriber.manualProbe[Any]()
+        val downstream2: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.scala.Any] = TestSubscriber.manualProbe[Any]()
         publisher.subscribe(downstream2)
-        val downstream2Subscription = downstream2.expectSubscription()
+        val downstream2Subscription: _root_.org.reactivestreams.Subscription = downstream2.expectSubscription()
 
         // situation here:
         // downstream 1 now has 3 outstanding
@@ -385,9 +385,9 @@ class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.re
     "be unblocked when blocking subscriber cancels subscription" in {
       new ChainSetup(identity, settings.withInputBuffer(initialSize = 1, maxSize = 1),
         toFanoutPublisher(1)) {
-        val downstream2 = TestSubscriber.manualProbe[Any]()
+        val downstream2: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.scala.Any] = TestSubscriber.manualProbe[Any]()
         publisher.subscribe(downstream2)
-        val downstream2Subscription = downstream2.expectSubscription()
+        val downstream2Subscription: _root_.org.reactivestreams.Subscription = downstream2.expectSubscription()
 
         downstreamSubscription.request(5)
         upstreamSubscription.expectRequest(1)
@@ -422,7 +422,7 @@ class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.re
     "call future subscribers' onError after onSubscribe if initial upstream was completed" in {
       new ChainSetup(identity, settings.withInputBuffer(initialSize = 1, maxSize = 1),
         toFanoutPublisher(1)) {
-        val downstream2 = TestSubscriber.manualProbe[Any]()
+        val downstream2: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.scala.Any] = TestSubscriber.manualProbe[Any]()
         // don't link it just yet
 
         downstreamSubscription.request(5)
@@ -438,7 +438,7 @@ class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.re
 
         // link now while an upstream element is already requested
         publisher.subscribe(downstream2)
-        val downstream2Subscription = downstream2.expectSubscription()
+        val downstream2Subscription: _root_.org.reactivestreams.Subscription = downstream2.expectSubscription()
 
         upstreamSubscription.sendNext("a3")
         upstreamSubscription.sendComplete()
@@ -451,7 +451,7 @@ class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.re
         downstream2.expectNext("a3")
         downstream2.expectComplete()
 
-        val downstream3 = TestSubscriber.manualProbe[Any]()
+        val downstream3: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.scala.Any] = TestSubscriber.manualProbe[Any]()
         publisher.subscribe(downstream3)
         downstream3.expectSubscription()
         downstream3.expectError() should ===(ActorPublisher.NormalShutdownReason)
@@ -469,7 +469,7 @@ class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.re
         upstreamSubscription.expectCancellation()
         downstream.expectError(TestException)
 
-        val downstream2 = TestSubscriber.manualProbe[String]()
+        val downstream2: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.scala.Predef.String] = TestSubscriber.manualProbe[String]()
         publisher.subscribe(downstream2)
         downstream2.expectSubscriptionAndError() should be(TestException)
       }
@@ -482,7 +482,7 @@ class FlowSpec extends StreamSpec(ConfigFactory.parseString("akka.actor.debug.re
         downstreamSubscription.cancel()
         upstreamSubscription.expectCancellation()
 
-        val downstream2 = TestSubscriber.manualProbe[Any]()
+        val downstream2: _root_.akka.stream.testkit.TestSubscriber.ManualProbe[_root_.scala.Any] = TestSubscriber.manualProbe[Any]()
         publisher.subscribe(downstream2)
         // IllegalStateException shut down
         downstream2.expectSubscriptionAndError().isInstanceOf[IllegalStateException] should be(true)

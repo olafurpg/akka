@@ -20,12 +20,12 @@ import scala.concurrent.duration._
 
 class LazySinkSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 1, maxSize = 1)
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  val fallback = () ⇒ fail("Must not call fallback function")
-  val ex = TE("")
+  val fallback: _root_.scala.Function0[_root_.scala.Nothing] = () ⇒ fail("Must not call fallback function")
+  val ex: _root_.akka.stream.testkit.Utils.TE = TE("")
 
   "A LazySink" must {
     "work in happy case" in assertAllStagesStopped {
@@ -147,8 +147,8 @@ class LazySinkSpec extends StreamSpec {
     "fail correctly when materialization of inner sink fails" in assertAllStagesStopped {
       val matFail = TE("fail!")
       object FailingInnerMat extends GraphStage[SinkShape[String]] {
-        val in = Inlet[String]("in")
-        val shape = SinkShape(in)
+        val in: _root_.akka.stream.Inlet[_root_.scala.Predef.String] = Inlet[String]("in")
+        val shape: _root_.akka.stream.SinkShape[_root_.scala.Predef.String] = SinkShape(in)
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
           throw matFail
         }

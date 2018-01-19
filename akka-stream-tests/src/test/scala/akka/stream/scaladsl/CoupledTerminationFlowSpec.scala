@@ -17,17 +17,17 @@ import scala.xml.Node
 
 class CoupledTerminationFlowSpec extends StreamSpec with ScriptedTest {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 16)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
   import system.dispatcher
 
   /**
    * The table of effects is exactly the same one as in the scaladoc of the class,
    * so we're able to directly copy that table to check we wrote correct docs.
    */
-  val effectsTable =
+  val effectsTable: _root_.scala.xml.Elem =
     <table>
       <tr>
         <td>flow <i>cause:</i> upstream (sink-side) receives completion</td>

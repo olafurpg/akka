@@ -13,9 +13,9 @@ import scala.collection.immutable.Seq
 
 class FlowOrElseSpec extends AkkaSpec {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "An OrElse flow" should {
 
@@ -136,13 +136,13 @@ class FlowOrElseSpec extends AkkaSpec {
     }
 
     trait OrElseProbedFlow {
-      val inProbe1 = TestPublisher.probe[Char]()
-      val source1 = Source.fromPublisher(inProbe1)
-      val inProbe2 = TestPublisher.probe[Char]()
-      val source2 = Source.fromPublisher(inProbe2)
+      val inProbe1: _root_.akka.stream.testkit.TestPublisher.Probe[_root_.scala.Char] = TestPublisher.probe[Char]()
+      val source1: _root_.akka.stream.scaladsl.Source[_root_.scala.Char, _root_.akka.NotUsed] = Source.fromPublisher(inProbe1)
+      val inProbe2: _root_.akka.stream.testkit.TestPublisher.Probe[_root_.scala.Char] = TestPublisher.probe[Char]()
+      val source2: _root_.akka.stream.scaladsl.Source[_root_.scala.Char, _root_.akka.NotUsed] = Source.fromPublisher(inProbe2)
 
-      val outProbe = TestSubscriber.probe[Char]()
-      val sink = Sink.fromSubscriber(outProbe)
+      val outProbe: _root_.akka.stream.testkit.TestSubscriber.Probe[_root_.scala.Char] = TestSubscriber.probe[Char]()
+      val sink: _root_.akka.stream.scaladsl.Sink[_root_.scala.Char, _root_.akka.NotUsed] = Sink.fromSubscriber(outProbe)
 
       source1.orElse(source2).runWith(sink)
     }

@@ -20,8 +20,8 @@ class InterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
    * the execution model of the old one. Still, these tests are very valuable, so please do not remove.
    */
 
-  val takeOne = Take(1)
-  val takeTwo = Take(2)
+  val takeOne: _root_.akka.stream.impl.fusing.Take[_root_.scala.Nothing] = Take(1)
+  val takeTwo: _root_.akka.stream.impl.fusing.Take[_root_.scala.Nothing] = Take(2)
 
   "Interpreter" must {
 
@@ -523,7 +523,7 @@ class InterpreterSpec extends StreamSpec with GraphInterpreterSpecKit {
       EventFilter[IllegalArgumentException](pattern = ".*Cannot pull closed port.*", occurrences = 1).intercept {
         upstream.onComplete()
       }
-      val ev = lastEvents()
+      val ev: _root_.scala.Predef.Set[$anon.this.TestEvent] = lastEvents()
       ev.nonEmpty should be(true)
       ev.forall {
         case OnError(_: IllegalArgumentException) ⇒ true

@@ -13,11 +13,11 @@ import akka.testkit.AkkaSpec
 
 class ChasingEventsSpec extends AkkaSpec {
 
-  implicit val materializer = ActorMaterializer(ActorMaterializerSettings(system).withFuzzing(false))
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system).withFuzzing(false))
 
   class CancelInChasedPull extends GraphStage[FlowShape[Int, Int]] {
-    val in = Inlet[Int]("Propagate.in")
-    val out = Outlet[Int]("Propagate.out")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("Propagate.in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("Propagate.out")
     override val shape: FlowShape[Int, Int] = FlowShape(in, out)
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
@@ -34,8 +34,8 @@ class ChasingEventsSpec extends AkkaSpec {
   }
 
   class CompleteInChasedPush extends GraphStage[FlowShape[Int, Int]] {
-    val in = Inlet[Int]("Propagate.in")
-    val out = Outlet[Int]("Propagate.out")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("Propagate.in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("Propagate.out")
     override val shape: FlowShape[Int, Int] = FlowShape(in, out)
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
@@ -51,8 +51,8 @@ class ChasingEventsSpec extends AkkaSpec {
   }
 
   class FailureInChasedPush extends GraphStage[FlowShape[Int, Int]] {
-    val in = Inlet[Int]("Propagate.in")
-    val out = Outlet[Int]("Propagate.out")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("Propagate.in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Int] = Outlet[Int]("Propagate.out")
     override val shape: FlowShape[Int, Int] = FlowShape(in, out)
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
@@ -68,7 +68,7 @@ class ChasingEventsSpec extends AkkaSpec {
   }
 
   class ChasableSink extends GraphStage[SinkShape[Int]] {
-    val in = Inlet[Int]("Chaseable.in")
+    val in: _root_.akka.stream.Inlet[_root_.scala.Int] = Inlet[Int]("Chaseable.in")
     override val shape: SinkShape[Int] = SinkShape(in)
 
     @throws(classOf[Exception])

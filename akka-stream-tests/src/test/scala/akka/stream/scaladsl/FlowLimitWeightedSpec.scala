@@ -9,10 +9,10 @@ import scala.concurrent.Await
 
 class FlowLimitWeightedSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 16)
 
-  implicit val mat = ActorMaterializer(settings)
+  implicit val mat: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "Limit" must {
     "produce empty sequence regardless of cost when source is empty and n = 0" in {

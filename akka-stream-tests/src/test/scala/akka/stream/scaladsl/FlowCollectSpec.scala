@@ -15,8 +15,8 @@ import akka.stream.testkit.{ StreamSpec, ScriptedTest }
 
 class FlowCollectSpec extends StreamSpec with ScriptedTest {
 
-  val settings = ActorMaterializerSettings(system)
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "A Collect" must {
 

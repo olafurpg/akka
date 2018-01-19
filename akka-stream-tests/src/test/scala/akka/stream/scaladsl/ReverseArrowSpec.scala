@@ -9,9 +9,9 @@ import org.scalactic.ConversionCheckedTripleEquals
 class ReverseArrowSpec extends StreamSpec {
   import GraphDSL.Implicits._
 
-  implicit val materializer = ActorMaterializer()
-  val source = Source(List(1, 2, 3))
-  val sink = Flow[Int].limit(10).toMat(Sink.seq)(Keep.right)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
+  val source: _root_.akka.stream.scaladsl.Source[_root_.scala.Int, _root_.akka.NotUsed] = Source(List(1, 2, 3))
+  val sink: _root_.akka.stream.scaladsl.Sink[_root_.scala.Int, _root_.scala.concurrent.Future[_root_.scala.collection.immutable.Seq[_root_.scala.Int]]] = Flow[Int].limit(10).toMat(Sink.seq)(Keep.right)
 
   "Reverse Arrows in the Graph DSL" must {
 

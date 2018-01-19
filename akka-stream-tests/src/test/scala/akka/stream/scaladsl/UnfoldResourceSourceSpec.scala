@@ -20,10 +20,10 @@ import scala.concurrent.duration._
 
 class UnfoldResourceSourceSpec extends StreamSpec(UnboundedMailboxConfig) {
 
-  val settings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
-  implicit val materializer = ActorMaterializer(settings)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withDispatcher("akka.actor.default-dispatcher")
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  val manyLines = {
+  val manyLines: _root_.java.lang.String = {
     ("a" * 100 + "\n") * 10 +
       ("b" * 100 + "\n") * 10 +
       ("c" * 100 + "\n") * 10 +
@@ -31,9 +31,9 @@ class UnfoldResourceSourceSpec extends StreamSpec(UnboundedMailboxConfig) {
       ("e" * 100 + "\n") * 10 +
       ("f" * 100 + "\n") * 10
   }
-  val manyLinesArray = manyLines.split("\n")
+  val manyLinesArray: _root_.scala.Array[_root_.java.lang.String] = manyLines.split("\n")
 
-  val manyLinesFile = {
+  val manyLinesFile: _root_.java.io.File = {
     val f = File.createTempFile("blocking-source-spec", ".tmp")
     new FileWriter(f).append(manyLines).close()
     f

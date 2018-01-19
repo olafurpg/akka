@@ -33,13 +33,13 @@ class DslConsistencySpec extends WordSpec with Matchers {
   val jRunnableGraphClass: Class[_] = classOf[akka.stream.javadsl.RunnableGraph[_]]
   val sRunnableGraphClass: Class[_] = classOf[akka.stream.scaladsl.RunnableGraph[_]]
 
-  val ignore =
+  val ignore: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
     Set("equals", "hashCode", "notify", "notifyAll", "wait", "toString", "getClass") ++
       Set("productArity", "canEqual", "productPrefix", "copy", "productIterator", "productElement") ++
       Set("create", "apply", "ops", "appendJava", "andThen", "andThenMat", "isIdentity", "withAttributes", "transformMaterializing") ++
       Set("asScala", "asJava", "deprecatedAndThen", "deprecatedAndThenMat")
 
-  val graphHelpers = Set("zipGraph", "zipWithGraph", "mergeGraph", "mergeSortedGraph", "interleaveGraph", "concatGraph", "prependGraph", "alsoToGraph", "orElseGraph")
+  val graphHelpers: _root_.scala.collection.immutable.Set[_root_.java.lang.String] = Set("zipGraph", "zipWithGraph", "mergeGraph", "mergeSortedGraph", "interleaveGraph", "concatGraph", "prependGraph", "alsoToGraph", "orElseGraph")
   val allowMissing: Map[Class[_], Set[String]] = Map(
     jFlowClass → graphHelpers,
     jSourceClass → graphHelpers,

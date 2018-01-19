@@ -11,7 +11,7 @@ import akka.actor.ActorRef
 import akka.testkit.TestProbe
 
 object FlowSectionSpec {
-  val config =
+  val config: _root_.scala.Predef.String =
     s"""
       my-dispatcher1 = $${akka.test.stream-dispatcher}
       my-dispatcher2 = $${akka.test.stream-dispatcher}
@@ -20,7 +20,7 @@ object FlowSectionSpec {
 
 class FlowSectionSpec extends StreamSpec(FlowSectionSpec.config) {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A flow" can {
 

@@ -18,7 +18,7 @@ import akka.actor.Stash
 
 object ActorPublisherSpec {
 
-  val config =
+  val config: _root_.scala.Predef.String =
     s"""
       my-dispatcher1 = $${akka.test.stream-dispatcher}
       my-dispatcher2 = $${akka.test.stream-dispatcher}
@@ -48,7 +48,7 @@ object ActorPublisherSpec {
   class TestPublisher(probe: ActorRef) extends ActorPublisher[String] {
     import akka.stream.actor.ActorPublisherMessage._
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Request(element)    ⇒ probe ! TotalDemand(totalDemand)
       case Produce(elem)       ⇒ onNext(elem)
       case Err(reason)         ⇒ onError(new RuntimeException(reason) with NoStackTrace)
@@ -62,7 +62,7 @@ object ActorPublisherSpec {
 
   class TestPublisherWithStash(probe: ActorRef) extends TestPublisher(probe) with Stash {
 
-    override def receive = stashing
+    override def receive: TestPublisherWithStash.this.Receive = stashing
 
     def stashing: Receive = {
       case "unstash" ⇒
@@ -78,9 +78,9 @@ object ActorPublisherSpec {
   class Sender extends ActorPublisher[Int] {
     import akka.stream.actor.ActorPublisherMessage._
 
-    var buf = Vector.empty[Int]
+    var buf: _root_.scala.collection.immutable.Vector[_root_.scala.Int] = Vector.empty[Int]
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case i: Int ⇒
         if (buf.isEmpty && totalDemand > 0)
           onNext(i)
@@ -117,7 +117,7 @@ object ActorPublisherSpec {
     import akka.stream.actor.ActorPublisherMessage._
     import context.dispatcher
 
-    override def subscriptionTimeout = timeout
+    override def subscriptionTimeout: _root_.scala.concurrent.duration.FiniteDuration = timeout
 
     override def receive: Receive = {
       case Request(_) ⇒
@@ -135,9 +135,9 @@ object ActorPublisherSpec {
   class Receiver(probe: ActorRef) extends ActorSubscriber {
     import akka.stream.actor.ActorSubscriberMessage._
 
-    override val requestStrategy = WatermarkRequestStrategy(10)
+    override val requestStrategy: _root_.akka.stream.actor.WatermarkRequestStrategy = WatermarkRequestStrategy(10)
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case OnNext(s: String) ⇒
         probe ! s
     }

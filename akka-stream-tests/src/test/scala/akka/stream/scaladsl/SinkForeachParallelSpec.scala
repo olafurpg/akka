@@ -18,7 +18,7 @@ import scala.util.control.NoStackTrace
 
 class SinkForeachParallelSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A ForeachParallel" must {
     "produce elements in the order they are ready" in assertAllStagesStopped {

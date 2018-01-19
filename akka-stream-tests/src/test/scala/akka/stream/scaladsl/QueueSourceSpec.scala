@@ -18,12 +18,12 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 class QueueSourceSpec extends StreamSpec {
-  implicit val materializer = ActorMaterializer()
-  implicit val ec = system.dispatcher
-  val pause = 300.millis
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
+  implicit val ec: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
+  val pause: _root_.scala.concurrent.duration.FiniteDuration = 300.millis
 
   // more frequent checks than defaults from AkkaSpec
-  implicit val testPatience = PatienceConfig(
+  implicit val testPatience: QueueSourceSpec.this.PatienceConfig = PatienceConfig(
     testKitSettings.DefaultTimeout.duration,
     Span(5, org.scalatest.time.Millis))
 

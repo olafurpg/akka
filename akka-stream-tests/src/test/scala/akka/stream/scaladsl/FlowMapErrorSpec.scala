@@ -12,12 +12,12 @@ import scala.util.control.NoStackTrace
 
 class FlowMapErrorSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  val ex = new RuntimeException("ex") with NoStackTrace
-  val boom = new Exception("BOOM!") with NoStackTrace
+  val ex: _root_.scala.`package`.RuntimeException with _root_.scala.util.control.NoStackTrace {} = new RuntimeException("ex") with NoStackTrace
+  val boom: _root_.scala.`package`.Exception with _root_.scala.util.control.NoStackTrace {} = new Exception("BOOM!") with NoStackTrace
 
   "A MapError" must {
     "mapError when there is a handler" in assertAllStagesStopped {

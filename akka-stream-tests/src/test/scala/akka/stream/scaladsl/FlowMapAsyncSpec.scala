@@ -23,7 +23,7 @@ import scala.util.control.NoStackTrace
 
 class FlowMapAsyncSpec extends StreamSpec {
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "A Flow with mapAsync" must {
 

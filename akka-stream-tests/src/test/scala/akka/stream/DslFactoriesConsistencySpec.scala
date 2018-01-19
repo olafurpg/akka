@@ -10,13 +10,13 @@ class DslFactoriesConsistencySpec extends WordSpec with Matchers {
 
   // configuration //
 
-  val scalaIgnore =
+  val scalaIgnore: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
     Set("equals", "hashCode", "notify", "notifyAll", "wait", "toString", "getClass", "shape", "identityTraversalBuilder")
 
-  val javaIgnore =
+  val javaIgnore: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
     Set("adapt") // the scaladsl -> javadsl bridge
 
-  val `scala -> java aliases` =
+  val `scala -> java aliases`: _root_.scala.collection.immutable.List[(_root_.java.lang.String, _root_.java.lang.String)] =
     ("apply" → "create") ::
       ("apply" → "of") ::
       ("apply" → "from") ::
@@ -44,19 +44,19 @@ class DslFactoriesConsistencySpec extends WordSpec with Matchers {
       ((2 to 22) map { i => (Class.forName(s"scala.Function$i"), Class.forName(s"akka.japi.function.Function$i")) }).toList
   // format: ON
 
-  val sSource = classOf[scaladsl.Source[_, _]]
-  val jSource = classOf[javadsl.Source[_, _]]
+  val sSource: _root_.java.lang.Class[akka.stream.scaladsl.Source[_, _]] = classOf[scaladsl.Source[_, _]]
+  val jSource: _root_.java.lang.Class[akka.stream.javadsl.Source[_, _]] = classOf[javadsl.Source[_, _]]
 
-  val sSink = classOf[scaladsl.Sink[_, _]]
-  val jSink = classOf[javadsl.Sink[_, _]]
+  val sSink: _root_.java.lang.Class[akka.stream.scaladsl.Sink[_, _]] = classOf[scaladsl.Sink[_, _]]
+  val jSink: _root_.java.lang.Class[akka.stream.javadsl.Sink[_, _]] = classOf[javadsl.Sink[_, _]]
 
-  val sFlow = classOf[scaladsl.Flow[_, _, _]]
-  val jFlow = classOf[javadsl.Flow[_, _, _]]
+  val sFlow: _root_.java.lang.Class[akka.stream.scaladsl.Flow[_, _, _]] = classOf[scaladsl.Flow[_, _, _]]
+  val jFlow: _root_.java.lang.Class[akka.stream.javadsl.Flow[_, _, _]] = classOf[javadsl.Flow[_, _, _]]
 
-  val sRunnableGraph = classOf[scaladsl.RunnableGraph[_]]
-  val jRunnableGraph = classOf[javadsl.RunnableGraph[_]]
+  val sRunnableGraph: _root_.java.lang.Class[akka.stream.scaladsl.RunnableGraph[_]] = classOf[scaladsl.RunnableGraph[_]]
+  val jRunnableGraph: _root_.java.lang.Class[akka.stream.javadsl.RunnableGraph[_]] = classOf[javadsl.RunnableGraph[_]]
 
-  val graph = classOf[Graph[_, _]]
+  val graph: _root_.java.lang.Class[akka.stream.Graph[_, _]] = classOf[Graph[_, _]]
 
   case class TestCase(name: String, sClass: Option[Class[_]], jClass: Option[Class[_]], jFactory: Option[Class[_]])
   object TestCase {
@@ -67,7 +67,7 @@ class DslFactoriesConsistencySpec extends WordSpec with Matchers {
       TestCase(name, Some(sClass), Some(jClass), None)
   }
 
-  val testCases = Seq(
+  val testCases: _root_.scala.collection.Seq[DslFactoriesConsistencySpec.this.TestCase] = Seq(
     TestCase("Source", scaladsl.Source.getClass, javadsl.Source.getClass),
     TestCase("Flow", scaladsl.Flow.getClass, javadsl.Flow.getClass),
     TestCase("Sink", scaladsl.Sink.getClass, javadsl.Sink.getClass),

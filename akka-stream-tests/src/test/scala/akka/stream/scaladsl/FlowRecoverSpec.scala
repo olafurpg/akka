@@ -12,11 +12,11 @@ import scala.util.control.NoStackTrace
 
 class FlowRecoverSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system).withInputBuffer(initialSize = 1, maxSize = 1)
 
-  implicit val materializer = ActorMaterializer(settings)
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
-  val ex = new RuntimeException("ex") with NoStackTrace
+  val ex: _root_.scala.`package`.RuntimeException with _root_.scala.util.control.NoStackTrace {} = new RuntimeException("ex") with NoStackTrace
 
   "A Recover" must {
     "recover when there is a handler" in assertAllStagesStopped {

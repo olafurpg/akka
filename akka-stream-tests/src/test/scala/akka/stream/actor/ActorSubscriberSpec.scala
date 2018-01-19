@@ -22,9 +22,9 @@ object ActorSubscriberSpec {
   class ManualSubscriber(probe: ActorRef) extends ActorSubscriber {
     import ActorSubscriberMessage._
 
-    override val requestStrategy = ZeroRequestStrategy
+    override val requestStrategy: _root_.akka.stream.actor.ZeroRequestStrategy.type = ZeroRequestStrategy
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case next @ OnNext(elem)  ⇒ probe ! next
       case OnComplete           ⇒ probe ! OnComplete
       case err @ OnError(cause) ⇒ probe ! err
@@ -39,8 +39,8 @@ object ActorSubscriberSpec {
     Props(new ImmediatelyCancelledSubscriber(probe)).withDispatcher("akka.test.stream-dispatcher")
 
   class ImmediatelyCancelledSubscriber(probe: ActorRef) extends ManualSubscriber(probe) {
-    override val requestStrategy = ZeroRequestStrategy
-    override def preStart() = {
+    override val requestStrategy: _root_.akka.stream.actor.ZeroRequestStrategy.type = ZeroRequestStrategy
+    override def preStart(): _root_.scala.Unit = {
       cancel()
       super.preStart()
     }
@@ -52,9 +52,9 @@ object ActorSubscriberSpec {
   class RequestStrategySubscriber(probe: ActorRef, strat: RequestStrategy) extends ActorSubscriber {
     import ActorSubscriberMessage._
 
-    override val requestStrategy = strat
+    override val requestStrategy: _root_.akka.stream.actor.RequestStrategy = strat
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case next @ OnNext(elem) ⇒ probe ! next
       case OnComplete          ⇒ probe ! OnComplete
     }
@@ -70,20 +70,20 @@ object ActorSubscriberSpec {
 
   class Streamer extends ActorSubscriber {
     import ActorSubscriberMessage._
-    var queue = Map.empty[Int, ActorRef]
+    var queue: _root_.scala.collection.immutable.Map[_root_.scala.Int, _root_.akka.actor.ActorRef] = Map.empty[Int, ActorRef]
 
-    val router = {
+    val router: _root_.akka.routing.Router = {
       val routees = Vector.fill(3) {
         ActorRefRoutee(context.actorOf(Props[Worker].withDispatcher(context.props.dispatcher)))
       }
       Router(RoundRobinRoutingLogic(), routees)
     }
 
-    override val requestStrategy = new MaxInFlightRequestStrategy(max = 10) {
+    override val requestStrategy: _root_.akka.stream.actor.MaxInFlightRequestStrategy = new MaxInFlightRequestStrategy(max = 10) {
       override def inFlightInternally: Int = queue.size
     }
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case OnNext(Msg(id, replyTo)) ⇒
         queue += (id → replyTo)
         assert(queue.size <= 10, s"queued too many: ${queue.size}")
@@ -95,7 +95,7 @@ object ActorSubscriberSpec {
   }
 
   class Worker extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Work(id) ⇒
         // ...
         sender() ! Reply(id)
@@ -107,7 +107,7 @@ class ActorSubscriberSpec extends StreamSpec with ImplicitSender {
   import ActorSubscriberMessage._
   import ActorSubscriberSpec._
 
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer: _root_.akka.stream.ActorMaterializer = ActorMaterializer()
 
   "An ActorSubscriber" must {
 

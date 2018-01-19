@@ -11,10 +11,10 @@ import scala.concurrent.{ Await, Future }
 
 class CollectionSinkSpec extends StreamSpec {
 
-  val settings = ActorMaterializerSettings(system)
+  val settings: _root_.akka.stream.ActorMaterializerSettings = ActorMaterializerSettings(system)
     .withInputBuffer(initialSize = 2, maxSize = 16)
 
-  implicit val mat = ActorMaterializer(settings)
+  implicit val mat: _root_.akka.stream.ActorMaterializer = ActorMaterializer(settings)
 
   "Sink.collection" when {
     "using Seq as Collection" must {
