@@ -135,7 +135,7 @@ private case class AssertAfterChannelBind() extends SocketOptionV2 {
   @volatile
   var afterCalled = 0
 
-  override def afterBind(s: DatagramSocket) = {
+  override def afterBind(s: DatagramSocket): _root_.scala.Unit = {
     assert(s.isBound)
     afterCalled += 1
   }
@@ -145,7 +145,7 @@ private case class AssertOpenDatagramChannel() extends DatagramChannelCreator {
   @volatile
   var openCalled = 0
 
-  override def create() = {
+  override def create(): _root_.java.nio.channels.DatagramChannel = {
     openCalled += 1
     super.create()
   }

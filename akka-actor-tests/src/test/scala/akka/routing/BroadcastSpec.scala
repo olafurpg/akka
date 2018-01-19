@@ -11,7 +11,7 @@ import akka.pattern.ask
 
 object BroadcastSpec {
   class TestActor extends Actor {
-    def receive = { case _ ⇒ }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ }
   }
 }
 
@@ -24,7 +24,7 @@ class BroadcastSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
 
       val counter1 = new AtomicInteger
       val actor1 = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "end"    ⇒ doneLatch.countDown()
           case msg: Int ⇒ counter1.addAndGet(msg)
         }
@@ -32,7 +32,7 @@ class BroadcastSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
 
       val counter2 = new AtomicInteger
       val actor2 = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "end"    ⇒ doneLatch.countDown()
           case msg: Int ⇒ counter2.addAndGet(msg)
         }
@@ -54,7 +54,7 @@ class BroadcastSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
 
       val counter1 = new AtomicInteger
       val actor1 = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "end" ⇒ doneLatch.countDown()
           case msg: Int ⇒
             counter1.addAndGet(msg)
@@ -64,7 +64,7 @@ class BroadcastSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
 
       val counter2 = new AtomicInteger
       val actor2 = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "end"    ⇒ doneLatch.countDown()
           case msg: Int ⇒ counter2.addAndGet(msg)
         }

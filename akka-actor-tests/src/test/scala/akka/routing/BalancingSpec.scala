@@ -13,14 +13,14 @@ import org.scalatest.BeforeAndAfterEach
 import java.net.URLEncoder
 
 object BalancingSpec {
-  val counter = new AtomicInteger(1)
+  val counter: _root_.java.util.concurrent.atomic.AtomicInteger = new AtomicInteger(1)
 
   class Worker(latch: TestLatch) extends Actor {
-    lazy val id = counter.getAndIncrement()
+    lazy val id: _root_.scala.Int = counter.getAndIncrement()
 
     override def preStart(): Unit = latch.countDown()
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case msg: Int ⇒
         if (id != 1)
           Await.ready(latch, 1.minute)
@@ -31,10 +31,10 @@ object BalancingSpec {
   }
 
   class Parent extends Actor {
-    val pool = context.actorOf(BalancingPool(2).props(routeeProps =
+    val pool: _root_.akka.actor.ActorRef = context.actorOf(BalancingPool(2).props(routeeProps =
       Props(classOf[Worker], TestLatch(0)(context.system))))
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case msg ⇒ pool.forward(msg)
     }
   }

@@ -10,9 +10,9 @@ object ConsistencySpec {
   val minThreads = 1
   val maxThreads = 2000
   val factor = 1.5d
-  val threads = ThreadPoolConfig.scaledPoolSize(minThreads, factor, maxThreads) // Make sure we have more threads than cores
+  val threads: _root_.scala.Int = ThreadPoolConfig.scaledPoolSize(minThreads, factor, maxThreads) // Make sure we have more threads than cores
 
-  val config = s"""
+  val config: _root_.scala.Predef.String = s"""
       consistency-dispatcher {
         throughput = 1
         executor = "fork-join-executor"
@@ -26,10 +26,10 @@ object ConsistencySpec {
   class CacheMisaligned(var value: Long, var padding1: Long, var padding2: Long, var padding3: Int) //Vars, no final fences
 
   class ConsistencyCheckingActor extends Actor {
-    var left = new CacheMisaligned(42, 0, 0, 0) //var
-    var right = new CacheMisaligned(0, 0, 0, 0) //var
+    var left: _root_.akka.actor.ConsistencySpec.CacheMisaligned = new CacheMisaligned(42, 0, 0, 0) //var
+    var right: _root_.akka.actor.ConsistencySpec.CacheMisaligned = new CacheMisaligned(0, 0, 0, 0) //var
     var lastStep = -1L
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case step: Long ⇒
 
         if (lastStep != (step - 1))

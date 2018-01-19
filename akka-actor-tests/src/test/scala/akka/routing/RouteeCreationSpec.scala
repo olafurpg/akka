@@ -19,7 +19,7 @@ class RouteeCreationSpec extends AkkaSpec {
       val N = 100
       system.actorOf(RoundRobinPool(N).props(Props(new Actor {
         system.actorSelection(self.path).tell(Identify(self.path), testActor)
-        def receive = Actor.emptyBehavior
+        def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
       })))
       for (i ← 1 to N) {
         expectMsgType[ActorIdentity] match {
@@ -33,7 +33,7 @@ class RouteeCreationSpec extends AkkaSpec {
       val N = 100
       system.actorOf(RoundRobinPool(N).props(Props(new Actor {
         context.parent ! "one"
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "one" ⇒ testActor forward "two"
         }
       })))

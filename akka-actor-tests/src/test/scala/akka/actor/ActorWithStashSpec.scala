@@ -25,7 +25,7 @@ object ActorWithStashSpec {
       case _ ⇒ // do nothing
     }
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "hello" ⇒
         state.s = "hello"
         unstashAll()
@@ -35,7 +35,7 @@ object ActorWithStashSpec {
   }
 
   class StashingTwiceActor extends Actor with Stash {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "hello" ⇒
         try {
           stash()
@@ -50,7 +50,7 @@ object ActorWithStashSpec {
 
   class ActorWithProtocol extends Actor with Stash {
     import context.system
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "open" ⇒
         unstashAll()
         context.become {
@@ -66,16 +66,16 @@ object ActorWithStashSpec {
   }
 
   class WatchedActor extends Actor {
-    def receive = Actor.emptyBehavior
+    def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
   }
 
   class TerminatedMessageStashingActor(probe: ActorRef) extends Actor with Stash {
-    val watched = context.watch(context.actorOf(Props[WatchedActor]))
+    val watched: _root_.akka.actor.ActorRef = context.watch(context.actorOf(Props[WatchedActor]))
     var stashed = false
 
     context.stop(watched)
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Terminated(`watched`) ⇒
         if (!stashed) {
           stash()
@@ -89,7 +89,7 @@ object ActorWithStashSpec {
   object state {
     @volatile
     var s: String = ""
-    val finished = TestBarrier(2)
+    val finished: _root_.akka.testkit.TestBarrier = TestBarrier(2)
     var expectedException: TestLatch = null
   }
 
@@ -108,7 +108,7 @@ class ActorWithStashSpec extends AkkaSpec(ActorWithStashSpec.testConf) with Defa
     system.eventStream.publish(Mute(EventFilter[Exception]("Crashing...")))
   }
 
-  override def beforeEach() = state.finished.reset
+  override def beforeEach(): _root_.scala.Unit = state.finished.reset
 
   "An Actor with Stash" must {
 
@@ -148,7 +148,7 @@ class ActorWithStashSpec extends AkkaSpec(ActorWithStashSpec.testConf) with Defa
       val hasMsgLatch = new TestLatch
 
       val slaveProps = Props(new Actor with Stash {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "crash" ⇒
             throw new Exception("Crashing...")
 
@@ -161,7 +161,7 @@ class ActorWithStashSpec extends AkkaSpec(ActorWithStashSpec.testConf) with Defa
             hasMsgLatch.open()
         }
 
-        override def preRestart(reason: Throwable, message: Option[Any]) = {
+        override def preRestart(reason: Throwable, message: Option[Any]): _root_.scala.Unit = {
           if (!restartLatch.isOpen)
             restartLatch.open()
           super.preRestart(reason, message)

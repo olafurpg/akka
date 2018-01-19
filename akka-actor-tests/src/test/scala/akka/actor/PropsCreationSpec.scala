@@ -12,11 +12,11 @@ object PropsCreationSpec {
   final class B
 
   class OneParamActor(blackhole: A) extends Actor {
-    override def receive = Actor.emptyBehavior
+    override def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
   }
 
   class TwoParamActor(blackhole1: A, blackhole2: B) extends Actor {
-    override def receive = Actor.emptyBehavior
+    override def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
   }
 
   object OneParamActorCreator extends akka.japi.Creator[Actor] {

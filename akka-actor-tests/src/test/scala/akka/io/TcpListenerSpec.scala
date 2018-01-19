@@ -106,7 +106,7 @@ class TcpListenerSpec extends AkkaSpec("""
     "react to Unbind commands by replying with Unbound and stopping itself" in new TestSetup(pullMode = false) {
       bindListener()
 
-      val unbindCommander = TestProbe()
+      val unbindCommander: _root_.akka.testkit.TestProbe = TestProbe()
       unbindCommander.send(listener, Unbind)
 
       unbindCommander.expectMsg(Unbound)
@@ -119,7 +119,7 @@ class TcpListenerSpec extends AkkaSpec("""
       attemptConnectionToEndpoint()
 
       listener ! ChannelAcceptable
-      val channel = expectWorkerForCommand
+      val channel: _root_.java.nio.channels.SocketChannel = expectWorkerForCommand
 
       EventFilter.warning(pattern = "selector capacity limit", occurrences = 1) intercept {
         listener ! FailedRegisterIncoming(channel)
@@ -128,18 +128,18 @@ class TcpListenerSpec extends AkkaSpec("""
     }
   }
 
-  val counter = Iterator.from(0)
+  val counter: _root_.scala.collection.Iterator[_root_.scala.Int] = Iterator.from(0)
 
   class TestSetup(pullMode: Boolean) {
-    val handler = TestProbe()
-    val handlerRef = handler.ref
-    val bindCommander = TestProbe()
-    val parent = TestProbe()
-    val selectorRouter = TestProbe()
-    val endpoint = SocketUtil.temporaryServerAddress()
+    val handler: _root_.akka.testkit.TestProbe = TestProbe()
+    val handlerRef: _root_.akka.actor.ActorRef = handler.ref
+    val bindCommander: _root_.akka.testkit.TestProbe = TestProbe()
+    val parent: _root_.akka.testkit.TestProbe = TestProbe()
+    val selectorRouter: _root_.akka.testkit.TestProbe = TestProbe()
+    val endpoint: _root_.java.net.InetSocketAddress = SocketUtil.temporaryServerAddress()
 
-    var registerCallReceiver = TestProbe()
-    var interestCallReceiver = TestProbe()
+    var registerCallReceiver: _root_.akka.testkit.TestProbe = TestProbe()
+    var interestCallReceiver: _root_.akka.testkit.TestProbe = TestProbe()
 
     private val parentRef = TestActorRef(new ListenerParent(pullMode))
 
@@ -156,7 +156,7 @@ class TcpListenerSpec extends AkkaSpec("""
 
     def attemptConnectionToEndpoint(): Unit = new Socket(endpoint.getHostName, endpoint.getPort)
 
-    def listener = parentRef.underlyingActor.listener
+    def listener: _root_.akka.actor.ActorRef = parentRef.underlyingActor.listener
 
     def expectWorkerForCommand: SocketChannel =
       selectorRouter.expectMsgPF() {
@@ -167,7 +167,7 @@ class TcpListenerSpec extends AkkaSpec("""
       }
 
     private class ListenerParent(pullMode: Boolean) extends Actor with ChannelRegistry {
-      val listener = context.actorOf(
+      val listener: _root_.akka.actor.ActorRef = context.actorOf(
         props = Props(classOf[TcpListener], selectorRouter.ref, Tcp(system), this, bindCommander.ref,
           Bind(handler.ref, endpoint, 100, Nil, pullMode)).withDeploy(Deploy.local),
         name = "test-listener-" + counter.next())
@@ -175,7 +175,7 @@ class TcpListenerSpec extends AkkaSpec("""
       def receive: Receive = {
         case msg ⇒ parent.ref forward msg
       }
-      override def supervisorStrategy = SupervisorStrategy.stoppingStrategy
+      override def supervisorStrategy: _root_.akka.actor.SupervisorStrategy = SupervisorStrategy.stoppingStrategy
 
       def register(channel: SelectableChannel, initialOps: Int)(implicit channelActor: ActorRef): Unit =
         registerCallReceiver.ref.tell(initialOps, channelActor)

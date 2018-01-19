@@ -20,7 +20,7 @@ import akka.testkit._
 import scala.util.control.NoStackTrace
 
 object SchedulerSpec {
-  val testConfRevolver = ConfigFactory.parseString("""
+  val testConfRevolver: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
     akka.scheduler.implementation = akka.actor.LightArrayRevolverScheduler
     akka.scheduler.ticks-per-wheel = 32
     akka.actor.serialize-messages = off
@@ -40,7 +40,7 @@ trait SchedulerSpec extends BeforeAndAfterEach with DefaultTimeout with Implicit
 
       val tickActor, tickActor2 = system.actorOf(Props(new Actor {
         var ticks = 0
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Tick ⇒
             if (ticks < 3) {
               sender() ! Tock
@@ -67,7 +67,7 @@ trait SchedulerSpec extends BeforeAndAfterEach with DefaultTimeout with Implicit
     }
 
     "stop continuous scheduling if the receiving actor has been terminated" taggedAs TimingTest in {
-      val actor = system.actorOf(Props(new Actor { def receive = { case x ⇒ sender() ! x } }))
+      val actor = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ sender() ! x } }))
 
       // run immediately and then every 100 milliseconds
       collectCancellable(system.scheduler.schedule(0 milliseconds, 100 milliseconds, actor, "msg"))
@@ -96,7 +96,7 @@ trait SchedulerSpec extends BeforeAndAfterEach with DefaultTimeout with Implicit
       case object Tick
       val countDownLatch = new CountDownLatch(3)
       val tickActor = system.actorOf(Props(new Actor {
-        def receive = { case Tick ⇒ countDownLatch.countDown() }
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case Tick ⇒ countDownLatch.countDown() }
       }))
 
       // run after 300 millisec
@@ -183,12 +183,12 @@ trait SchedulerSpec extends BeforeAndAfterEach with DefaultTimeout with Implicit
 
       val supervisor = system.actorOf(Props(new Supervisor(AllForOneStrategy(3, 1 second)(List(classOf[Exception])))))
       val props = Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Ping  ⇒ pingLatch.countDown()
           case Crash ⇒ throw new Exception("CRASH")
         }
 
-        override def postRestart(reason: Throwable) = restartLatch.open
+        override def postRestart(reason: Throwable): _root_.scala.Unit = restartLatch.open
       })
       val actor = Await.result((supervisor ? props).mapTo[ActorRef], timeout.duration)
 
@@ -209,7 +209,7 @@ trait SchedulerSpec extends BeforeAndAfterEach with DefaultTimeout with Implicit
       final case class Msg(ts: Long)
 
       val actor = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Msg(ts) ⇒
             val now = System.nanoTime
             // Make sure that no message has been dispatched before the scheduled time (10ms) has occurred
@@ -232,7 +232,7 @@ trait SchedulerSpec extends BeforeAndAfterEach with DefaultTimeout with Implicit
       case object Msg
 
       val actor = system.actorOf(Props(new Actor {
-        def receive = { case Msg ⇒ ticks.countDown() }
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case Msg ⇒ ticks.countDown() }
       }))
 
       val startTime = System.nanoTime()
@@ -308,7 +308,7 @@ class LightArrayRevolverSchedulerSpec extends AkkaSpec(SchedulerSpec.testConfRev
 
   def collectCancellable(c: Cancellable): Cancellable = c
 
-  def tickDuration = system.scheduler.asInstanceOf[LightArrayRevolverScheduler].TickDuration
+  def tickDuration: _root_.scala.concurrent.duration.FiniteDuration = system.scheduler.asInstanceOf[LightArrayRevolverScheduler].TickDuration
 
   "A LightArrayRevolverScheduler" must {
 
@@ -537,7 +537,7 @@ class LightArrayRevolverSchedulerSpec extends AkkaSpec(SchedulerSpec.testConfRev
     def close(): Unit
   }
 
-  val localEC = new ExecutionContext {
+  val localEC: _root_.scala.AnyRef with _root_.scala.concurrent.ExecutionContext {} = new ExecutionContext {
     def execute(runnable: Runnable) { runnable.run() }
     def reportFailure(t: Throwable) { t.printStackTrace() }
   }
@@ -548,7 +548,7 @@ class LightArrayRevolverSchedulerSpec extends AkkaSpec(SchedulerSpec.testConfRev
     val prb = TestProbe()
     val tf = system.asInstanceOf[ActorSystemImpl].threadFactory
     val sched =
-      new { @volatile var time = start } with LARS(config.withFallback(system.settings.config), log, tf) {
+      new { @volatile var time: _root_.scala.Long = start } with LARS(config.withFallback(system.settings.config), log, tf) {
         override protected def clock(): Long = {
           // println(s"clock=$time")
           time
@@ -571,14 +571,14 @@ class LightArrayRevolverSchedulerSpec extends AkkaSpec(SchedulerSpec.testConfRev
         override protected def startTick: Int = _startTick
       }
     val driver = new Driver {
-      def wakeUp(d: FiniteDuration) = lbq.get match {
+      def wakeUp(d: FiniteDuration): _root_.scala.Unit = lbq.get match {
         case q: LinkedBlockingQueue[Long] ⇒ q.offer(d.toNanos)
         case _                            ⇒
       }
       def expectWait(): FiniteDuration = probe.expectMsgType[Long].nanos
-      def probe = prb
-      def step = sched.TickDuration
-      def close() = lbq.getAndSet(null) match {
+      def probe: _root_.akka.testkit.TestProbe = prb
+      def step: _root_.scala.concurrent.duration.FiniteDuration = sched.TickDuration
+      def close(): _root_.scala.Unit = lbq.getAndSet(null) match {
         case q: LinkedBlockingQueue[Long] ⇒ q.offer(0L)
         case _                            ⇒
       }

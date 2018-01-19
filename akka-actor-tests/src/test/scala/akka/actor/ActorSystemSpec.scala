@@ -23,9 +23,9 @@ object ActorSystemSpec {
 
   class Waves extends Actor {
     var master: ActorRef = _
-    var terminaters = Set[ActorRef]()
+    var terminaters: _root_.scala.collection.immutable.Set[_root_.akka.actor.ActorRef] = Set[ActorRef]()
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case n: Int ⇒
         master = sender()
         terminaters = Set() ++ (for (i ← 1 to n) yield {
@@ -50,24 +50,24 @@ object ActorSystemSpec {
   }
 
   class Terminater extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "run" ⇒ context.stop(self)
     }
   }
 
   class Strategy extends SupervisorStrategyConfigurator {
-    def create() = OneForOneStrategy() {
+    def create(): _root_.akka.actor.OneForOneStrategy = OneForOneStrategy() {
       case _ ⇒ SupervisorStrategy.Escalate
     }
   }
 
   final case class FastActor(latch: TestLatch, testActor: ActorRef) extends Actor {
-    val ref1 = context.actorOf(Props.empty)
-    val ref2 = context.actorFor(ref1.path.toString)
+    val ref1: _root_.akka.actor.ActorRef = context.actorOf(Props.empty)
+    val ref2: _root_.akka.actor.ActorRef = context.actorFor(ref1.path.toString)
     testActor ! ref2.getClass
     latch.countDown()
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case _ ⇒
     }
   }
@@ -80,7 +80,7 @@ object ActorSystemSpec {
       config.getNanosDuration("throughput-deadline-time"),
       configureExecutor(),
       config.getMillisDuration("shutdown-timeout")) {
-      val doneIt = new Switch
+      val doneIt: _root_.akka.util.Switch = new Switch
       override protected[akka] def registerForExecution(mbox: Mailbox, hasMessageHint: Boolean, hasSystemMessageHint: Boolean): Boolean = {
         val ret = super.registerForExecution(mbox, hasMessageHint, hasSystemMessageHint)
         doneIt.switchOn {
@@ -112,7 +112,7 @@ object ActorSystemSpec {
     }
   }
 
-  val config = s"""
+  val config: _root_.scala.Predef.String = s"""
       slow {
         type="${classOf[SlowDispatcher].getName}"
       }"""
@@ -295,7 +295,7 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
         ConfigFactory.parseString("akka.actor.guardian-supervisor-strategy=akka.actor.StoppingSupervisorStrategy")
           .withFallback(AkkaSpec.testConf))
       val a = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "die" ⇒ throw new Exception("hello")
         }
       }))
@@ -316,7 +316,7 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
         ConfigFactory.parseString("akka.actor.guardian-supervisor-strategy=\"akka.actor.ActorSystemSpec$Strategy\"")
           .withFallback(AkkaSpec.testConf))
       val a = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "die" ⇒ throw new Exception("hello")
         }
       }))
@@ -334,7 +334,7 @@ class ActorSystemSpec extends AkkaSpec(ActorSystemSpec.config) with ImplicitSend
 
       try {
         val ref = system2.actorOf(Props(new Actor {
-          def receive = {
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case "ping" ⇒ sender() ! "pong"
           }
         }))

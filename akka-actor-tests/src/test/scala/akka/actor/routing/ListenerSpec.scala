@@ -16,13 +16,13 @@ class ListenerSpec extends AkkaSpec {
       val barCount = new AtomicInteger(0)
 
       val broadcast = system.actorOf(Props(new Actor with Listeners {
-        def receive = listenerManagement orElse {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = listenerManagement orElse {
           case "foo" ⇒ gossip("bar")
         }
       }))
 
       def newListener = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "bar" ⇒
             barCount.incrementAndGet
             barLatch.countDown()

@@ -13,7 +13,7 @@ import akka.routing._
 import scala.concurrent.duration._
 
 object DeployerSpec {
-  val deployerConf = ConfigFactory.parseString("""
+  val deployerConf: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
       akka.actor.deployment {
         /service1 {
         }
@@ -70,7 +70,7 @@ object DeployerSpec {
       """, ConfigParseOptions.defaults)
 
   class RecipeActor extends Actor {
-    def receive = { case _ ⇒ }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ }
   }
 
 }

@@ -19,14 +19,14 @@ class ActorDSLDummy {
   import akka.actor.ActorDSL._
   import akka.actor.ActorSystem
 
-  implicit val system = ActorSystem("demo")
+  implicit val system: _root_.akka.actor.ActorSystem = ActorSystem("demo")
   //#import
 }
 
 class ActorDSLSpec extends AkkaSpec {
 
-  val echo = system.actorOf(Props(new Actor {
-    def receive = {
+  val echo: _root_.akka.actor.ActorRef = system.actorOf(Props(new Actor {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case x ⇒ sender() ! x
     }
   }))
@@ -196,7 +196,7 @@ class ActorDSLSpec extends AkkaSpec {
           case _: Exception                            ⇒ Resume
         })
         //#supervise-with
-        val child = actor("child")(new Act {
+        val child: _root_.akka.actor.ActorRef = actor("child")(new Act {
           whenFailing { (_, _) ⇒ }
           become {
             case ref: ActorRef ⇒ whenStopping(ref ! "stopped")
@@ -223,7 +223,7 @@ class ActorDSLSpec extends AkkaSpec {
       //#nested-actor
       // here we pass in the ActorRefFactory explicitly as an example
       val a = actor(system, "fred")(new Act {
-        val b = actor("barney")(new Act {
+        val b: _root_.akka.actor.ActorRef = actor("barney")(new Act {
           whenStarting { context.parent ! ("hello from " + self.path) }
         })
         become {

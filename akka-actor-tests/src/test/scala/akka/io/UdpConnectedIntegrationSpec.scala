@@ -14,7 +14,7 @@ class UdpConnectedIntegrationSpec extends AkkaSpec("""
     akka.actor.serialize-creators = on
     """) with ImplicitSender {
 
-  val addresses = temporaryServerAddresses(5, udp = true)
+  val addresses: _root_.scala.collection.immutable.IndexedSeq[_root_.java.net.InetSocketAddress] = temporaryServerAddresses(5, udp = true)
 
   def bindUdp(address: InetSocketAddress, handler: ActorRef): ActorRef = {
     val commander = TestProbe()

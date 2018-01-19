@@ -20,7 +20,7 @@ object AddressTerminatedTopicBenchSpec {
       AddressTerminatedTopic(context.system).unsubscribe(self)
     }
 
-    def receive = Actor.emptyBehavior
+    def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
   }
 }
 

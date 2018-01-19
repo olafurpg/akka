@@ -35,11 +35,11 @@ object RoutingSpec {
     """
 
   class TestActor extends Actor {
-    def receive = { case _ ⇒ }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ }
   }
 
   class Echo extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case _ ⇒ sender() ! self
     }
   }
@@ -47,7 +47,7 @@ object RoutingSpec {
 }
 
 class RoutingSpec extends AkkaSpec(RoutingSpec.config) with DefaultTimeout with ImplicitSender {
-  implicit val ec = system.dispatcher
+  implicit val ec: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
   import RoutingSpec._
 
   muteDeadLetters(classOf[akka.dispatch.sysmsg.DeathWatchNotification])()
@@ -174,7 +174,7 @@ class RoutingSpec extends AkkaSpec(RoutingSpec.config) with DefaultTimeout with 
       }
       val supervisor = system.actorOf(Props(new Supervisor(restarter)))
       supervisor ! RoundRobinPool(3).props(routeeProps = Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case x: String ⇒ throw new Exception(x)
         }
         override def postRestart(reason: Throwable): Unit = testActor ! "restarted"
@@ -191,7 +191,7 @@ class RoutingSpec extends AkkaSpec(RoutingSpec.config) with DefaultTimeout with 
 
     "start in-line for context.actorOf()" in {
       system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "start" ⇒
             context.actorOf(RoundRobinPool(2).props(routeeProps = Props(new Actor {
               def receive = { case x ⇒ sender() ! x }
@@ -207,7 +207,7 @@ class RoutingSpec extends AkkaSpec(RoutingSpec.config) with DefaultTimeout with 
 
     "send message to connection" in {
       class Actor1 extends Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case msg ⇒ testActor forward msg
         }
       }

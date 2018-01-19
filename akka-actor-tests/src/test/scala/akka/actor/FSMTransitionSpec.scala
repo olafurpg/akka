@@ -12,7 +12,7 @@ object FSMTransitionSpec {
   import FSM.`→`
 
   class Supervisor extends Actor {
-    def receive = { case _ ⇒ }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ }
   }
 
   class SendAnyTransitionFSM(target: ActorRef) extends Actor with FSM[Int, Int] {
@@ -57,7 +57,7 @@ object FSMTransitionSpec {
   }
 
   class Forwarder(target: ActorRef) extends Actor {
-    def receive = { case x ⇒ target ! x }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ target ! x }
   }
 
 }

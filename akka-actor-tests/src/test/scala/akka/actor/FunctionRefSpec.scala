@@ -15,7 +15,7 @@ object FunctionRefSpec {
   case class Forwarded(msg: Any, sender: ActorRef)
 
   class Super extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case GetForwarder(replyTo) ⇒
         val cell = context.asInstanceOf[ActorCell]
         val ref = cell.addFunctionRef((sender, msg) ⇒ replyTo ! Forwarded(msg, sender))
@@ -27,8 +27,8 @@ object FunctionRefSpec {
   }
 
   class SupSuper extends Actor {
-    val s = context.actorOf(Props[Super], "super")
-    def receive = {
+    val s: _root_.akka.actor.ActorRef = context.actorOf(Props[Super], "super")
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case msg ⇒ s ! msg
     }
   }
@@ -38,7 +38,7 @@ object FunctionRefSpec {
 class FunctionRefSpec extends AkkaSpec with ImplicitSender {
   import FunctionRefSpec._
 
-  def commonTests(s: ActorRef) = {
+  def commonTests(s: ActorRef): _root_.scala.Unit = {
     s ! GetForwarder(testActor)
     val forwarder = expectMsgType[FunctionRef]
 

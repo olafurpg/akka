@@ -19,12 +19,12 @@ import java.util.UUID.{ randomUUID ⇒ newUuid }
 object ActorLifeCycleSpec {
 
   class LifeCycleTestActor(testActor: ActorRef, id: String, generationProvider: AtomicInteger) extends Actor {
-    def report(msg: Any) = testActor ! message(msg)
+    def report(msg: Any): _root_.scala.Unit = testActor ! message(msg)
     def message(msg: Any): Tuple3[Any, String, Int] = (msg, id, currentGen)
-    val currentGen = generationProvider.getAndIncrement()
+    val currentGen: _root_.scala.Int = generationProvider.getAndIncrement()
     override def preStart() { report("preStart") }
     override def postStop() { report("postStop") }
-    def receive = { case "status" ⇒ sender() ! message("OK") }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case "status" ⇒ sender() ! message("OK") }
   }
 
 }
@@ -118,7 +118,7 @@ class ActorLifeCycleSpec extends AkkaSpec("akka.actor.serialize-messages=off") w
 
     "log failues in postStop" in {
       val a = system.actorOf(Props(new Actor {
-        def receive = Actor.emptyBehavior
+        def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
         override def postStop { throw new Exception("hurrah") }
       }))
       EventFilter[Exception]("hurrah", occurrences = 1) intercept {
@@ -129,7 +129,7 @@ class ActorLifeCycleSpec extends AkkaSpec("akka.actor.serialize-messages=off") w
     "clear the behavior stack upon restart" in {
       final case class Become(recv: ActorContext ⇒ Receive)
       val a = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Become(beh) ⇒ { context.become(beh(context), discardOld = false); sender() ! "ok" }
           case x           ⇒ sender() ! 42
         }

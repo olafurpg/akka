@@ -16,7 +16,7 @@ import com.typesafe.config.{ Config, ConfigFactory }
 
 object EventBusSpec {
   class TestActorWrapperActor(testActor: ActorRef) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case x ⇒ testActor forward x
     }
   }
@@ -35,7 +35,7 @@ abstract class EventBusSpec(busName: String, conf: Config = ConfigFactory.empty(
 
   def disposeSubscriber(system: ActorSystem, subscriber: BusType#Subscriber): Unit
 
-  lazy val bus = createNewEventBus()
+  lazy val bus: EventBusSpec.this.BusType = createNewEventBus()
 
   busName must {
     def createNewSubscriber() = createSubscriber(testActor).asInstanceOf[bus.Subscriber]
@@ -147,9 +147,9 @@ object ActorEventBusSpec {
 
     type Event = Notification
 
-    def classify(event: Event) = event.ref
+    def classify(event: Event): _root_.akka.actor.ActorRef = event.ref
     protected def mapSize = 32
-    def publish(event: Event, subscriber: Subscriber) = subscriber ! event
+    def publish(event: Event, subscriber: Subscriber): _root_.scala.Unit = subscriber ! event
   }
 
   case class Notification(ref: ActorRef, payload: Int)
@@ -167,11 +167,11 @@ class ActorEventBusSpec(conf: Config) extends EventBusSpec("ActorEventBus", conf
   def createNewEventBus(): BusType = new MyActorEventBus(system)
 
   // different actor in each event because we want each event to have a different classifier (see EventBusSpec tests)
-  def createEvents(numberOfEvents: Int) = (0 until numberOfEvents).map(Notification(TestProbe().ref, _)).toSeq
+  def createEvents(numberOfEvents: Int): _root_.scala.collection.immutable.Seq[_root_.akka.event.ActorEventBusSpec.Notification] = (0 until numberOfEvents).map(Notification(TestProbe().ref, _)).toSeq
 
-  def createSubscriber(pipeTo: ActorRef) = system.actorOf(Props(new TestActorWrapperActor(pipeTo)))
+  def createSubscriber(pipeTo: ActorRef): _root_.akka.actor.ActorRef = system.actorOf(Props(new TestActorWrapperActor(pipeTo)))
 
-  def classifierFor(event: BusType#Event) = event.ref
+  def classifierFor(event: BusType#Event): _root_.akka.actor.ActorRef = event.ref
 
   def disposeSubscriber(system: ActorSystem, subscriber: BusType#Subscriber): Unit = system.stop(subscriber)
 
@@ -298,11 +298,11 @@ class ScanningEventBusSpec extends EventBusSpec("ScanningEventBus") {
 
   def createNewEventBus(): BusType = new MyScanningEventBus
 
-  def createEvents(numberOfEvents: Int) = (0 until numberOfEvents)
+  def createEvents(numberOfEvents: Int): _root_.scala.collection.immutable.Range = (0 until numberOfEvents)
 
-  def createSubscriber(pipeTo: ActorRef) = new Procedure[Int] { def apply(i: Int) = pipeTo ! i }
+  def createSubscriber(pipeTo: ActorRef): _root_.scala.AnyRef with _root_.akka.japi.Procedure[_root_.scala.Int] {} = new Procedure[Int] { def apply(i: Int): _root_.scala.Unit = pipeTo ! i }
 
-  def classifierFor(event: BusType#Event) = event.toString
+  def classifierFor(event: BusType#Event): _root_.java.lang.String = event.toString
 
   def disposeSubscriber(system: ActorSystem, subscriber: BusType#Subscriber): Unit = ()
 }
@@ -329,11 +329,11 @@ class LookupEventBusSpec extends EventBusSpec("LookupEventBus") {
 
   def createNewEventBus(): BusType = new MyLookupEventBus
 
-  def createEvents(numberOfEvents: Int) = (0 until numberOfEvents)
+  def createEvents(numberOfEvents: Int): _root_.scala.collection.immutable.Range = (0 until numberOfEvents)
 
-  def createSubscriber(pipeTo: ActorRef) = new Procedure[Int] { def apply(i: Int) = pipeTo ! i }
+  def createSubscriber(pipeTo: ActorRef): _root_.scala.AnyRef with _root_.akka.japi.Procedure[_root_.scala.Int] {} = new Procedure[Int] { def apply(i: Int): _root_.scala.Unit = pipeTo ! i }
 
-  def classifierFor(event: BusType#Event) = event.toString
+  def classifierFor(event: BusType#Event): _root_.java.lang.String = event.toString
 
   def disposeSubscriber(system: ActorSystem, subscriber: BusType#Subscriber): Unit = ()
 }

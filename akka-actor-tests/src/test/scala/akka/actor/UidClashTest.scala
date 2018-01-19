@@ -36,7 +36,7 @@ object UidClashTest {
 
   class RestartedActor extends Actor {
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case PleaseRestart   ⇒ throw new Exception("restart")
       case Terminated(ref) ⇒ throw new TerminatedForNonWatchedActor
       // This is the tricky part to make this test a positive one (avoid expectNoMsg).
@@ -67,15 +67,15 @@ object UidClashTest {
   }
 
   class RestartingActor(probe: ActorRef) extends Actor {
-    override val supervisorStrategy = OneForOneStrategy(loggingEnabled = false) {
+    override val supervisorStrategy: _root_.akka.actor.OneForOneStrategy = OneForOneStrategy(loggingEnabled = false) {
       case _: TerminatedForNonWatchedActor ⇒
         context.stop(self)
         Stop
       case _ ⇒ Restart
     }
-    val theRestartedOne = context.actorOf(Props[RestartedActor], "theRestartedOne")
+    val theRestartedOne: _root_.akka.actor.ActorRef = context.actorOf(Props[RestartedActor], "theRestartedOne")
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case PleaseRestart   ⇒ theRestartedOne ! PleaseRestart
       case RestartedSafely ⇒ probe ! RestartedSafely
     }

@@ -31,7 +31,7 @@ class ControlAwareDispatcherSpec extends AkkaSpec(ControlAwareDispatcherSpec.con
     }
   }
 
-  def testControl(dispatcherKey: String) = {
+  def testControl(dispatcherKey: String): _root_.java.lang.String = {
     // It's important that the actor under test is not a top level actor
     // with RepointableActorRef, since messages might be queued in
     // UnstartedCell and the sent to the PriorityQueue and consumed immediately
@@ -43,12 +43,12 @@ class ControlAwareDispatcherSpec extends AkkaSpec(ControlAwareDispatcherSpec.con
         self ! "test2"
         self ! ImportantMessage
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case x ⇒ testActor ! x
         }
       }).withDispatcher(dispatcherKey))
 
-      def receive = Actor.emptyBehavior
+      def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
 
     }))
 

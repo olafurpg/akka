@@ -63,15 +63,15 @@ object DispatchersSpec {
     """
 
   class ThreadNameEcho extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case _ ⇒ sender() ! Thread.currentThread.getName
     }
   }
 
   class OneShotMailboxType(settings: ActorSystem.Settings, config: Config)
     extends MailboxType with ProducesMessageQueue[DoublingMailbox] {
-    val created = new AtomicBoolean(false)
-    override def create(owner: Option[ActorRef], system: Option[ActorSystem]) =
+    val created: _root_.java.util.concurrent.atomic.AtomicBoolean = new AtomicBoolean(false)
+    override def create(owner: Option[ActorRef], system: Option[ActorSystem]): _root_.akka.dispatch.MessageQueue =
       if (created.compareAndSet(false, true)) {
         new DoublingMailbox(owner)
       } else
@@ -79,7 +79,7 @@ object DispatchersSpec {
   }
 
   class DoublingMailbox(owner: Option[ActorRef]) extends UnboundedQueueBasedMessageQueue {
-    final val queue = new ConcurrentLinkedQueue[Envelope]()
+    final val queue: _root_.java.util.concurrent.ConcurrentLinkedQueue[_root_.akka.dispatch.Envelope] = new ConcurrentLinkedQueue[Envelope]()
     override def enqueue(receiver: ActorRef, handle: Envelope): Unit = {
       queue add handle
       queue add handle
@@ -89,13 +89,13 @@ object DispatchersSpec {
   // Workaround to narrow the type of unapplySeq of Regex since the unapplySeq(Any) will be removed in Scala 2.13
   case class R(s: String) {
     private val r = s.r
-    def unapplySeq(arg: CharSequence) = r.unapplySeq(arg)
+    def unapplySeq(arg: CharSequence): _root_.scala.Option[_root_.scala.`package`.List[_root_.scala.Predef.String]] = r.unapplySeq(arg)
   }
 }
 
 class DispatchersSpec extends AkkaSpec(DispatchersSpec.config) with ImplicitSender {
   import DispatchersSpec._
-  val df = system.dispatchers
+  val df: _root_.akka.dispatch.Dispatchers = system.dispatchers
   import df._
 
   val tipe = "type"
@@ -113,9 +113,9 @@ class DispatchersSpec extends AkkaSpec(DispatchersSpec.config) with ImplicitSend
     "PinnedDispatcher" → ofType[PinnedDispatcher],
     "Dispatcher" → ofType[Dispatcher])
 
-  def validTypes = typesAndValidators.keys.toList
+  def validTypes: _root_.scala.`package`.List[_root_.scala.Predef.String] = typesAndValidators.keys.toList
 
-  val defaultDispatcherConfig = settings.config.getConfig("akka.actor.default-dispatcher")
+  val defaultDispatcherConfig: _root_.com.typesafe.config.Config = settings.config.getConfig("akka.actor.default-dispatcher")
 
   lazy val allDispatchers: Map[String, MessageDispatcher] = {
     validTypes.map(t ⇒ (t, from(ConfigFactory.parseMap(Map(tipe → t, id → t).asJava).

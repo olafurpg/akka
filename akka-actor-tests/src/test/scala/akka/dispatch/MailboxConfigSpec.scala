@@ -181,25 +181,25 @@ abstract class MailboxSpec extends AkkaSpec with BeforeAndAfterAll with BeforeAn
 
 class DefaultMailboxSpec extends MailboxSpec {
   lazy val name = "The default mailbox implementation"
-  def factory = {
+  def factory: _root_.akka.dispatch.MailboxType ⇒ _root_.akka.dispatch.MessageQueue = {
     case u: UnboundedMailbox ⇒ u.create(None, None)
     case b: BoundedMailbox   ⇒ b.create(None, None)
   }
 }
 
 class PriorityMailboxSpec extends MailboxSpec {
-  val comparator = PriorityGenerator(_.##)
+  val comparator: _root_.akka.dispatch.PriorityGenerator = PriorityGenerator(_.##)
   lazy val name = "The priority mailbox implementation"
-  def factory = {
+  def factory: _root_.akka.dispatch.MailboxType ⇒ _root_.akka.dispatch.MessageQueue = {
     case UnboundedMailbox()                    ⇒ new UnboundedPriorityMailbox(comparator).create(None, None)
     case BoundedMailbox(capacity, pushTimeOut) ⇒ new BoundedPriorityMailbox(comparator, capacity, pushTimeOut).create(None, None)
   }
 }
 
 class StablePriorityMailboxSpec extends MailboxSpec {
-  val comparator = PriorityGenerator(_.##)
+  val comparator: _root_.akka.dispatch.PriorityGenerator = PriorityGenerator(_.##)
   lazy val name = "The stable priority mailbox implementation"
-  def factory = {
+  def factory: _root_.akka.dispatch.MailboxType ⇒ _root_.akka.dispatch.MessageQueue = {
     case UnboundedMailbox()                    ⇒ new UnboundedStablePriorityMailbox(comparator).create(None, None)
     case BoundedMailbox(capacity, pushTimeOut) ⇒ new BoundedStablePriorityMailbox(comparator, capacity, pushTimeOut).create(None, None)
   }
@@ -207,7 +207,7 @@ class StablePriorityMailboxSpec extends MailboxSpec {
 
 class ControlAwareMailboxSpec extends MailboxSpec {
   lazy val name = "The control aware mailbox implementation"
-  def factory = {
+  def factory: _root_.akka.dispatch.MailboxType ⇒ _root_.akka.dispatch.MessageQueue = {
     case UnboundedMailbox()                    ⇒ new UnboundedControlAwareMailbox().create(None, None)
     case BoundedMailbox(capacity, pushTimeOut) ⇒ new BoundedControlAwareMailbox(capacity, pushTimeOut).create(None, None)
   }
@@ -221,14 +221,14 @@ object CustomMailboxSpec {
     """
 
   class MyMailboxType(settings: ActorSystem.Settings, config: Config) extends MailboxType {
-    override def create(owner: Option[ActorRef], system: Option[ActorSystem]) = owner match {
+    override def create(owner: Option[ActorRef], system: Option[ActorSystem]): _root_.akka.dispatch.MessageQueue = owner match {
       case Some(o) ⇒ new MyMailbox(o)
       case None    ⇒ throw new Exception("no mailbox owner given")
     }
   }
 
   class MyMailbox(owner: ActorRef) extends UnboundedQueueBasedMessageQueue {
-    final val queue = new ConcurrentLinkedQueue[Envelope]()
+    final val queue: _root_.java.util.concurrent.ConcurrentLinkedQueue[_root_.akka.dispatch.Envelope] = new ConcurrentLinkedQueue[Envelope]()
   }
 }
 
@@ -249,7 +249,7 @@ class CustomMailboxSpec extends AkkaSpec(CustomMailboxSpec.config) {
 class SingleConsumerOnlyMailboxSpec extends MailboxSpec {
   lazy val name = "The single-consumer-only mailbox implementation"
   override def maxConsumers = 1
-  def factory = {
+  def factory: _root_.akka.dispatch.MailboxType ⇒ _root_.akka.dispatch.MessageQueue = {
     case u: UnboundedMailbox             ⇒ SingleConsumerOnlyUnboundedMailbox().create(None, None)
     case b @ BoundedMailbox(capacity, _) ⇒ NonBlockingBoundedMailbox(capacity).create(None, None)
   }
@@ -257,7 +257,7 @@ class SingleConsumerOnlyMailboxSpec extends MailboxSpec {
 
 object SingleConsumerOnlyMailboxVerificationSpec {
   case object Ping
-  val mailboxConf = ConfigFactory.parseString("""
+  val mailboxConf: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
       akka.actor.serialize-messages = off
       test-unbounded-dispatcher {
       mailbox-type = "akka.dispatch.SingleConsumerOnlyUnboundedMailbox"
@@ -278,8 +278,8 @@ class SingleConsumerOnlyMailboxVerificationSpec extends AkkaSpec(SingleConsumerO
     val runner = system.actorOf(Props(new Actor {
       val a, b = context.watch(
         context.actorOf(Props(new Actor {
-          var n = total / 2
-          def receive = {
+          var n: _root_.scala.Int = total / 2
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case Ping ⇒
               n -= 1
               sender() ! Ping
@@ -287,7 +287,7 @@ class SingleConsumerOnlyMailboxVerificationSpec extends AkkaSpec(SingleConsumerO
                 context stop self
           }
         }).withDispatcher(dispatcherId)))
-      def receive = {
+      def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
         case Ping                  ⇒ a.tell(Ping, b)
         case Terminated(`a` | `b`) ⇒ if (context.children.isEmpty) context stop self
       }

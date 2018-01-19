@@ -17,7 +17,7 @@ import org.scalatest.BeforeAndAfterEach
 object ActorWithBoundedStashSpec {
 
   class StashingActor extends Actor with Stash {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case msg: String if msg.startsWith("hello") ⇒
         stash()
         sender() ! "ok"
@@ -36,7 +36,7 @@ object ActorWithBoundedStashSpec {
   class StashingActorWithOverflow extends Actor with Stash {
     var numStashed = 0
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case msg: String if msg.startsWith("hello") ⇒
         numStashed += 1
         try { stash(); sender() ! "ok" } catch {

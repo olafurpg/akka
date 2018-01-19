@@ -54,19 +54,19 @@ class PriorityDispatcherSpec extends AkkaSpec(PriorityDispatcherSpec.config) wit
     val actor = system.actorOf(Props(new Actor {
       context.actorOf(Props(new Actor {
 
-        val acc = scala.collection.mutable.ListBuffer[Int]()
+        val acc: _root_.scala.collection.mutable.ListBuffer[_root_.scala.Int] = scala.collection.mutable.ListBuffer[Int]()
 
         scala.util.Random.shuffle(msgs) foreach { m ⇒ self ! m }
 
         self.tell('Result, testActor)
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case i: Int  ⇒ acc += i
           case 'Result ⇒ sender() ! acc.toList
         }
       }).withDispatcher(dispatcherKey))
 
-      def receive = Actor.emptyBehavior
+      def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
 
     }))
 

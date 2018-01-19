@@ -33,17 +33,17 @@ object DispatcherActorSpec {
 
     """
   class TestActor extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "Hello"   ⇒ sender() ! "World"
       case "Failure" ⇒ throw new RuntimeException("Expected exception; to test fault-tolerance")
     }
   }
 
   object OneWayTestActor {
-    val oneWay = new CountDownLatch(1)
+    val oneWay: _root_.java.util.concurrent.CountDownLatch = new CountDownLatch(1)
   }
   class OneWayTestActor extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "OneWay" ⇒ OneWayTestActor.oneWay.countDown()
     }
   }
@@ -76,12 +76,12 @@ class DispatcherActorSpec extends AkkaSpec(DispatcherActorSpec.config) with Defa
       val latch = new CountDownLatch(100)
       val start = new CountDownLatch(1)
       val fastOne = system.actorOf(
-        Props(new Actor { def receive = { case "sabotage" ⇒ works.set(false) } })
+        Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case "sabotage" ⇒ works.set(false) } })
           .withDispatcher(throughputDispatcher))
 
       val slowOne = system.actorOf(
         Props(new Actor {
-          def receive = {
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case "hogexecutor" ⇒ { sender() ! "OK"; start.await }
             case "ping"        ⇒ if (works.get) latch.countDown()
           }
@@ -108,14 +108,14 @@ class DispatcherActorSpec extends AkkaSpec(DispatcherActorSpec.config) with Defa
 
       val fastOne = system.actorOf(
         Props(new Actor {
-          def receive = {
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case "ping" ⇒ if (works.get) latch.countDown(); context.stop(self)
           }
         }).withDispatcher(throughputDispatcher))
 
       val slowOne = system.actorOf(
         Props(new Actor {
-          def receive = {
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case "hogexecutor" ⇒ { ready.countDown(); start.await }
             case "ping"        ⇒ { works.set(false); context.stop(self) }
           }

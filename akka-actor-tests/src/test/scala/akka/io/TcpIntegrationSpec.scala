@@ -150,8 +150,8 @@ class TcpIntegrationSpec extends AkkaSpec("""
 
       expectReceivedData(clientHandler, 100000)
 
-      override def bindOptions = List(SO.SendBufferSize(1024))
-      override def connectOptions = List(SO.ReceiveBufferSize(1024))
+      override def bindOptions: _root_.scala.collection.immutable.List[_root_.akka.io.Inet.SO.SendBufferSize] = List(SO.SendBufferSize(1024))
+      override def connectOptions: _root_.scala.collection.immutable.List[_root_.akka.io.Inet.SO.ReceiveBufferSize] = List(SO.ReceiveBufferSize(1024))
     }
 
     "don't report Connected when endpoint isn't responding" in {
@@ -165,13 +165,13 @@ class TcpIntegrationSpec extends AkkaSpec("""
     }
 
     "handle tcp connection actor death properly" in new TestSetup(shouldBindServer = false) {
-      val serverSocket = new ServerSocket(endpoint.getPort(), 100, endpoint.getAddress())
-      val connectCommander = TestProbe()
+      val serverSocket: _root_.java.net.ServerSocket = new ServerSocket(endpoint.getPort(), 100, endpoint.getAddress())
+      val connectCommander: _root_.akka.testkit.TestProbe = TestProbe()
       connectCommander.send(IO(Tcp), Connect(endpoint))
 
-      val accept = serverSocket.accept()
+      val accept: _root_.java.net.Socket = serverSocket.accept()
       connectCommander.expectMsgType[Connected].remoteAddress should ===(endpoint)
-      val connectionActor = connectCommander.lastSender
+      val connectionActor: _root_.akka.actor.ActorRef = connectCommander.lastSender
       connectCommander.send(connectionActor, PoisonPill)
       failAfter(3 seconds) {
         try {
@@ -189,7 +189,7 @@ class TcpIntegrationSpec extends AkkaSpec("""
     clientConnection: ActorRef,
     serverHandler:    TestProbe,
     serverConnection: ActorRef,
-    rounds:           Int       = 100) = {
+    rounds:           Int       = 100): _root_.scala.Unit = {
 
     val testData = ByteString(0)
     (1 to rounds) foreach { _ ⇒

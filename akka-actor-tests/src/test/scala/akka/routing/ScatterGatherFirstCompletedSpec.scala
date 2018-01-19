@@ -16,14 +16,14 @@ import akka.testkit.TestProbe
 
 object ScatterGatherFirstCompletedSpec {
   class TestActor extends Actor {
-    def receive = { case _ ⇒ }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ }
   }
 
   final case class Stop(id: Option[Int] = None)
 
-  def newActor(id: Int, shudownLatch: Option[TestLatch] = None)(implicit system: ActorSystem) =
+  def newActor(id: Int, shudownLatch: Option[TestLatch] = None)(implicit system: ActorSystem): _root_.akka.actor.ActorRef =
     system.actorOf(Props(new Actor {
-      def receive = {
+      def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
         case Stop(None)                     ⇒ context.stop(self)
         case Stop(Some(_id)) if (_id == id) ⇒ context.stop(self)
         case _id: Int if (_id == id)        ⇒
@@ -33,7 +33,7 @@ object ScatterGatherFirstCompletedSpec {
         }
       }
 
-      override def postStop = {
+      override def postStop: _root_.scala.Unit = {
         shudownLatch foreach (_.countDown())
       }
     }), "Actor:" + id)
@@ -49,7 +49,7 @@ class ScatterGatherFirstCompletedSpec extends AkkaSpec with DefaultTimeout with 
 
       val counter1 = new AtomicInteger
       val actor1 = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "end"    ⇒ doneLatch.countDown()
           case msg: Int ⇒ counter1.addAndGet(msg)
         }
@@ -57,7 +57,7 @@ class ScatterGatherFirstCompletedSpec extends AkkaSpec with DefaultTimeout with 
 
       val counter2 = new AtomicInteger
       val actor2 = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "end"    ⇒ doneLatch.countDown()
           case msg: Int ⇒ counter2.addAndGet(msg)
         }

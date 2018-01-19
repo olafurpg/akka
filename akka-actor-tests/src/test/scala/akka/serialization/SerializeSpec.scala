@@ -21,7 +21,7 @@ import test.akka.serialization.NoVerification
 
 object SerializationTests {
 
-  val serializeConf = s"""
+  val serializeConf: _root_.scala.Predef.String = s"""
     akka {
       actor {
         serialize-messages = off
@@ -84,7 +84,7 @@ object SerializationTests {
   """
 
   class FooActor extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case s: String ⇒ sender() ! s
     }
   }
@@ -95,7 +95,7 @@ object SerializationTests {
   }
 
   class NonSerializableActor(system: ActorSystem) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case s: String ⇒ sender() ! s
     }
   }
@@ -123,7 +123,7 @@ object SerializationTests {
     }
   """
 
-  val systemMessageClasses = List[Class[_]](
+  val systemMessageClasses: _root_.scala.collection.immutable.List[Class[_]] = List[Class[_]](
     classOf[Create],
     classOf[Recreate],
     classOf[Suspend],
@@ -139,11 +139,11 @@ object SerializationTests {
 class SerializeSpec extends AkkaSpec(SerializationTests.serializeConf) {
   import SerializationTests._
 
-  val ser = SerializationExtension(system)
+  val ser: _root_.akka.serialization.Serialization = SerializationExtension(system)
   import ser._
 
-  val address = Address("120", "Monroe Street", "Santa Clara", "95050")
-  val person = Person("debasish ghosh", 25, Address("120", "Monroe Street", "Santa Clara", "95050"))
+  val address: _root_.akka.serialization.SerializationTests.Address = Address("120", "Monroe Street", "Santa Clara", "95050")
+  val person: _root_.akka.serialization.SerializationTests.Person = Person("debasish ghosh", 25, Address("120", "Monroe Street", "Santa Clara", "95050"))
 
   "Serialization" must {
 
@@ -167,7 +167,7 @@ class SerializeSpec extends AkkaSpec(SerializationTests.serializeConf) {
 
     "not serialize ActorCell" in {
       val a = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case o: ObjectOutputStream ⇒
             try o.writeObject(this) catch { case _: NotSerializableException ⇒ testActor ! "pass" }
         }
@@ -284,7 +284,7 @@ class SerializeSpec extends AkkaSpec(SerializationTests.serializeConf) {
 
 class VerifySerializabilitySpec extends AkkaSpec(SerializationTests.verifySerializabilityConf) {
   import SerializationTests._
-  implicit val timeout = Timeout(5 seconds)
+  implicit val timeout: _root_.akka.util.Timeout = Timeout(5 seconds)
 
   "verify config" in {
     system.settings.SerializeAllCreators should ===(true)
@@ -318,8 +318,8 @@ class VerifySerializabilitySpec extends AkkaSpec(SerializationTests.verifySerial
 class ReferenceSerializationSpec extends AkkaSpec(SerializationTests.mostlyReferenceSystem) {
   import SerializationTests._
 
-  val ser = SerializationExtension(system)
-  def serializerMustBe(toSerialize: Class[_], expectedSerializer: Class[_]) =
+  val ser: _root_.akka.serialization.Serialization = SerializationExtension(system)
+  def serializerMustBe(toSerialize: Class[_], expectedSerializer: Class[_]): _root_.org.scalatest.`package`.Assertion =
     ser.serializerFor(toSerialize).getClass should ===(expectedSerializer)
 
   "Serialization settings from reference.conf" must {
@@ -354,7 +354,7 @@ class ReferenceSerializationSpec extends AkkaSpec(SerializationTests.mostlyRefer
 
 class SerializationCompatibilitySpec extends AkkaSpec(SerializationTests.mostlyReferenceSystem) {
 
-  val ser = SerializationExtension(system)
+  val ser: _root_.akka.serialization.Serialization = SerializationExtension(system)
 
   "Cross-version serialization compatibility" must {
     def verify(obj: SystemMessage, asExpected: String): Unit = {
@@ -449,7 +449,7 @@ class SerializationCompatibilitySpec extends AkkaSpec(SerializationTests.mostlyR
 class OverriddenSystemMessageSerializationSpec extends AkkaSpec(SerializationTests.systemMessageMultiSerializerConf) {
   import SerializationTests._
 
-  val ser = SerializationExtension(system)
+  val ser: _root_.akka.serialization.Serialization = SerializationExtension(system)
 
   "Overridden SystemMessage serialization" must {
 
@@ -467,7 +467,7 @@ class OverriddenSystemMessageSerializationSpec extends AkkaSpec(SerializationTes
 class DefaultSerializationWarningSpec extends AkkaSpec(
   ConfigFactory.parseString("akka.actor.warn-about-java-serializer-usage = on")) {
 
-  val ser = SerializationExtension(system)
+  val ser: _root_.akka.serialization.Serialization = SerializationExtension(system)
   val messagePrefix = "Using the default Java serializer for class"
 
   "Using the default Java serializer" must {
@@ -493,7 +493,7 @@ class NoVerificationWarningSpec extends AkkaSpec(
     "akka.actor.warn-about-java-serializer-usage = on\n" +
       "akka.actor.warn-on-no-serialization-verification = on")) {
 
-  val ser = SerializationExtension(system)
+  val ser: _root_.akka.serialization.Serialization = SerializationExtension(system)
   val messagePrefix = "Using the default Java serializer for class"
 
   "When warn-on-no-serialization-verification = on, using the default Java serializer" must {
@@ -517,7 +517,7 @@ class NoVerificationWarningOffSpec extends AkkaSpec(
     "akka.actor.warn-about-java-serializer-usage = on\n" +
       "akka.actor.warn-on-no-serialization-verification = off")) {
 
-  val ser = SerializationExtension(system)
+  val ser: _root_.akka.serialization.Serialization = SerializationExtension(system)
   val messagePrefix = "Using the default Java serializer for class"
 
   "When warn-on-no-serialization-verification = off, using the default Java serializer" must {

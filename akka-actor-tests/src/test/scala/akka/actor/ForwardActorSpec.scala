@@ -15,12 +15,12 @@ object ForwardActorSpec {
 
   def createForwardingChain(system: ActorSystem): ActorRef = {
     val replier = system.actorOf(Props(new Actor {
-      def receive = { case x ⇒ sender() ! x }
+      def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ sender() ! x }
     }))
 
     def mkforwarder(forwardTo: ActorRef) = system.actorOf(Props(
       new Actor {
-        def receive = { case x ⇒ forwardTo forward x }
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ forwardTo forward x }
       }))
 
     mkforwarder(mkforwarder(mkforwarder(replier)))
@@ -29,11 +29,11 @@ object ForwardActorSpec {
 
 class ForwardActorSpec extends AkkaSpec {
   import ForwardActorSpec._
-  implicit val ec = system.dispatcher
+  implicit val ec: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
   "A Forward Actor" must {
 
     "forward actor reference when invoking forward on tell" in {
-      val replyTo = system.actorOf(Props(new Actor { def receive = { case ExpectedMessage ⇒ testActor ! ExpectedMessage } }))
+      val replyTo = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case ExpectedMessage ⇒ testActor ! ExpectedMessage } }))
 
       val chain = createForwardingChain(system)
 

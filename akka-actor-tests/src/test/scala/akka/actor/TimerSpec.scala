@@ -54,7 +54,7 @@ object TimerSpec {
       timers.startPeriodicTimer("T", Tick(bumpCount), interval)
     }
 
-    override def receive = {
+    override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Tick(n) ⇒
         monitor ! Tock(n)
       case Bump ⇒
@@ -147,8 +147,8 @@ class FsmTimerSpec extends AbstractTimerSpec {
 abstract class AbstractTimerSpec extends AkkaSpec {
   import TimerSpec._
 
-  val interval = 1.second
-  val dilatedInterval = interval.dilated
+  val interval: _root_.scala.concurrent.duration.FiniteDuration = 1.second
+  val dilatedInterval: _root_.scala.concurrent.duration.FiniteDuration = interval.dilated
 
   def target(monitor: ActorRef, interval: FiniteDuration, repeat: Boolean, initial: () ⇒ Int = () ⇒ 1): Props
 

@@ -20,7 +20,7 @@ object BackoffSupervisorSpec {
   }
 
   class Child(probe: ActorRef) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "boom" ⇒ throw new TestException
       case msg    ⇒ probe ! msg
     }
@@ -32,7 +32,7 @@ object BackoffSupervisorSpec {
   }
 
   class ManualChild(probe: ActorRef) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "boom" ⇒ throw new TestException
       case msg ⇒
         probe ! msg
@@ -44,9 +44,9 @@ object BackoffSupervisorSpec {
 class BackoffSupervisorSpec extends AkkaSpec with ImplicitSender {
   import BackoffSupervisorSpec._
 
-  def onStopOptions(props: Props = Child.props(testActor)) = Backoff.onStop(props, "c1", 100.millis, 3.seconds, 0.2)
-  def onFailureOptions(props: Props = Child.props(testActor)) = Backoff.onFailure(props, "c1", 100.millis, 3.seconds, 0.2)
-  def create(options: BackoffOptions) = system.actorOf(BackoffSupervisor.props(options))
+  def onStopOptions(props: Props = Child.props(testActor)): _root_.akka.pattern.BackoffOptions = Backoff.onStop(props, "c1", 100.millis, 3.seconds, 0.2)
+  def onFailureOptions(props: Props = Child.props(testActor)): _root_.akka.pattern.BackoffOptions = Backoff.onFailure(props, "c1", 100.millis, 3.seconds, 0.2)
+  def create(options: BackoffOptions): _root_.akka.actor.ActorRef = system.actorOf(BackoffSupervisor.props(options))
 
   "BackoffSupervisor" must {
     "start child again when it stops when using `Backoff.onStop`" in {

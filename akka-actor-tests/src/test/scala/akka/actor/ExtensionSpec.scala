@@ -16,22 +16,22 @@ import scala.util.control.NoStackTrace
 class JavaExtensionSpec extends JavaExtension with JUnitSuiteLike
 
 object TestExtension extends ExtensionId[TestExtension] with ExtensionIdProvider {
-  def lookup = this
-  def createExtension(s: ExtendedActorSystem) = new TestExtension(s)
+  def lookup: _root_.akka.actor.TestExtension.type = this
+  def createExtension(s: ExtendedActorSystem): _root_.akka.actor.TestExtension = new TestExtension(s)
 }
 
 // Dont't place inside ActorSystemSpec object, since it will not be garbage collected and reference to system remains
 class TestExtension(val system: ExtendedActorSystem) extends Extension
 
 object FailingTestExtension extends ExtensionId[FailingTestExtension] with ExtensionIdProvider {
-  def lookup = this
-  def createExtension(s: ExtendedActorSystem) = new FailingTestExtension(s)
+  def lookup: _root_.akka.actor.FailingTestExtension.type = this
+  def createExtension(s: ExtendedActorSystem): _root_.akka.actor.FailingTestExtension = new FailingTestExtension(s)
 
   class TestException extends IllegalArgumentException("ERR") with NoStackTrace
 }
 
 object InstanceCountingExtension extends ExtensionId[DummyExtensionImpl] with ExtensionIdProvider {
-  val createCount = new AtomicInteger(0)
+  val createCount: _root_.java.util.concurrent.atomic.AtomicInteger = new AtomicInteger(0)
   override def createExtension(system: ExtendedActorSystem): DummyExtensionImpl = {
     createCount.addAndGet(1)
     new DummyExtensionImpl
@@ -44,7 +44,7 @@ class DummyExtensionImpl extends Extension
 // Dont't place inside ActorSystemSpec object, since it will not be garbage collected and reference to system remains
 class FailingTestExtension(val system: ExtendedActorSystem) extends Extension {
   // first time the actor is created
-  val ref = system.actorOf(Props.empty, "uniqueName")
+  val ref: _root_.akka.actor.ActorRef = system.actorOf(Props.empty, "uniqueName")
   // but the extension initialization fails
   // second time it will throw exception when trying to create actor with same name,
   // but we want to see the first exception every time

@@ -27,7 +27,7 @@ class TestActor(probe: ActorRef) extends Actor {
 
   probe ! "STARTED"
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case "DIE"                      ⇒ context.stop(self)
     case "THROW"                    ⇒ throw new TestActor.NormalException
     case "THROW_STOPPING_EXCEPTION" ⇒ throw new TestActor.StoppingException
@@ -42,16 +42,16 @@ object TestParentActor {
 }
 
 class TestParentActor(probe: ActorRef, supervisorProps: Props) extends Actor {
-  val supervisor = context.actorOf(supervisorProps)
+  val supervisor: _root_.akka.actor.ActorRef = context.actorOf(supervisorProps)
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case other ⇒ probe.forward(other)
   }
 }
 
 class BackoffOnRestartSupervisorSpec extends AkkaSpec with ImplicitSender {
 
-  def supervisorProps(probeRef: ActorRef) = {
+  def supervisorProps(probeRef: ActorRef): _root_.akka.actor.Props = {
     val options = Backoff.onFailure(TestActor.props(probeRef), "someChildName", 200 millis, 10 seconds, 0.0)
       .withSupervisorStrategy(OneForOneStrategy(maxNrOfRetries = 4, withinTimeRange = 30 seconds) {
         case _: TestActor.StoppingException ⇒ SupervisorStrategy.Stop
@@ -60,16 +60,16 @@ class BackoffOnRestartSupervisorSpec extends AkkaSpec with ImplicitSender {
   }
 
   trait Setup {
-    val probe = TestProbe()
-    val supervisor = system.actorOf(supervisorProps(probe.ref))
+    val probe: _root_.akka.testkit.TestProbe = TestProbe()
+    val supervisor: _root_.akka.actor.ActorRef = system.actorOf(supervisorProps(probe.ref))
     probe.expectMsg("STARTED")
   }
 
   trait Setup2 {
-    val probe = TestProbe()
-    val parent = system.actorOf(TestParentActor.props(probe.ref, supervisorProps(probe.ref)))
+    val probe: _root_.akka.testkit.TestProbe = TestProbe()
+    val parent: _root_.akka.actor.ActorRef = system.actorOf(TestParentActor.props(probe.ref, supervisorProps(probe.ref)))
     probe.expectMsg("STARTED")
-    val child = probe.lastSender
+    val child: _root_.akka.actor.ActorRef = probe.lastSender
   }
 
   "BackoffOnRestartSupervisor" must {
@@ -124,7 +124,7 @@ class BackoffOnRestartSupervisorSpec extends AkkaSpec with ImplicitSender {
     }
 
     class SlowlyFailingActor(latch: CountDownLatch) extends Actor {
-      def receive = {
+      def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
         case "THROW" ⇒
           sender ! "THROWN"
           throw new NormalException

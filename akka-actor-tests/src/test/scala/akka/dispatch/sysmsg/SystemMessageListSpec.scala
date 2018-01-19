@@ -10,7 +10,7 @@ class SystemMessageListSpec extends AkkaSpec {
   import SystemMessageList.LNil
   import SystemMessageList.ENil
 
-  val child = system.actorOf(Props.empty, "dummy") // need an ActorRef for the Failed msg
+  val child: _root_.akka.actor.ActorRef = system.actorOf(Props.empty, "dummy") // need an ActorRef for the Failed msg
 
   "The SystemMessageList value class" must {
 

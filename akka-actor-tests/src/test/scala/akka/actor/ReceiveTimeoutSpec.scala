@@ -27,7 +27,7 @@ class ReceiveTimeoutSpec extends AkkaSpec {
       val timeoutActor = system.actorOf(Props(new Actor {
         context.setReceiveTimeout(500 milliseconds)
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case ReceiveTimeout ⇒ timeoutLatch.open
         }
       }))
@@ -42,7 +42,7 @@ class ReceiveTimeoutSpec extends AkkaSpec {
       val timeoutActor = system.actorOf(Props(new Actor {
         context.setReceiveTimeout(500 milliseconds)
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Tick           ⇒ ()
           case ReceiveTimeout ⇒ timeoutLatch.open
         }
@@ -61,7 +61,7 @@ class ReceiveTimeoutSpec extends AkkaSpec {
       val timeoutActor = system.actorOf(Props(new Actor {
         context.setReceiveTimeout(500 milliseconds)
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Tick ⇒ ()
           case ReceiveTimeout ⇒
             count.incrementAndGet
@@ -81,7 +81,7 @@ class ReceiveTimeoutSpec extends AkkaSpec {
       val timeoutLatch = TestLatch()
 
       val timeoutActor = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case ReceiveTimeout ⇒ timeoutLatch.open
         }
       }))
@@ -96,14 +96,14 @@ class ReceiveTimeoutSpec extends AkkaSpec {
       val timeoutActor = system.actorOf(Props(new Actor {
         context.setReceiveTimeout(1 second)
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case ReceiveTimeout  ⇒ timeoutLatch.open
           case TransperentTick ⇒
         }
       }))
 
       val ticks = system.scheduler.schedule(100.millis, 100.millis, new Runnable {
-        override def run() = {
+        override def run(): _root_.scala.Unit = {
           timeoutActor ! TransperentTick
           timeoutActor ! Identify(None)
         }

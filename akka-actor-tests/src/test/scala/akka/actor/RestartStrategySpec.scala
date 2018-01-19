@@ -38,19 +38,19 @@ class RestartStrategySpec extends AkkaSpec("akka.actor.serialize-messages = off"
 
       val slaveProps = Props(new Actor {
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Ping  ⇒ countDownLatch.countDown()
           case Crash ⇒ throw new Exception("Crashing...")
         }
 
-        override def postRestart(reason: Throwable) = {
+        override def postRestart(reason: Throwable): _root_.scala.Unit = {
           if (!restartLatch.isOpen)
             restartLatch.open()
           else
             secondRestartLatch.open()
         }
 
-        override def postStop() = {
+        override def postStop(): _root_.scala.Unit = {
           stopLatch.open()
         }
       })
@@ -81,11 +81,11 @@ class RestartStrategySpec extends AkkaSpec("akka.actor.serialize-messages = off"
 
       val slaveProps = Props(new Actor {
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Crash ⇒ throw new Exception("Crashing...")
         }
 
-        override def postRestart(reason: Throwable) = {
+        override def postRestart(reason: Throwable): _root_.scala.Unit = {
           countDownLatch.countDown()
         }
       })
@@ -108,12 +108,12 @@ class RestartStrategySpec extends AkkaSpec("akka.actor.serialize-messages = off"
 
       val slaveProps = Props(new Actor {
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Ping ⇒
             if (!pingLatch.isOpen) pingLatch.open else secondPingLatch.open
           case Crash ⇒ throw new Exception("Crashing...")
         }
-        override def postRestart(reason: Throwable) = {
+        override def postRestart(reason: Throwable): _root_.scala.Unit = {
           if (!restartLatch.isOpen)
             restartLatch.open()
           else if (!secondRestartLatch.isOpen)
@@ -122,7 +122,7 @@ class RestartStrategySpec extends AkkaSpec("akka.actor.serialize-messages = off"
             thirdRestartLatch.open()
         }
 
-        override def postStop() = {
+        override def postStop(): _root_.scala.Unit = {
           if (restartLatch.isOpen) {
             secondRestartLatch.open()
           }
@@ -164,18 +164,18 @@ class RestartStrategySpec extends AkkaSpec("akka.actor.serialize-messages = off"
 
       val slaveProps = Props(new Actor {
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Ping  ⇒ countDownLatch.countDown()
           case Crash ⇒ throw new Exception("Crashing...")
         }
-        override def postRestart(reason: Throwable) = {
+        override def postRestart(reason: Throwable): _root_.scala.Unit = {
           if (!restartLatch.isOpen)
             restartLatch.open()
           else
             secondRestartLatch.open()
         }
 
-        override def postStop() = {
+        override def postStop(): _root_.scala.Unit = {
           stopLatch.open()
         }
       })
@@ -210,8 +210,8 @@ class RestartStrategySpec extends AkkaSpec("akka.actor.serialize-messages = off"
       val countDownLatch = new TestLatch(2)
 
       val boss = system.actorOf(Props(new Actor {
-        override val supervisorStrategy = OneForOneStrategy(withinTimeRange = 1 second)(List(classOf[Throwable]))
-        def receive = {
+        override val supervisorStrategy: _root_.akka.actor.OneForOneStrategy = OneForOneStrategy(withinTimeRange = 1 second)(List(classOf[Throwable]))
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case p: Props      ⇒ sender() ! context.watch(context.actorOf(p))
           case t: Terminated ⇒ maxNoOfRestartsLatch.open()
         }
@@ -219,16 +219,16 @@ class RestartStrategySpec extends AkkaSpec("akka.actor.serialize-messages = off"
 
       val slaveProps = Props(new Actor {
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Ping  ⇒ countDownLatch.countDown()
           case Crash ⇒ throw new Exception("Crashing...")
         }
 
-        override def postRestart(reason: Throwable) = {
+        override def postRestart(reason: Throwable): _root_.scala.Unit = {
           restartLatch.open()
         }
 
-        override def postStop() = {
+        override def postStop(): _root_.scala.Unit = {
           stopLatch.open()
         }
       })

@@ -13,7 +13,7 @@ import com.typesafe.config.Config
 import akka.util.Helpers.ConfigOps
 
 object ActorMailboxSpec {
-  val mailboxConf = ConfigFactory.parseString(s"""
+  val mailboxConf: _root_.com.typesafe.config.Config = ConfigFactory.parseString(s"""
     unbounded-dispatcher {
       mailbox-type = "akka.dispatch.UnboundedMailbox"
     }
@@ -167,7 +167,7 @@ object ActorMailboxSpec {
                                               """)
 
   class QueueReportingActor extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case _ ⇒ sender() ! context.asInstanceOf[ActorCell].mailbox.messageQueue
     }
   }
@@ -184,24 +184,24 @@ object ActorMailboxSpec {
 
   class StashQueueReportingActorWithParams(i: Int, s: String) extends StashQueueReportingActor
 
-  val UnboundedMailboxTypes = Seq(classOf[UnboundedMessageQueueSemantics])
-  val BoundedMailboxTypes = Seq(classOf[BoundedMessageQueueSemantics])
+  val UnboundedMailboxTypes: _root_.scala.collection.Seq[_root_.java.lang.Class[_root_.akka.dispatch.UnboundedMessageQueueSemantics]] = Seq(classOf[UnboundedMessageQueueSemantics])
+  val BoundedMailboxTypes: _root_.scala.collection.Seq[_root_.java.lang.Class[_root_.akka.dispatch.BoundedMessageQueueSemantics]] = Seq(classOf[BoundedMessageQueueSemantics])
 
-  val UnboundedDeqMailboxTypes = Seq(
+  val UnboundedDeqMailboxTypes: _root_.scala.collection.Seq[Class[_ >: akka.dispatch.UnboundedDequeBasedMessageQueueSemantics <: Object]] = Seq(
     classOf[DequeBasedMessageQueueSemantics],
     classOf[UnboundedMessageQueueSemantics],
     classOf[UnboundedDequeBasedMessageQueueSemantics])
 
-  val BoundedDeqMailboxTypes = Seq(
+  val BoundedDeqMailboxTypes: _root_.scala.collection.Seq[Class[_ >: akka.dispatch.BoundedDequeBasedMessageQueueSemantics <: Object]] = Seq(
     classOf[DequeBasedMessageQueueSemantics],
     classOf[BoundedMessageQueueSemantics],
     classOf[BoundedDequeBasedMessageQueueSemantics])
 
-  val BoundedControlAwareMailboxTypes = Seq(
+  val BoundedControlAwareMailboxTypes: _root_.scala.collection.Seq[Class[_ >: akka.dispatch.BoundedControlAwareMessageQueueSemantics <: Object]] = Seq(
     classOf[BoundedMessageQueueSemantics],
     classOf[ControlAwareMessageQueueSemantics],
     classOf[BoundedControlAwareMessageQueueSemantics])
-  val UnboundedControlAwareMailboxTypes = Seq(
+  val UnboundedControlAwareMailboxTypes: _root_.scala.collection.Seq[Class[_ >: akka.dispatch.UnboundedControlAwareMessageQueueSemantics <: Object]] = Seq(
     classOf[UnboundedMessageQueueSemantics],
     classOf[ControlAwareMessageQueueSemantics],
     classOf[UnboundedControlAwareMessageQueueSemantics])

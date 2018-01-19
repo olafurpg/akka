@@ -20,17 +20,17 @@ object CircuitBreakerSpec {
   class TestException extends RuntimeException
 
   class Breaker(val instance: CircuitBreaker)(implicit system: ActorSystem) extends MockitoSugar {
-    val halfOpenLatch = new TestLatch(1)
-    val openLatch = new TestLatch(1)
-    val closedLatch = new TestLatch(1)
-    val callSuccessLatch = new TestLatch(1)
-    val callFailureLatch = new TestLatch(1)
-    val callTimeoutLatch = new TestLatch(1)
-    val callBreakerOpenLatch = new TestLatch(1)
+    val halfOpenLatch: _root_.akka.testkit.TestLatch = new TestLatch(1)
+    val openLatch: _root_.akka.testkit.TestLatch = new TestLatch(1)
+    val closedLatch: _root_.akka.testkit.TestLatch = new TestLatch(1)
+    val callSuccessLatch: _root_.akka.testkit.TestLatch = new TestLatch(1)
+    val callFailureLatch: _root_.akka.testkit.TestLatch = new TestLatch(1)
+    val callTimeoutLatch: _root_.akka.testkit.TestLatch = new TestLatch(1)
+    val callBreakerOpenLatch: _root_.akka.testkit.TestLatch = new TestLatch(1)
 
-    val callSuccessConsumerMock = mock[Long ⇒ Unit]
-    val callFailureConsumerMock = mock[Long ⇒ Unit]
-    val callTimeoutConsumerMock = mock[Long ⇒ Unit]
+    val callSuccessConsumerMock: _root_.scala.Long ⇒ _root_.scala.Unit = mock[Long ⇒ Unit]
+    val callFailureConsumerMock: _root_.scala.Long ⇒ _root_.scala.Unit = mock[Long ⇒ Unit]
+    val callTimeoutConsumerMock: _root_.scala.Long ⇒ _root_.scala.Unit = mock[Long ⇒ Unit]
 
     def apply(): CircuitBreaker = instance
     instance
@@ -52,18 +52,18 @@ object CircuitBreakerSpec {
       .onCallBreakerOpen(callBreakerOpenLatch.countDown())
   }
 
-  val shortCallTimeout = 50.millis
+  val shortCallTimeout: _root_.scala.concurrent.duration.FiniteDuration = 50.millis
   def shortCallTimeoutCb()(implicit system: ActorSystem, ec: ExecutionContext): Breaker =
     new Breaker(new CircuitBreaker(system.scheduler, 1, shortCallTimeout, 500.millis.dilated))
 
-  val shortResetTimeout = 50.millis
+  val shortResetTimeout: _root_.scala.concurrent.duration.FiniteDuration = 50.millis
   def shortResetTimeoutCb()(implicit system: ActorSystem, ec: ExecutionContext): Breaker =
     new Breaker(new CircuitBreaker(system.scheduler, 1, 1000.millis.dilated, shortResetTimeout))
 
   def longCallTimeoutCb()(implicit system: ActorSystem, ec: ExecutionContext): Breaker =
     new Breaker(new CircuitBreaker(system.scheduler, 1, 5 seconds, 500.millis.dilated))
 
-  val longResetTimeout = 5.seconds
+  val longResetTimeout: _root_.scala.concurrent.duration.FiniteDuration = 5.seconds
   def longResetTimeoutCb()(implicit system: ActorSystem, ec: ExecutionContext): Breaker =
     new Breaker(new CircuitBreaker(system.scheduler, 1, 100.millis.dilated, longResetTimeout))
 
@@ -81,18 +81,18 @@ object CircuitBreakerSpec {
 
 class CircuitBreakerSpec extends AkkaSpec with BeforeAndAfter with MockitoSugar {
   import CircuitBreakerSpec.TestException
-  implicit def ec = system.dispatcher
-  implicit def s = system
+  implicit def ec: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
+  implicit def s: _root_.akka.actor.ActorSystem = system
 
-  val awaitTimeout = 2.seconds.dilated
+  val awaitTimeout: _root_.scala.concurrent.duration.FiniteDuration = 2.seconds.dilated
 
   def checkLatch(latch: TestLatch): Unit = Await.ready(latch, awaitTimeout)
 
-  def throwException = throw new TestException
+  def throwException: _root_.scala.Nothing = throw new TestException
 
   def sayHi = "hi"
 
-  def timeCaptor = ArgumentCaptor.forClass(classOf[Long])
+  def timeCaptor: _root_.org.mockito.ArgumentCaptor[_root_.scala.Long] = ArgumentCaptor.forClass(classOf[Long])
 
   "A synchronous circuit breaker that is open" must {
     "throw exceptions when called before reset timeout" in {

@@ -38,7 +38,7 @@ object TypedActorSpec {
 
     private[this] val current = new AtomicReference(items)
 
-    def hasNext = items != Nil
+    def hasNext: _root_.scala.Boolean = items != Nil
 
     def next: T = {
       @tailrec
@@ -63,7 +63,7 @@ object TypedActorSpec {
     def pigdog(): String
 
     @throws(classOf[TimeoutException])
-    def self = TypedActor.self[Foo]
+    def self: _root_.akka.actor.TypedActorSpec.Foo = TypedActor.self[Foo]
 
     def futurePigdog(): Future[String]
 
@@ -149,7 +149,7 @@ object TypedActorSpec {
       internalNumber += 1
     }
 
-    def read() = internalNumber
+    def read(): _root_.scala.Int = internalNumber
   }
 
   trait Stackable1 {
@@ -220,7 +220,7 @@ class TypedActorSpec extends AkkaSpec(TypedActorSpec.config)
     TypedActor(system).typedActorOf(
       TypedProps[StackedImpl](classOf[Stacked], classOf[StackedImpl]).withTimeout(timeout))
 
-  def mustStop(typedActor: AnyRef) = TypedActor(system).stop(typedActor) should ===(true)
+  def mustStop(typedActor: AnyRef): _root_.org.scalatest.`package`.Assertion = TypedActor(system).stop(typedActor) should ===(true)
 
   "TypedActors" must {
 
@@ -345,10 +345,10 @@ class TypedActorSpec extends AkkaSpec(TypedActorSpec.config)
     "be able to handle exceptions when calling methods" in {
       filterEvents(EventFilter[IllegalStateException]("expected")) {
         val boss = system.actorOf(Props(new Actor {
-          override val supervisorStrategy = OneForOneStrategy() {
+          override val supervisorStrategy: _root_.akka.actor.OneForOneStrategy = OneForOneStrategy() {
             case e: IllegalStateException if e.getMessage == "expected" ⇒ SupervisorStrategy.Resume
           }
-          def receive = {
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case p: TypedProps[_] ⇒ context.sender() ! TypedActor(context).typedActorOf(p)
           }
         }))
@@ -523,7 +523,7 @@ class TypedActorRouterSpec extends AkkaSpec(TypedActorSpec.config)
   def newFooBar(d: FiniteDuration): Foo =
     TypedActor(system).typedActorOf(TypedProps[Bar](classOf[Foo], classOf[Bar]).withTimeout(Timeout(d)))
 
-  def mustStop(typedActor: AnyRef) = TypedActor(system).stop(typedActor) should ===(true)
+  def mustStop(typedActor: AnyRef): _root_.org.scalatest.`package`.Assertion = TypedActor(system).stop(typedActor) should ===(true)
 
   "TypedActor Router" must {
 

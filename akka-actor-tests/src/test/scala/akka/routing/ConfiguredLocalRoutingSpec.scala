@@ -80,18 +80,18 @@ object ConfiguredLocalRoutingSpec {
   }
 
   class EchoProps extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "get" ⇒ sender() ! context.props
     }
   }
 
   class SendRefAtStartup(testActor: ActorRef) extends Actor {
     testActor ! self
-    def receive = { case _ ⇒ }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ }
   }
 
   class Parent extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case (p: Props, name: String) ⇒
         sender() ! context.actorOf(p, name)
     }

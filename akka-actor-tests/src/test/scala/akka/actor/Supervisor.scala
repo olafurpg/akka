@@ -9,7 +9,7 @@ package akka.actor
  */
 class Supervisor(override val supervisorStrategy: SupervisorStrategy) extends Actor {
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case x: Props ⇒ sender() ! context.actorOf(x)
   }
   // need to override the default of stopping all children upon restart, tests rely on keeping them around

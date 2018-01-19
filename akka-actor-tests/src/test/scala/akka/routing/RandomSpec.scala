@@ -19,7 +19,7 @@ class RandomSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
       val stopLatch = new TestLatch(7)
 
       val actor = system.actorOf(RandomPool(7).props(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "hello" ⇒ sender() ! "world"
         }
 
@@ -55,8 +55,8 @@ class RandomSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
 
       val actor = system.actorOf(RandomPool(connectionCount).props(routeeProps =
         Props(new Actor {
-          lazy val id = counter.getAndIncrement()
-          def receive = {
+          lazy val id: _root_.scala.Int = counter.getAndIncrement()
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case "hit" ⇒ sender() ! id
             case "end" ⇒ doneLatch.countDown()
           }
@@ -83,7 +83,7 @@ class RandomSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
       val stopLatch = new TestLatch(6)
 
       val actor = system.actorOf(RandomPool(6).props(routeeProps = Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "hello" ⇒ helloLatch.countDown()
         }
 

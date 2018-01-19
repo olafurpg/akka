@@ -9,9 +9,9 @@ package akka.util
 
 object LineNumberSpecCodeForScala {
 
-  val oneline = (s: String) ⇒ println(s)
+  val oneline: _root_.scala.Predef.String ⇒ _root_.scala.Unit = (s: String) ⇒ println(s)
 
-  val twoline = (s: String) ⇒ {
+  val twoline: _root_.scala.Predef.String ⇒ _root_.scala.Int = (s: String) ⇒ {
     println(s)
     Integer.parseInt(s)
   }

@@ -28,7 +28,7 @@ object MetricsBasedResizerSpec {
    */
   class TestLatchingActor(implicit timeout: Timeout) extends Actor {
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Latches(first, second) ⇒
         first.countDown()
         Try(Await.ready(second, timeout.duration))
@@ -38,7 +38,7 @@ object MetricsBasedResizerSpec {
   def routee(implicit system: ActorSystem, timeout: Timeout): ActorRefRoutee =
     ActorRefRoutee(system.actorOf(Props(new TestLatchingActor)))
 
-  def routees(num: Int = 10)(implicit system: ActorSystem, timeout: Timeout) = (1 to num).map(_ ⇒ routee).toVector
+  def routees(num: Int = 10)(implicit system: ActorSystem, timeout: Timeout): _root_.scala.`package`.Vector[_root_.akka.routing.ActorRefRoutee] = (1 to num).map(_ ⇒ routee).toVector
 
   case class TestRouter(routees: Vector[ActorRefRoutee])(implicit system: ActorSystem, timeout: Timeout) {
 

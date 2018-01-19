@@ -12,7 +12,7 @@ import akka.testkit.{ TestProbe, AkkaSpec }
 
 object EventStreamSpec {
 
-  val config = ConfigFactory.parseString("""
+  val config: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
       akka {
         actor.serialize-messages = off
         stdout-loglevel = WARNING
@@ -21,7 +21,7 @@ object EventStreamSpec {
       }
       """.format(Logging.StandardOutLogger.getClass.getName))
 
-  val configUnhandled = ConfigFactory.parseString("""
+  val configUnhandled: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
       akka {
         actor.serialize-messages = off
         stdout-loglevel = WARNING
@@ -30,7 +30,7 @@ object EventStreamSpec {
       }
       """)
 
-  val configUnhandledWithDebug =
+  val configUnhandledWithDebug: _root_.com.typesafe.config.Config =
     ConfigFactory.parseString("akka.actor.debug.event-stream = on")
       .withFallback(configUnhandled)
 
@@ -40,7 +40,7 @@ object EventStreamSpec {
 
   class MyLog extends Actor {
     var dst: ActorRef = context.system.deadLetters
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Logging.InitializeLogger(bus) ⇒
         bus.subscribe(context.self, classOf[SetTarget])
         bus.subscribe(context.self, classOf[UnhandledMessage])
@@ -70,7 +70,7 @@ class EventStreamSpec extends AkkaSpec(EventStreamSpec.config) {
 
   import EventStreamSpec._
 
-  val impl = system.asInstanceOf[ActorSystemImpl]
+  val impl: _root_.akka.actor.ActorSystemImpl = system.asInstanceOf[ActorSystemImpl]
 
   "An EventStream" must {
 
@@ -288,7 +288,7 @@ class EventStreamSpec extends AkkaSpec(EventStreamSpec.config) {
         val tm = new A
 
         val target = sys.actorOf(Props(new Actor {
-          def receive = { case in ⇒ a1.ref forward in }
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case in ⇒ a1.ref forward in }
         }), "to-be-killed")
 
         es.subscribe(a2.ref, classOf[Any])
@@ -316,7 +316,7 @@ class EventStreamSpec extends AkkaSpec(EventStreamSpec.config) {
         val a1, a2 = TestProbe()
 
         val target = system.actorOf(Props(new Actor {
-          def receive = { case in ⇒ a1.ref forward in }
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case in ⇒ a1.ref forward in }
         }), "to-be-killed")
 
         watch(target)

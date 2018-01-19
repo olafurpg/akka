@@ -51,7 +51,7 @@ class Ticket669Spec extends AkkaSpec with BeforeAndAfterAll with ImplicitSender 
 
 object Ticket669Spec {
   class Supervised extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case msg ⇒ throw new Exception("test")
     }
 

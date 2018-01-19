@@ -22,7 +22,7 @@ class ExplicitAskSpec extends AkkaSpec {
       implicit val timeout = Timeout(5.seconds)
 
       val target = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Request(respondTo) ⇒ respondTo ! Response(self)
         }
       }))
@@ -35,7 +35,7 @@ class ExplicitAskSpec extends AkkaSpec {
       implicit val timeout = Timeout(5.seconds)
 
       val target = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Request(respondTo) ⇒ respondTo ! Response(self)
         }
       }), "select-echo")

@@ -20,10 +20,10 @@ object ActorSelectionSpec {
   final case class GetSender(to: ActorRef) extends Query
   final case class Forward(path: String, msg: Any) extends Query
 
-  val p = Props[Node]
+  val p: _root_.akka.actor.Props = Props[Node]
 
   class Node extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Create(name)       ⇒ sender() ! context.actorOf(p, name)
       case SelectString(path) ⇒ sender() ! context.actorSelection(path)
       case SelectPath(path)   ⇒ sender() ! context.actorSelection(path)
@@ -38,22 +38,22 @@ object ActorSelectionSpec {
 class ActorSelectionSpec extends AkkaSpec with DefaultTimeout {
   import ActorSelectionSpec._
 
-  val c1 = system.actorOf(p, "c1")
-  val c2 = system.actorOf(p, "c2")
-  val c21 = Await.result((c2 ? Create("c21")).mapTo[ActorRef], timeout.duration)
+  val c1: _root_.akka.actor.ActorRef = system.actorOf(p, "c1")
+  val c2: _root_.akka.actor.ActorRef = system.actorOf(p, "c2")
+  val c21: _root_.akka.actor.ActorRef = Await.result((c2 ? Create("c21")).mapTo[ActorRef], timeout.duration)
 
-  val sysImpl = system.asInstanceOf[ActorSystemImpl]
+  val sysImpl: _root_.akka.actor.ActorSystemImpl = system.asInstanceOf[ActorSystemImpl]
 
-  val user = sysImpl.guardian
-  val syst = sysImpl.systemGuardian
-  val root = sysImpl.lookupRoot
+  val user: _root_.akka.actor.LocalActorRef = sysImpl.guardian
+  val syst: _root_.akka.actor.LocalActorRef = sysImpl.systemGuardian
+  val root: _root_.akka.actor.InternalActorRef = sysImpl.lookupRoot
 
-  def empty(path: String) =
+  def empty(path: String): _root_.akka.actor.EmptyLocalActorRef =
     new EmptyLocalActorRef(sysImpl.provider, path match {
       case RelativeActorPath(elems) ⇒ sysImpl.lookupRoot.path / elems
     }, system.eventStream)
 
-  val idProbe = TestProbe()
+  val idProbe: _root_.akka.testkit.TestProbe = TestProbe()
 
   def identify(selection: ActorSelection): Option[ActorRef] = {
     selection.tell(Identify(selection), idProbe.ref)

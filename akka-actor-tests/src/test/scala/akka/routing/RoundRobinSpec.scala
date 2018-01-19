@@ -26,7 +26,7 @@ class RoundRobinSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
       val stopLatch = new TestLatch(5)
 
       val actor = system.actorOf(RoundRobinPool(5).props(routeeProps = Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "hello" ⇒ helloLatch.countDown()
         }
 
@@ -55,8 +55,8 @@ class RoundRobinSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
       var replies = Map.empty[Int, Int].withDefaultValue(0)
 
       val actor = system.actorOf(RoundRobinPool(connectionCount).props(routeeProps = Props(new Actor {
-        lazy val id = counter.getAndIncrement()
-        def receive = {
+        lazy val id: _root_.scala.Int = counter.getAndIncrement()
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "hit" ⇒ sender() ! id
           case "end" ⇒ doneLatch.countDown()
         }
@@ -80,7 +80,7 @@ class RoundRobinSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
       val stopLatch = new TestLatch(5)
 
       val actor = system.actorOf(RoundRobinPool(5).props(routeeProps = Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "hello" ⇒ helloLatch.countDown()
         }
 
@@ -98,7 +98,7 @@ class RoundRobinSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
 
     "be controlled with management messages" in {
       val actor = system.actorOf(RoundRobinPool(3).props(routeeProps = Props(new Actor {
-        def receive = Actor.emptyBehavior
+        def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
       })), "round-robin-managed")
 
       routeeSize(actor) should ===(3)
@@ -126,7 +126,7 @@ class RoundRobinSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
 
       val paths = (1 to connectionCount) map { n ⇒
         val ref = system.actorOf(Props(new Actor {
-          def receive = {
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case "hit" ⇒ sender() ! self.path.name
             case "end" ⇒ doneLatch.countDown()
           }
@@ -157,9 +157,9 @@ class RoundRobinSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
 
       val actor = system.actorOf(Props(new Actor {
         var n = 0
-        var router = Router(RoundRobinRoutingLogic())
+        var router: _root_.akka.routing.Router = Router(RoundRobinRoutingLogic())
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case p: Props ⇒
             n += 1
             val c = context.actorOf(p, name = "child-" + n)
@@ -174,7 +174,7 @@ class RoundRobinSpec extends AkkaSpec with DefaultTimeout with ImplicitSender {
       }))
 
       val childProps = Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "hit" ⇒ sender() ! self.path.name
           case "end" ⇒ context.stop(self)
         }

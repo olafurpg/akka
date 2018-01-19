@@ -118,7 +118,7 @@ class TcpConnectionSpec extends AkkaSpec("""
 
     "forward incoming data as Received messages instantly as long as more data is available" in
       new EstablishedConnectionTest() { // to make sure enough data gets through
-        override lazy val connectionActor = createConnectionActor(options = List(Inet.SO.ReceiveBufferSize(1000000)))
+        override lazy val connectionActor: _root_.akka.testkit.TestActorRef[_root_.akka.io.TcpOutgoingConnection] = createConnectionActor(options = List(Inet.SO.ReceiveBufferSize(1000000)))
         run {
           val bufferSize = Tcp(system).Settings.DirectBufferSize
           val DataSize = bufferSize + 1500
@@ -289,7 +289,7 @@ class TcpConnectionSpec extends AkkaSpec("""
      */
     "stop writing in cases of backpressure and resume afterwards" in
       new EstablishedConnectionTest() {
-        override lazy val connectionActor = createConnectionActor(options = List(Inet.SO.ReceiveBufferSize(1000000)))
+        override lazy val connectionActor: _root_.akka.testkit.TestActorRef[_root_.akka.io.TcpOutgoingConnection] = createConnectionActor(options = List(Inet.SO.ReceiveBufferSize(1000000)))
         run {
           info("Currently ignored as SO_SNDBUF is usually a lower bound on the send buffer so the test fails as no real " +
             "backpressure present.")
@@ -362,7 +362,7 @@ class TcpConnectionSpec extends AkkaSpec("""
 
     "respect pull mode" in new EstablishedConnectionTest(pullMode = true) {
       // override config to decrease default buffer size
-      def config =
+      def config: _root_.com.typesafe.config.Config =
         ConfigFactory.parseString("akka.io.tcp.direct-buffer-size = 1k")
           .withFallback(AkkaSpec.testConf)
       override implicit lazy val system: ActorSystem = ActorSystem("respectPullModeTest", config)
@@ -616,7 +616,7 @@ class TcpConnectionSpec extends AkkaSpec("""
 
     "report failed connection attempt when target is unreachable" in
       new UnacceptedConnectionTest() {
-        override lazy val connectionActor = createConnectionActor(serverAddress = UnboundAddress)
+        override lazy val connectionActor: _root_.akka.testkit.TestActorRef[_root_.akka.io.TcpOutgoingConnection] = createConnectionActor(serverAddress = UnboundAddress)
         run {
           val sel = SelectorProvider.provider().openSelector()
           try {
@@ -638,8 +638,8 @@ class TcpConnectionSpec extends AkkaSpec("""
 
     "report failed connection attempt when target cannot be resolved" in
       new UnacceptedConnectionTest() {
-        val address = new InetSocketAddress("notthere.local", 666)
-        override lazy val connectionActor = createConnectionActorWithoutRegistration(serverAddress = address)
+        val address: _root_.java.net.InetSocketAddress = new InetSocketAddress("notthere.local", 666)
+        override lazy val connectionActor: _root_.akka.testkit.TestActorRef[_root_.akka.io.TcpOutgoingConnection] = createConnectionActorWithoutRegistration(serverAddress = address)
         run {
           connectionActor ! newChannelRegistration
           userHandler.expectMsg(30.seconds, CommandFailed(Connect(address)))
@@ -648,7 +648,7 @@ class TcpConnectionSpec extends AkkaSpec("""
 
     "report failed connection attempt when timing out" in
       new UnacceptedConnectionTest() {
-        override lazy val connectionActor = createConnectionActor(serverAddress = UnboundAddress, timeout = Option(100.millis))
+        override lazy val connectionActor: _root_.akka.testkit.TestActorRef[_root_.akka.io.TcpOutgoingConnection] = createConnectionActor(serverAddress = UnboundAddress, timeout = Option(100.millis))
         run {
           connectionActor.toString should not be ("")
           userHandler.expectMsg(CommandFailed(Connect(UnboundAddress, timeout = Option(100.millis))))
@@ -869,13 +869,13 @@ class TcpConnectionSpec extends AkkaSpec("""
     /** Allows overriding the system used */
     implicit def system: ActorSystem = thisSpecs.system
 
-    val serverAddress = temporaryServerAddress()
-    val localServerChannel = ServerSocketChannel.open()
-    val userHandler = TestProbe()
-    val selector = TestProbe()
+    val serverAddress: _root_.java.net.InetSocketAddress = temporaryServerAddress()
+    val localServerChannel: _root_.java.nio.channels.ServerSocketChannel = ServerSocketChannel.open()
+    val userHandler: _root_.akka.testkit.TestProbe = TestProbe()
+    val selector: _root_.akka.testkit.TestProbe = TestProbe()
 
-    var registerCallReceiver = TestProbe()
-    var interestCallReceiver = TestProbe()
+    var registerCallReceiver: _root_.akka.testkit.TestProbe = TestProbe()
+    var interestCallReceiver: _root_.akka.testkit.TestProbe = TestProbe()
 
     def ignoreWindowsWorkaroundForTicket15766(): Unit = {
       // Due to the Windows workaround of #15766 we need to set an OP_CONNECT to reliably detect connection resets
@@ -933,7 +933,7 @@ class TcpConnectionSpec extends AkkaSpec("""
     // lazy init since potential exceptions should not be triggered in the constructor but during execution of `run`
     private[io] lazy val connectionActor = createConnectionActor(serverAddress, pullMode = pullMode)
     // calling .underlyingActor ensures that the actor is actually created at this point
-    lazy val clientSideChannel = connectionActor.underlyingActor.channel
+    lazy val clientSideChannel: _root_.java.nio.channels.SocketChannel = connectionActor.underlyingActor.channel
 
     override def run(body: ⇒ Unit): Unit = super.run {
       registerCallReceiver.expectMsg(Registration(clientSideChannel, 0))
@@ -949,12 +949,12 @@ class TcpConnectionSpec extends AkkaSpec("""
     extends UnacceptedConnectionTest(pullMode) {
 
     // lazy init since potential exceptions should not be triggered in the constructor but during execution of `run`
-    lazy val serverSideChannel = acceptServerSideConnection(localServerChannel)
-    lazy val connectionHandler = TestProbe()
-    lazy val nioSelector = SelectorProvider.provider().openSelector()
-    lazy val clientSelectionKey = registerChannel(clientSideChannel, "client")
-    lazy val serverSelectionKey = registerChannel(serverSideChannel, "server")
-    lazy val defaultbuffer = ByteBuffer.allocate(TestSize)
+    lazy val serverSideChannel: _root_.java.nio.channels.SocketChannel = acceptServerSideConnection(localServerChannel)
+    lazy val connectionHandler: _root_.akka.testkit.TestProbe = TestProbe()
+    lazy val nioSelector: _root_.java.nio.channels.spi.AbstractSelector = SelectorProvider.provider().openSelector()
+    lazy val clientSelectionKey: _root_.java.nio.channels.SelectionKey = registerChannel(clientSideChannel, "client")
+    lazy val serverSelectionKey: _root_.java.nio.channels.SelectionKey = registerChannel(serverSideChannel, "server")
+    lazy val defaultbuffer: _root_.java.nio.ByteBuffer = ByteBuffer.allocate(TestSize)
 
     def windowsWorkaroundToDetectAbort(): Unit = {
       // Due to a Windows quirk we need to set an OP_CONNECT to reliably detect connection resets, see #1576
@@ -993,7 +993,7 @@ class TcpConnectionSpec extends AkkaSpec("""
 
     final val TestSize = 10000 // compile-time constant
 
-    def writeCmd(ack: Event) =
+    def writeCmd(ack: Event): _root_.akka.io.Tcp.Write =
       Write(ByteString(Array.fill[Byte](TestSize)(0)), ack)
 
     def closeServerSideAndWaitForClientReadable(fullClose: Boolean = true): Unit = {
@@ -1079,14 +1079,14 @@ class TcpConnectionSpec extends AkkaSpec("""
 
     def selectedAs(interest: Int, duration: Duration): BeMatcher[SelectionKey] =
       new BeMatcher[SelectionKey] {
-        def apply(key: SelectionKey) =
+        def apply(key: SelectionKey): _root_.org.scalatest.matchers.MatchResult =
           MatchResult(
             checkFor(key, interest, duration.toMillis.toInt),
             "%s key was not selected for %s after %s" format (key.attachment(), interestsDesc(interest), duration),
             "%s key was selected for %s after %s" format (key.attachment(), interestsDesc(interest), duration))
       }
 
-    val interestsNames =
+    val interestsNames: _root_.scala.collection.Seq[(_root_.scala.Int, _root_.java.lang.String)] =
       Seq(OP_ACCEPT → "accepting", OP_CONNECT → "connecting", OP_READ → "reading", OP_WRITE → "writing")
     def interestsDesc(interests: Int): String =
       interestsNames.filter(i ⇒ (i._1 & interests) != 0).map(_._2).mkString(", ")

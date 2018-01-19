@@ -15,8 +15,8 @@ import Tcp._
 trait TcpIntegrationSpecSupport { _: AkkaSpec ⇒
 
   class TestSetup(shouldBindServer: Boolean = true) {
-    val bindHandler = TestProbe()
-    val endpoint = temporaryServerAddress()
+    val bindHandler: _root_.akka.testkit.TestProbe = TestProbe()
+    val endpoint: _root_.java.net.InetSocketAddress = temporaryServerAddress()
 
     if (shouldBindServer) bindServer()
 

@@ -21,9 +21,9 @@ import scala.collection.mutable.Builder
 
 class ByteStringSpec extends WordSpec with Matchers with Checkers {
 
-  implicit val betterGeneratorDrivenConfig = PropertyCheckConfig().copy(minSuccessful = 1000)
+  implicit val betterGeneratorDrivenConfig: ByteStringSpec.this.PropertyCheckConfig = PropertyCheckConfig().copy(minSuccessful = 1000)
 
-  def genSimpleByteString(min: Int, max: Int) = for {
+  def genSimpleByteString(min: Int, max: Int): _root_.org.scalacheck.Gen[_root_.akka.util.ByteString] = for {
     n ← Gen.choose(min, max)
     b ← Gen.containerOfN[Array, Byte](n, arbitrary[Byte])
     from ← Gen.choose(0, b.length)
@@ -75,11 +75,11 @@ class ByteStringSpec extends WordSpec with Matchers with Checkers {
     is.readObject
   }
 
-  def testSer(obj: AnyRef) = {
+  def testSer(obj: AnyRef): _root_.scala.Boolean = {
     deserialize(serialize(obj)) == obj
   }
 
-  def hexFromSer(obj: AnyRef) = {
+  def hexFromSer(obj: AnyRef): _root_.java.lang.String = {
     val os = new ByteArrayOutputStream
     val bos = new ObjectOutputStream(os)
     bos.writeObject(obj)

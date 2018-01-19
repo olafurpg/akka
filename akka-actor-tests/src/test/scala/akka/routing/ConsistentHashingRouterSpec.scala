@@ -31,14 +31,14 @@ object ConsistentHashingRouterSpec {
     """
 
   class Echo extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case x: ConsistentHashableEnvelope ⇒ sender() ! s"Unexpected envelope: $x"
       case _                             ⇒ sender() ! self
     }
   }
 
   final case class Msg(key: Any, data: String) extends ConsistentHashable {
-    override def consistentHashKey = key
+    override def consistentHashKey: _root_.scala.Any = key
   }
 
   final case class MsgKey(name: String)
@@ -48,9 +48,9 @@ object ConsistentHashingRouterSpec {
 
 class ConsistentHashingRouterSpec extends AkkaSpec(ConsistentHashingRouterSpec.config) with DefaultTimeout with ImplicitSender {
   import ConsistentHashingRouterSpec._
-  implicit val ec = system.dispatcher
+  implicit val ec: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
 
-  val router1 = system.actorOf(FromConfig.props(Props[Echo]), "router1")
+  val router1: _root_.akka.actor.ActorRef = system.actorOf(FromConfig.props(Props[Echo]), "router1")
 
   "consistent hashing router" must {
     "create routees from configuration" in {

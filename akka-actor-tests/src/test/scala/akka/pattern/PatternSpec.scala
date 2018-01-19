@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 object PatternSpec {
   final case class Work(duration: Duration)
   class TargetActor extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case (testLatch: TestLatch, duration: FiniteDuration) ⇒
         Await.ready(testLatch, duration)
     }
@@ -22,7 +22,7 @@ object PatternSpec {
 }
 
 class PatternSpec extends AkkaSpec("akka.actor.serialize-messages = off") {
-  implicit val ec = system.dispatcher
+  implicit val ec: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
   import PatternSpec._
 
   "pattern.gracefulStop" must {

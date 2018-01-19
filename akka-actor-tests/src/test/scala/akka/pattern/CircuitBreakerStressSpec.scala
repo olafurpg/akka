@@ -37,7 +37,7 @@ object CircuitBreakerStressSpec {
       promise.future
     }
 
-    override def receive = {
+    override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case JobDone ⇒
         doneCount += 1
         breaker.withCircuitBreaker(job).pipeTo(self)

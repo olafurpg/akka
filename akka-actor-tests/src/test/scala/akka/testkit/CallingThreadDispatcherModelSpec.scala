@@ -13,7 +13,7 @@ import akka.dispatch.MessageDispatcherConfigurator
 object CallingThreadDispatcherModelSpec {
   import ActorModelSpec._
 
-  val config = {
+  val config: _root_.java.lang.String = {
     """
       boss {
         executor = thread-pool-executor
@@ -44,7 +44,7 @@ object CallingThreadDispatcherModelSpec {
 class CallingThreadDispatcherModelSpec extends ActorModelSpec(CallingThreadDispatcherModelSpec.config) {
   import ActorModelSpec._
 
-  val dispatcherCount = new AtomicInteger()
+  val dispatcherCount: _root_.java.util.concurrent.atomic.AtomicInteger = new AtomicInteger()
 
   override def interceptedDispatcher(): MessageDispatcherInterceptor = {
     // use new id for each test, since the MessageDispatcherInterceptor holds state

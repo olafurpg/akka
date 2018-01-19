@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException
 
 class CoordinatedShutdownSpec extends AkkaSpec {
 
-  def extSys = system.asInstanceOf[ExtendedActorSystem]
+  def extSys: _root_.akka.actor.ExtendedActorSystem = system.asInstanceOf[ExtendedActorSystem]
 
   // some convenience to make the test readable
   def phase(dependsOn: String*): Phase = Phase(dependsOn.toSet, timeout = 10.seconds, recover = true)
@@ -304,8 +304,8 @@ class CoordinatedShutdownSpec extends AkkaSpec {
     }
 
     "add and remove user JVM hooks with run-by-jvm-shutdown-hook = off, terminate-actor-system = off" in new JvmHookTest {
-      lazy val systemName = s"CoordinatedShutdownSpec-JvmHooks-1-${System.currentTimeMillis()}"
-      lazy val systemConfig = ConfigFactory.parseString(
+      lazy val systemName: _root_.scala.Predef.String = s"CoordinatedShutdownSpec-JvmHooks-1-${System.currentTimeMillis()}"
+      lazy val systemConfig: _root_.com.typesafe.config.Config = ConfigFactory.parseString(
         """
           akka.coordinated-shutdown.run-by-jvm-shutdown-hook = off
           akka.coordinated-shutdown.terminate-actor-system = off
@@ -321,8 +321,8 @@ class CoordinatedShutdownSpec extends AkkaSpec {
     }
 
     "add and remove user JVM hooks with run-by-jvm-shutdown-hook = on, terminate-actor-system = off" in new JvmHookTest {
-      lazy val systemName = s"CoordinatedShutdownSpec-JvmHooks-2-${System.currentTimeMillis()}"
-      lazy val systemConfig = ConfigFactory.parseString(
+      lazy val systemName: _root_.scala.Predef.String = s"CoordinatedShutdownSpec-JvmHooks-2-${System.currentTimeMillis()}"
+      lazy val systemConfig: _root_.com.typesafe.config.Config = ConfigFactory.parseString(
         """
           akka.coordinated-shutdown.run-by-jvm-shutdown-hook = on
           akka.coordinated-shutdown.terminate-actor-system = off
@@ -339,8 +339,8 @@ class CoordinatedShutdownSpec extends AkkaSpec {
     }
 
     "add and remove user JVM hooks with run-by-jvm-shutdown-hook = on, terminate-actor-system = on" in new JvmHookTest {
-      lazy val systemName = s"CoordinatedShutdownSpec-JvmHooks-3-${System.currentTimeMillis()}"
-      lazy val systemConfig = ConfigFactory.parseString(
+      lazy val systemName: _root_.scala.Predef.String = s"CoordinatedShutdownSpec-JvmHooks-3-${System.currentTimeMillis()}"
+      lazy val systemConfig: _root_.com.typesafe.config.Config = ConfigFactory.parseString(
         """
           akka.coordinated-shutdown.run-by-jvm-shutdown-hook = on
           akka.coordinated-shutdown.terminate-actor-system = on
@@ -356,8 +356,8 @@ class CoordinatedShutdownSpec extends AkkaSpec {
     }
 
     "add and remove user JVM hooks with run-by-jvm-shutdown-hook = on, akka.jvm-shutdown-hooks = off" in new JvmHookTest {
-      lazy val systemName = s"CoordinatedShutdownSpec-JvmHooks-4-${System.currentTimeMillis()}"
-      lazy val systemConfig = ConfigFactory.parseString(
+      lazy val systemName: _root_.scala.Predef.String = s"CoordinatedShutdownSpec-JvmHooks-4-${System.currentTimeMillis()}"
+      lazy val systemConfig: _root_.com.typesafe.config.Config = ConfigFactory.parseString(
         """
           akka.jvm-shutdown-hooks = off
           akka.coordinated-shutdown.run-by-jvm-shutdown-hook = on
@@ -382,7 +382,7 @@ class CoordinatedShutdownSpec extends AkkaSpec {
     def systemConfig: Config
     def withSystemRunning(system: ActorSystem): Unit
 
-    val newSystem = ActorSystem(systemName, systemConfig)
+    val newSystem: _root_.akka.actor.ActorSystem = ActorSystem(systemName, systemConfig)
 
     withSystemRunning(newSystem)
 

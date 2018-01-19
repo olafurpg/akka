@@ -15,7 +15,7 @@ import com.typesafe.config.ConfigFactory
 
 object ActorCreationPerfSpec {
 
-  val config = ConfigFactory.parseString("""
+  val config: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
     akka.test.actor.ActorPerfSpec {
       warmUp = 5
       numberOfActors = 10
@@ -40,20 +40,20 @@ object ActorCreationPerfSpec {
   case object Waited
 
   class EmptyActor extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case IsAlive ⇒ sender() ! Alive
     }
   }
 
   class EmptyArgsActor(val foo: Int, val bar: Int) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case IsAlive ⇒ sender() ! Alive
     }
   }
 
   class TimingDriver(hist: Histogram) extends Actor {
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case IsAlive ⇒
         sender() ! Alive
       case Create(number, propsCreator) ⇒
@@ -88,7 +88,7 @@ object ActorCreationPerfSpec {
 
   class Driver extends Actor {
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case IsAlive ⇒
         sender() ! Alive
       case Create(number, propsCreator) ⇒
@@ -121,16 +121,16 @@ class ActorCreationPerfSpec extends AkkaSpec(ActorCreationPerfSpec.config) with 
 
   import ActorCreationPerfSpec._
 
-  def metricsConfig = system.settings.config
-  val ActorCreationKey = MetricKey.fromString("actor-creation")
-  val BlockingTimeKey = ActorCreationKey / "synchronous-part"
-  val TotalTimeKey = ActorCreationKey / "total"
+  def metricsConfig: _root_.com.typesafe.config.Config = system.settings.config
+  val ActorCreationKey: ActorCreationPerfSpec.this.MetricKey = MetricKey.fromString("actor-creation")
+  val BlockingTimeKey: ActorCreationPerfSpec.this.MetricKey = ActorCreationKey / "synchronous-part"
+  val TotalTimeKey: ActorCreationPerfSpec.this.MetricKey = ActorCreationKey / "total"
 
-  val warmUp = metricsConfig.getInt("akka.test.actor.ActorPerfSpec.warmUp")
-  val nrOfActors = metricsConfig.getInt("akka.test.actor.ActorPerfSpec.numberOfActors")
-  val nrOfRepeats = metricsConfig.getInt("akka.test.actor.ActorPerfSpec.numberOfRepeats")
-  override val reportMetricsEnabled = metricsConfig.getBoolean("akka.test.actor.ActorPerfSpec.report-metrics")
-  override val forceGcEnabled = metricsConfig.getBoolean("akka.test.actor.ActorPerfSpec.force-gc")
+  val warmUp: _root_.scala.Int = metricsConfig.getInt("akka.test.actor.ActorPerfSpec.warmUp")
+  val nrOfActors: _root_.scala.Int = metricsConfig.getInt("akka.test.actor.ActorPerfSpec.numberOfActors")
+  val nrOfRepeats: _root_.scala.Int = metricsConfig.getInt("akka.test.actor.ActorPerfSpec.numberOfRepeats")
+  override val reportMetricsEnabled: _root_.scala.Boolean = metricsConfig.getBoolean("akka.test.actor.ActorPerfSpec.report-metrics")
+  override val forceGcEnabled: _root_.scala.Boolean = metricsConfig.getBoolean("akka.test.actor.ActorPerfSpec.force-gc")
 
   def runWithCounterInside(metricName: String, scenarioName: String, number: Int, propsCreator: () ⇒ Props) {
     val hist = histogram(BlockingTimeKey / metricName)
@@ -237,7 +237,7 @@ class ActorCreationPerfSpec extends AkkaSpec(ActorCreationPerfSpec.config) with 
     registerTests("Props(new EmptyArgsActor(...)) same", () ⇒ { props4 })
   }
 
-  override def afterTermination() = shutdownMetrics()
+  override def afterTermination(): _root_.scala.Unit = shutdownMetrics()
 
-  override def expectedTestDuration = 5 minutes
+  override def expectedTestDuration: _root_.scala.concurrent.duration.FiniteDuration = 5 minutes
 }

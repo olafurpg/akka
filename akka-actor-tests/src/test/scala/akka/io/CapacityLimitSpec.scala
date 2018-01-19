@@ -22,18 +22,18 @@ class CapacityLimitSpec extends AkkaSpec("""
 
       // we now have three channels registered: a listener, a server connection and a client connection
       // so register one more channel
-      val commander = TestProbe()
-      val addresses = temporaryServerAddresses(2)
+      val commander: _root_.akka.testkit.TestProbe = TestProbe()
+      val addresses: _root_.scala.collection.immutable.IndexedSeq[_root_.java.net.InetSocketAddress] = temporaryServerAddresses(2)
       commander.send(IO(Tcp), Bind(bindHandler.ref, addresses(0)))
       commander.expectMsg(Bound(addresses(0)))
 
       // we are now at the configured max-channel capacity of 4
 
-      val bindToFail = Bind(bindHandler.ref, addresses(1))
+      val bindToFail: _root_.akka.io.Tcp.Bind = Bind(bindHandler.ref, addresses(1))
       commander.send(IO(Tcp), bindToFail)
       commander.expectMsgType[CommandFailed].cmd should be theSameInstanceAs (bindToFail)
 
-      val connectToFail = Connect(endpoint)
+      val connectToFail: _root_.akka.io.Tcp.Connect = Connect(endpoint)
       commander.send(IO(Tcp), connectToFail)
       commander.expectMsgType[CommandFailed].cmd should be theSameInstanceAs (connectToFail)
     }

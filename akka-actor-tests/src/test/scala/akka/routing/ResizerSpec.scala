@@ -29,7 +29,7 @@ object ResizerSpec {
     """
 
   class TestActor extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case latch: TestLatch ⇒ latch.countDown()
     }
   }
@@ -183,7 +183,7 @@ class ResizerSpec extends AkkaSpec(ResizerSpec.config) with DefaultTimeout with 
 
       val router = system.actorOf(RoundRobinPool(nrOfInstances = 0, resizer = Some(resizer)).props(
         Props(new Actor {
-          def receive = {
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case d: FiniteDuration ⇒
               Thread.sleep(d.dilated.toMillis); sender() ! "done"
             case "echo" ⇒ sender() ! "reply"
@@ -228,7 +228,7 @@ class ResizerSpec extends AkkaSpec(ResizerSpec.config) with DefaultTimeout with 
 
       val router = system.actorOf(RoundRobinPool(nrOfInstances = 0, resizer = Some(resizer)).props(
         Props(new Actor {
-          def receive = {
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case n: Int if n <= 0 ⇒ // done
             case n: Int           ⇒ Thread.sleep((n millis).dilated.toMillis)
           }

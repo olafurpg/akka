@@ -19,24 +19,24 @@ class LocalDeathWatchSpec extends AkkaSpec("""
 object DeathWatchSpec {
   class Watcher(target: ActorRef, testActor: ActorRef) extends Actor {
     context.watch(target)
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case t: Terminated ⇒ testActor forward WrappedTerminated(t)
       case x             ⇒ testActor forward x
     }
   }
 
-  def props(target: ActorRef, testActor: ActorRef) =
+  def props(target: ActorRef, testActor: ActorRef): _root_.akka.actor.Props =
     Props(classOf[Watcher], target, testActor)
 
   class EmptyWatcher(target: ActorRef) extends Actor {
     context.watch(target)
-    def receive = Actor.emptyBehavior
+    def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
   }
 
   class NKOTBWatcher(testActor: ActorRef) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "NKOTB" ⇒
-        val currentKid = context.watch(context.actorOf(Props(new Actor { def receive = { case "NKOTB" ⇒ context stop self } }), "kid"))
+        val currentKid = context.watch(context.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case "NKOTB" ⇒ context stop self } }), "kid"))
         currentKid forward "NKOTB"
         context become {
           case Terminated(`currentKid`) ⇒
@@ -47,7 +47,7 @@ object DeathWatchSpec {
   }
 
   class WUWatcher extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case W(ref) ⇒ context watch ref
       case U(ref) ⇒ context unwatch ref
       case Latches(t1: TestLatch, t2: TestLatch) ⇒
@@ -73,9 +73,9 @@ trait DeathWatchSpec { this: AkkaSpec with ImplicitSender with DefaultTimeout �
 
   import DeathWatchSpec._
 
-  lazy val supervisor = system.actorOf(Props(classOf[Supervisor], SupervisorStrategy.defaultStrategy), "watchers")
+  lazy val supervisor: _root_.akka.actor.ActorRef = system.actorOf(Props(classOf[Supervisor], SupervisorStrategy.defaultStrategy), "watchers")
 
-  def startWatching(target: ActorRef) = Await.result((supervisor ? props(target, testActor)).mapTo[ActorRef], 3 seconds)
+  def startWatching(target: ActorRef): _root_.akka.actor.ActorRef = Await.result((supervisor ? props(target, testActor)).mapTo[ActorRef], 3 seconds)
 
   "The Death Watch" must {
     def expectTerminationOf(actorRef: ActorRef) = expectMsgPF(5 seconds, actorRef + ": Stopped or Already terminated when linking") {
@@ -122,7 +122,7 @@ trait DeathWatchSpec { this: AkkaSpec with ImplicitSender with DefaultTimeout �
       val monitor2 = system.actorOf(Props(new Actor {
         context.watch(terminal)
         context.unwatch(terminal)
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "ping"        ⇒ sender() ! "pong"
           case t: Terminated ⇒ testActor ! WrappedTerminated(t)
         }
@@ -166,7 +166,7 @@ trait DeathWatchSpec { this: AkkaSpec with ImplicitSender with DefaultTimeout �
     "fail a monitor which does not handle Terminated()" in {
       filterEvents(EventFilter[ActorKilledException](), EventFilter[DeathPactException]()) {
         val strategy = new OneForOneStrategy()(SupervisorStrategy.defaultStrategy.decider) {
-          override def handleFailure(context: ActorContext, child: ActorRef, cause: Throwable, stats: ChildRestartStats, children: Iterable[ChildRestartStats]) = {
+          override def handleFailure(context: ActorContext, child: ActorRef, cause: Throwable, stats: ChildRestartStats, children: Iterable[ChildRestartStats]): _root_.scala.Boolean = {
             testActor.tell(FF(Failed(child, cause, 0)), child)
             super.handleFailure(context, child, cause, stats, children)
           }

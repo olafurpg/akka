@@ -12,8 +12,8 @@ import akka.pattern.{ ask, AskTimeoutException }
 
 class ActorTimeoutSpec extends AkkaSpec {
 
-  val testTimeout = 200.millis.dilated
-  val leeway = 500.millis.dilated
+  val testTimeout: _root_.scala.concurrent.duration.FiniteDuration = 200.millis.dilated
+  val leeway: _root_.scala.concurrent.duration.FiniteDuration = 500.millis.dilated
 
   system.eventStream.publish(Mute(EventFilter.warning(pattern = ".*unhandled message from.*hallo")))
 

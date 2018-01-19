@@ -37,19 +37,19 @@ object SupervisorHierarchySpec {
    */
   class CountDownActor(countDown: CountDownLatch, override val supervisorStrategy: SupervisorStrategy) extends Actor {
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case p: Props ⇒ sender() ! context.actorOf(p)
     }
     // test relies on keeping children around during restart
     override def preRestart(cause: Throwable, msg: Option[Any]) {}
-    override def postRestart(reason: Throwable) = {
+    override def postRestart(reason: Throwable): _root_.scala.Unit = {
       countDown.countDown()
     }
   }
 
   class Resumer extends Actor {
-    override def supervisorStrategy = OneForOneStrategy() { case _ ⇒ SupervisorStrategy.Resume }
-    def receive = {
+    override def supervisorStrategy: _root_.akka.actor.OneForOneStrategy = OneForOneStrategy() { case _ ⇒ SupervisorStrategy.Resume }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "spawn" ⇒ sender() ! context.actorOf(Props[Resumer])
       case "fail"  ⇒ throw new Exception("expected")
       case "ping"  ⇒ sender() ! "pong"
@@ -65,11 +65,11 @@ object SupervisorHierarchySpec {
   final case class ErrorLog(msg: String, log: Vector[Event])
   final case class Failure(directive: Directive, stop: Boolean, depth: Int, var failPre: Int, var failPost: Int, val failConstr: Int, stopKids: Int)
     extends RuntimeException("Failure") with NoStackTrace {
-    override def toString = productPrefix + productIterator.mkString("(", ",", ")")
+    override def toString: _root_.java.lang.String = productPrefix + productIterator.mkString("(", ",", ")")
   }
   final case class Dump(level: Int)
 
-  val config = ConfigFactory.parseString("""
+  val config: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
     hierarchy {
       type = "akka.actor.SupervisorHierarchySpec$MyDispatcherConfigurator"
     }
@@ -117,12 +117,12 @@ object SupervisorHierarchySpec {
    * is undesirable).
    */
   final case class HierarchyState(log: Vector[Event], kids: Map[ActorPath, Int], failConstr: Failure)
-  val stateCache = new ConcurrentHashMap[ActorPath, HierarchyState]()
+  val stateCache: _root_.java.util.concurrent.ConcurrentHashMap[_root_.akka.actor.ActorPath, _root_.akka.actor.SupervisorHierarchySpec.HierarchyState] = new ConcurrentHashMap[ActorPath, HierarchyState]()
   @volatile var ignoreFailConstr = false
 
   class Hierarchy(size: Int, breadth: Int, listener: ActorRef, myLevel: Int, random: Random) extends Actor {
 
-    var log = Vector.empty[Event]
+    var log: _root_.scala.collection.immutable.Vector[_root_.akka.actor.SupervisorHierarchySpec.Event] = Vector.empty[Event]
 
     stateCache.get(self.path) match {
       case hs @ HierarchyState(l: Vector[Event], _, f: Failure) if f.failConstr > 0 && !ignoreFailConstr ⇒
@@ -148,7 +148,7 @@ object SupervisorHierarchySpec {
       case _       ⇒
     }
 
-    def suspendCount = context.asInstanceOf[ActorCell].mailbox.suspendCount
+    def suspendCount: _root_.scala.Int = context.asInstanceOf[ActorCell].mailbox.suspendCount
 
     override def preStart {
       log :+= Event("started", identityHashCode(this))
@@ -198,7 +198,7 @@ object SupervisorHierarchySpec {
       case x @ ActorInitializationException(_, _, f: Failure) ⇒ (f, x)
       case x ⇒ (x, x)
     }
-    override val supervisorStrategy = OneForOneStrategy()(unwrap andThen {
+    override val supervisorStrategy: _root_.akka.actor.OneForOneStrategy = OneForOneStrategy()(unwrap andThen {
       case (_: Failure, _) if pongsToGo > 0 ⇒
         log :+= Event("pongOfDeath resuming " + sender(), identityHashCode(this))
         Resume
@@ -273,7 +273,7 @@ object SupervisorHierarchySpec {
 
     var pongsToGo = 0
 
-    def receive = new Receive {
+    def receive: _root_.scala.AnyRef with Hierarchy.this.Receive {} = new Receive {
       val handler: Receive = {
         case f: Failure ⇒
           setFlags(f.directive)
@@ -318,8 +318,8 @@ object SupervisorHierarchySpec {
             context.parent ! PongOfDeath
           }
       }
-      override def isDefinedAt(msg: Any) = handler.isDefinedAt(msg)
-      override def apply(msg: Any) = { if (check(msg)) handler(msg) }
+      override def isDefinedAt(msg: Any): _root_.scala.Boolean = handler.isDefinedAt(msg)
+      override def apply(msg: Any): _root_.scala.Unit = { if (check(msg)) handler(msg) }
     }
   }
 
@@ -401,23 +401,23 @@ object SupervisorHierarchySpec {
   class StressTest(testActor: ActorRef, size: Int, breadth: Int) extends Actor with LoggingFSM[State, Int] {
     import context.system
 
-    val randomSeed = System.nanoTime()
-    val random = new Random(randomSeed)
+    val randomSeed: _root_.scala.Long = System.nanoTime()
+    val random: _root_.scala.util.Random = new Random(randomSeed)
 
     // don’t escalate from this one!
-    override val supervisorStrategy = OneForOneStrategy() {
+    override val supervisorStrategy: _root_.akka.actor.OneForOneStrategy = OneForOneStrategy() {
       case f: Failure ⇒ f.directive
       case OriginalRestartException(f: Failure) ⇒ f.directive
       case ActorInitializationException(_, _, f: Failure) ⇒ f.directive
       case _ ⇒ Stop
     }
 
-    var children = Vector.empty[ActorRef]
-    var activeChildren = Vector.empty[ActorRef]
-    var idleChildren = Vector.empty[ActorRef]
-    var pingChildren = Set.empty[ActorRef]
+    var children: _root_.scala.collection.immutable.Vector[_root_.akka.actor.ActorRef] = Vector.empty[ActorRef]
+    var activeChildren: _root_.scala.collection.immutable.Vector[_root_.akka.actor.ActorRef] = Vector.empty[ActorRef]
+    var idleChildren: _root_.scala.collection.immutable.Vector[_root_.akka.actor.ActorRef] = Vector.empty[ActorRef]
+    var pingChildren: _root_.scala.collection.immutable.Set[_root_.akka.actor.ActorRef] = Set.empty[ActorRef]
 
-    val nextJob = Iterator.continually(random.nextFloat match {
+    val nextJob: _root_.scala.collection.Iterator[_root_.scala.Product with _root_.scala.Serializable with _root_.akka.actor.SupervisorHierarchySpec.Action {}] = Iterator.continually(random.nextFloat match {
       case x if x >= 0.5 ⇒
         // ping one child
         val pick = ((x - 0.5) * 2 * idleChildren.size).toInt
@@ -479,7 +479,7 @@ object SupervisorHierarchySpec {
         setTimer("phase", StateTimeout, 90.seconds.dilated, false)
     }
 
-    val workSchedule = 50.millis
+    val workSchedule: _root_.scala.concurrent.duration.FiniteDuration = 50.millis
 
     private def random012: Int = random.nextFloat match {
       case x if x > 0.1  ⇒ 0
@@ -629,7 +629,7 @@ object SupervisorHierarchySpec {
         stop
     }
 
-    var errors = Vector.empty[(ActorRef, ErrorLog)]
+    var errors: _root_.scala.collection.immutable.Vector[(_root_.akka.actor.ActorRef, _root_.akka.actor.SupervisorHierarchySpec.ErrorLog)] = Vector.empty[(ActorRef, ErrorLog)]
 
     when(Failed, stateTimeout = 5.seconds.dilated) {
       case Event(e: ErrorLog, _) ⇒
@@ -725,7 +725,7 @@ object SupervisorHierarchySpec {
 class SupervisorHierarchySpec extends AkkaSpec(SupervisorHierarchySpec.config) with DefaultTimeout with ImplicitSender {
   import SupervisorHierarchySpec._
 
-  override def expectedTestDuration = 2.minutes
+  override def expectedTestDuration: _root_.scala.concurrent.duration.FiniteDuration = 2.minutes
 
   "A Supervisor Hierarchy" must {
 
@@ -754,12 +754,12 @@ class SupervisorHierarchySpec extends AkkaSpec(SupervisorHierarchySpec.config) w
       val countDownMessages = new CountDownLatch(1)
       val countDownMax = new CountDownLatch(1)
       val boss = system.actorOf(Props(new Actor {
-        override val supervisorStrategy =
+        override val supervisorStrategy: _root_.akka.actor.OneForOneStrategy =
           OneForOneStrategy(maxNrOfRetries = 1, withinTimeRange = 5 seconds)(List(classOf[Throwable]))
 
-        val crasher = context.watch(context.actorOf(Props(new CountDownActor(countDownMessages, SupervisorStrategy.defaultStrategy))))
+        val crasher: _root_.akka.actor.ActorRef = context.watch(context.actorOf(Props(new CountDownActor(countDownMessages, SupervisorStrategy.defaultStrategy))))
 
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "killCrasher" ⇒ crasher ! Kill
           case Terminated(_) ⇒ countDownMax.countDown()
         }
@@ -794,8 +794,8 @@ class SupervisorHierarchySpec extends AkkaSpec(SupervisorHierarchySpec.config) w
     "suspend children while failing" taggedAs LongRunningTest in {
       val latch = TestLatch()
       val slowResumer = system.actorOf(Props(new Actor {
-        override def supervisorStrategy = OneForOneStrategy() { case _ ⇒ Await.ready(latch, 4.seconds.dilated); SupervisorStrategy.Resume }
-        def receive = {
+        override def supervisorStrategy: _root_.akka.actor.OneForOneStrategy = OneForOneStrategy() { case _ ⇒ Await.ready(latch, 4.seconds.dilated); SupervisorStrategy.Resume }
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "spawn" ⇒ sender() ! context.actorOf(Props[Resumer])
         }
       }), "slowResumer")
@@ -829,32 +829,32 @@ class SupervisorHierarchySpec extends AkkaSpec(SupervisorHierarchySpec.config) w
         EventFilter.error(start = "changing Recreate into Create"),
         EventFilter.error(start = "changing Resume into Create")) {
           val failResumer = system.actorOf(Props(new Actor {
-            override def supervisorStrategy = OneForOneStrategy() {
+            override def supervisorStrategy: _root_.akka.actor.OneForOneStrategy = OneForOneStrategy() {
               case e: ActorInitializationException ⇒
                 if (createAttempt.get % 2 == 0) SupervisorStrategy.Resume else SupervisorStrategy.Restart
             }
 
-            val child = context.actorOf(Props(new Actor {
-              val ca = createAttempt.incrementAndGet()
+            val child: _root_.akka.actor.ActorRef = context.actorOf(Props(new Actor {
+              val ca: _root_.scala.Int = createAttempt.incrementAndGet()
 
               if (ca <= 6 && ca % 3 == 0)
-                context.actorOf(Props(new Actor { override def receive = { case _ ⇒ } }), "workingChild")
+                context.actorOf(Props(new Actor { override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ } }), "workingChild")
 
               if (ca < 6) {
                 throw new IllegalArgumentException("OH NO!")
               }
-              override def preStart() = {
+              override def preStart(): _root_.scala.Unit = {
                 preStartCalled.incrementAndGet()
               }
-              override def postRestart(reason: Throwable) = {
+              override def postRestart(reason: Throwable): _root_.scala.Unit = {
                 postRestartCalled.incrementAndGet()
               }
-              override def receive = {
+              override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
                 case m ⇒ sender() ! m
               }
             }), "failChild")
 
-            override def receive = {
+            override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
               case m ⇒ child.forward(m)
             }
           }), "failResumer")
@@ -881,7 +881,7 @@ class SupervisorHierarchySpec extends AkkaSpec(SupervisorHierarchySpec.config) w
       val fsm = system.actorOf(Props(new StressTest(testActor, size = 500, breadth = 6)), "stressTest")
 
       fsm ! FSM.SubscribeTransitionCallBack(system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case s: FSM.CurrentState[_] ⇒ log.info("{}", s)
           case t: FSM.Transition[_]   ⇒ log.info("{}", t)
         }

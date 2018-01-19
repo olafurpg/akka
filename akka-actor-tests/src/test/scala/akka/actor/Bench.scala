@@ -19,7 +19,7 @@ object Chameneos {
   case object BLUE extends Colour
   case object FADED extends Colour
 
-  val colours = Array[Colour](BLUE, RED, YELLOW)
+  val colours: _root_.scala.Array[_root_.akka.actor.Chameneos.Colour] = Array[Colour](BLUE, RED, YELLOW)
 
   var start = 0L
   var end = 0L
@@ -28,7 +28,7 @@ object Chameneos {
     var meetings = 0
     mall ! Meet(self, colour)
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Meet(from, otherColour) ⇒
         colour = complement(otherColour)
         meetings = meetings + 1
@@ -67,7 +67,7 @@ object Chameneos {
       case FADED ⇒ FADED
     }
 
-    override def toString = cid + "(" + colour + ")"
+    override def toString: _root_.java.lang.String = cid + "(" + colour + ")"
   }
 
   class Mall(var n: Int, numChameneos: Int) extends Actor {
@@ -75,11 +75,11 @@ object Chameneos {
     var sumMeetings = 0
     var numFaded = 0
 
-    override def preStart() = {
+    override def preStart(): _root_.scala.Unit = {
       for (i ← 0 until numChameneos) context.actorOf(Props(new Chameneo(self, colours(i % 3), i)))
     }
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case MeetingCount(i) ⇒
         numFaded += 1
         sumMeetings += i

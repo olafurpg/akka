@@ -19,7 +19,7 @@ class AskSpec extends AkkaSpec {
   "The “ask” pattern" must {
     "send request to actor and wrap the answer in Future" in {
       implicit val timeout = Timeout(5.seconds)
-      val echo = system.actorOf(Props(new Actor { def receive = { case x ⇒ sender() ! x } }))
+      val echo = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ sender() ! x } }))
       val f = echo ? "ping"
       f.futureValue should ===("ping")
     }
@@ -57,7 +57,7 @@ class AskSpec extends AkkaSpec {
 
     "return broken promises on 0 timeout" in {
       implicit val timeout = Timeout(0 seconds)
-      val echo = system.actorOf(Props(new Actor { def receive = { case x ⇒ sender() ! x } }))
+      val echo = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ sender() ! x } }))
       val f = echo ? "foo"
       val expectedMsg = "Timeout length must be positive, question not sent to [%s]. Sender[null] sent the message of type \"java.lang.String\"." format echo
       intercept[IllegalArgumentException] {
@@ -67,7 +67,7 @@ class AskSpec extends AkkaSpec {
 
     "return broken promises on < 0 timeout" in {
       implicit val timeout = Timeout(-1000 seconds)
-      val echo = system.actorOf(Props(new Actor { def receive = { case x ⇒ sender() ! x } }))
+      val echo = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ sender() ! x } }))
       val f = echo ? "foo"
       val expectedMsg = "Timeout length must be positive, question not sent to [%s]. Sender[null] sent the message of type \"java.lang.String\"." format echo
       intercept[IllegalArgumentException] {
@@ -112,7 +112,7 @@ class AskSpec extends AkkaSpec {
     "work for ActorSelection" in {
       implicit val timeout = Timeout(5 seconds)
       import system.dispatcher
-      val echo = system.actorOf(Props(new Actor { def receive = { case x ⇒ sender() ! x } }), "select-echo")
+      val echo = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ sender() ! x } }), "select-echo")
       val identityFuture = (system.actorSelection("/user/select-echo") ? Identify(None))
         .mapTo[ActorIdentity].map(_.ref.get)
 
@@ -124,7 +124,7 @@ class AskSpec extends AkkaSpec {
       val deadListener = TestProbe()
       system.eventStream.subscribe(deadListener.ref, classOf[DeadLetter])
 
-      val echo = system.actorOf(Props(new Actor { def receive = { case x ⇒ context.actorSelection(sender().path) ! x } }), "select-echo2")
+      val echo = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ context.actorSelection(sender().path) ! x } }), "select-echo2")
       val f = echo ? "hi"
 
       Await.result(f, 1 seconds) should ===("hi")
@@ -137,7 +137,7 @@ class AskSpec extends AkkaSpec {
       val deadListener = TestProbe()
       system.eventStream.subscribe(deadListener.ref, classOf[DeadLetter])
 
-      val echo = system.actorOf(Props(new Actor { def receive = { case x ⇒ context.actorSelection("/temp/*") ! x } }), "select-echo3")
+      val echo = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x ⇒ context.actorSelection("/temp/*") ! x } }), "select-echo3")
       val f = echo ? "hi"
       intercept[AskTimeoutException] {
         Await.result(f, 1 seconds)
@@ -152,7 +152,7 @@ class AskSpec extends AkkaSpec {
       system.eventStream.subscribe(deadListener.ref, classOf[DeadLetter])
 
       val echo = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case x ⇒
             val name = sender.path.name
             val parent = sender.path.parent
@@ -173,7 +173,7 @@ class AskSpec extends AkkaSpec {
       system.eventStream.subscribe(deadListener.ref, classOf[DeadLetter])
 
       val echo = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case x ⇒
             val name = sender.path.name
             val parent = sender.path.parent
@@ -193,7 +193,7 @@ class AskSpec extends AkkaSpec {
       system.eventStream.subscribe(deadListener.ref, classOf[DeadLetter])
 
       val echo = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case x ⇒
             val name = sender.path.name
             val parent = sender.path.parent
@@ -212,7 +212,7 @@ class AskSpec extends AkkaSpec {
       val p = TestProbe()
 
       val act = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case msg ⇒ p.ref ! sender() → msg
         }
       }))

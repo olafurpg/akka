@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat
 
 object LoggerSpec {
 
-  val defaultConfig = ConfigFactory.parseString("""
+  val defaultConfig: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
       akka {
         stdout-loglevel = "WARNING"
         loglevel = "DEBUG"
@@ -31,7 +31,7 @@ object LoggerSpec {
       }
     """).withFallback(AkkaSpec.testConf)
 
-  val slowConfig = ConfigFactory.parseString("""
+  val slowConfig: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
       akka {
         stdout-loglevel = "ERROR"
         loglevel = "ERROR"
@@ -39,7 +39,7 @@ object LoggerSpec {
       }
     """).withFallback(AkkaSpec.testConf)
 
-  val noLoggingConfig = ConfigFactory.parseString("""
+  val noLoggingConfig: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
       akka {
         stdout-loglevel = "OFF"
         loglevel = "OFF"
@@ -47,7 +47,7 @@ object LoggerSpec {
       }
     """).withFallback(AkkaSpec.testConf)
 
-  val multipleConfig = ConfigFactory.parseString("""
+  val multipleConfig: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
       akka {
         stdout-loglevel = "OFF"
         loglevel = "WARNING"
@@ -55,7 +55,7 @@ object LoggerSpec {
       }
     """).withFallback(AkkaSpec.testConf)
 
-  val ticket3165Config = ConfigFactory.parseString(s"""
+  val ticket3165Config: _root_.com.typesafe.config.Config = ConfigFactory.parseString(s"""
       akka {
         stdout-loglevel = "WARNING"
         loglevel = "DEBUG"
@@ -70,7 +70,7 @@ object LoggerSpec {
       }
     """).withFallback(AkkaSpec.testConf)
 
-  val ticket3671Config = ConfigFactory.parseString("""
+  val ticket3671Config: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
       akka {
         stdout-loglevel = "WARNING"
         loglevel = "WARNING"

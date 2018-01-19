@@ -34,7 +34,7 @@ class LocalActorRefProviderSpec extends AkkaSpec(LocalActorRefProviderSpec.confi
   "An LocalActorRefProvider" must {
 
     "find actor refs using actorFor" in {
-      val a = system.actorOf(Props(new Actor { def receive = { case _ ⇒ } }))
+      val a = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ } }))
       val b = system.actorFor(a.path)
       a should ===(b)
     }
@@ -42,8 +42,8 @@ class LocalActorRefProviderSpec extends AkkaSpec(LocalActorRefProviderSpec.confi
     "find child actor with URL encoded name using actorFor" in {
       val childName = "akka%3A%2F%2FClusterSystem%40127.0.0.1%3A2552"
       val a = system.actorOf(Props(new Actor {
-        val child = context.actorOf(Props.empty, name = childName)
-        def receive = {
+        val child: _root_.akka.actor.ActorRef = context.actorOf(Props.empty, name = childName)
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "lookup" ⇒
             if (childName == child.path.name) sender() ! context.actorFor(childName)
             else sender() ! s"$childName is not ${child.path.name}!"
@@ -101,8 +101,8 @@ class LocalActorRefProviderSpec extends AkkaSpec(LocalActorRefProviderSpec.confi
     "not retain its original Props when terminated" in {
       val GetChild = "GetChild"
       val a = watch(system.actorOf(Props(new Actor {
-        val child = context.actorOf(Props.empty)
-        def receive = { case `GetChild` ⇒ sender() ! child }
+        val child: _root_.akka.actor.ActorRef = context.actorOf(Props.empty)
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case `GetChild` ⇒ sender() ! child }
       })))
       a.tell(GetChild, testActor)
       val child = expectMsgType[ActorRef]
@@ -131,7 +131,7 @@ class LocalActorRefProviderSpec extends AkkaSpec(LocalActorRefProviderSpec.confi
       for (i ← 0 until 100) {
         val address = "new-actor" + i
         implicit val timeout = Timeout(5 seconds)
-        val actors = for (j ← 1 to 4) yield Future(system.actorOf(Props(new Actor { def receive = { case _ ⇒ } }), address))
+        val actors = for (j ← 1 to 4) yield Future(system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ } }), address))
         val set = Set() ++ actors.map(a ⇒ Await.ready(a, timeout.duration).value match {
           case Some(Success(a: ActorRef)) ⇒ 1
           case Some(Failure(ex: InvalidActorNameException)) ⇒ 2
@@ -143,7 +143,7 @@ class LocalActorRefProviderSpec extends AkkaSpec(LocalActorRefProviderSpec.confi
 
     "only create one instance of an actor from within the same message invocation" in {
       val supervisor = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "" ⇒
             val a, b = context.actorOf(Props.empty, "duplicate")
         }

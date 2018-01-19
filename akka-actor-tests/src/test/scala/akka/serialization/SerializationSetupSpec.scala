@@ -29,14 +29,14 @@ final class FakeSerializer extends Serializer {
   private val registry = new ConcurrentHashMap[Integer, AnyRef]()
   private val counter = new AtomicInteger(0)
 
-  def toBinary(o: AnyRef) = {
+  def toBinary(o: AnyRef): _root_.scala.Array[_root_.scala.Byte] = {
     val id = counter.addAndGet(1)
     require(id < Byte.MaxValue)
     registry.put(id, o)
     Array(id.toByte)
   }
 
-  def fromBinary(bytes: Array[Byte], clazz: Option[Class[_]]) = {
+  def fromBinary(bytes: Array[Byte], clazz: Option[Class[_]]): _root_.scala.AnyRef = {
     require(bytes.length == 1)
     val id = bytes(0).toInt
     registry.get(id)
@@ -45,14 +45,14 @@ final class FakeSerializer extends Serializer {
 
 object SerializationSetupSpec {
 
-  val programmaticDummySerializer = new FakeSerializer
-  val testSerializer = new NoopSerializer
+  val programmaticDummySerializer: _root_.akka.serialization.FakeSerializer = new FakeSerializer
+  val testSerializer: _root_.akka.serialization.NoopSerializer = new NoopSerializer
 
-  val serializationSettings = SerializationSetup { _ ⇒
+  val serializationSettings: _root_.akka.serialization.SerializationSetup = SerializationSetup { _ ⇒
     List(
       SerializerDetails("test", programmaticDummySerializer, List(classOf[ProgrammaticDummy])))
   }
-  val bootstrapSettings = BootstrapSetup(None, Some(ConfigFactory.parseString("""
+  val bootstrapSettings: _root_.akka.actor.BootstrapSetup = BootstrapSetup(None, Some(ConfigFactory.parseString("""
     akka {
       actor {
         serialize-messages = off
@@ -66,9 +66,9 @@ object SerializationSetupSpec {
       }
     }
     """)), None)
-  val actorSystemSettings = ActorSystemSetup(bootstrapSettings, serializationSettings)
+  val actorSystemSettings: _root_.akka.actor.setup.ActorSystemSetup = ActorSystemSetup(bootstrapSettings, serializationSettings)
 
-  val noJavaSerializationSystem = ActorSystem("SerializationSettingsSpec" + "NoJavaSerialization", ConfigFactory.parseString(
+  val noJavaSerializationSystem: _root_.akka.actor.ActorSystem = ActorSystem("SerializationSettingsSpec" + "NoJavaSerialization", ConfigFactory.parseString(
     """
     akka {
       actor {
@@ -78,7 +78,7 @@ object SerializationSetupSpec {
       }
     }
     """.stripMargin))
-  val noJavaSerializer = new DisabledJavaSerializer(noJavaSerializationSystem.asInstanceOf[ExtendedActorSystem])
+  val noJavaSerializer: _root_.akka.serialization.DisabledJavaSerializer = new DisabledJavaSerializer(noJavaSerializationSystem.asInstanceOf[ExtendedActorSystem])
 
 }
 
@@ -105,12 +105,12 @@ class SerializationSetupSpec extends AkkaSpec(
   // that they'd need a different actor system to be able to create it... someone MAY pick a system with
   // allow-java-serialization=on to create the SerializationSetup and use that SerializationSetup
   // in another system with allow-java-serialization=off
-  val addedJavaSerializationSettings = SerializationSetup { _ ⇒
+  val addedJavaSerializationSettings: _root_.akka.serialization.SerializationSetup = SerializationSetup { _ ⇒
     List(
       SerializerDetails("test", programmaticDummySerializer, List(classOf[ProgrammaticDummy])),
       SerializerDetails("java-manual", new JavaSerializer(system.asInstanceOf[ExtendedActorSystem]), List(classOf[ProgrammaticJavaDummy])))
   }
-  val addedJavaSerializationProgramaticallyButDisabledSettings = BootstrapSetup(None, Some(ConfigFactory.parseString("""
+  val addedJavaSerializationProgramaticallyButDisabledSettings: _root_.akka.actor.BootstrapSetup = BootstrapSetup(None, Some(ConfigFactory.parseString("""
     akka {
       loglevel = debug
       actor {
@@ -121,7 +121,7 @@ class SerializationSetupSpec extends AkkaSpec(
     }
     """)), None)
 
-  val addedJavaSerializationViaSettingsSystem =
+  val addedJavaSerializationViaSettingsSystem: _root_.akka.actor.ActorSystem =
     ActorSystem(
       "addedJavaSerializationSystem",
       ActorSystemSetup(

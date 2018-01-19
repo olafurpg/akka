@@ -10,7 +10,7 @@ class SimpleDnsCacheSpec extends WordSpec with Matchers {
     "not reply with expired but not yet swept out entries" in {
       val localClock = new AtomicLong(0)
       val cache: SimpleDnsCache = new SimpleDnsCache() {
-        override protected def clock() = localClock.get
+        override protected def clock(): _root_.scala.Long = localClock.get
       }
       val cacheEntry = Dns.Resolved("test.local", Seq(InetAddress.getByName("127.0.0.1")))
       cache.put(cacheEntry, 5000)
@@ -25,7 +25,7 @@ class SimpleDnsCacheSpec extends WordSpec with Matchers {
     "sweep out expired entries on cleanup()" in {
       val localClock = new AtomicLong(0)
       val cache: SimpleDnsCache = new SimpleDnsCache() {
-        override protected def clock() = localClock.get
+        override protected def clock(): _root_.scala.Long = localClock.get
       }
       val cacheEntry = Dns.Resolved("test.local", Seq(InetAddress.getByName("127.0.0.1")))
       cache.put(cacheEntry, 5000)

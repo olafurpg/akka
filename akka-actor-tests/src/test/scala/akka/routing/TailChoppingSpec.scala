@@ -12,11 +12,11 @@ import akka.pattern.{ AskTimeoutException, ask }
 import akka.testkit._
 
 object TailChoppingSpec {
-  def newActor(id: Int, sleepTime: Duration)(implicit system: ActorSystem) =
+  def newActor(id: Int, sleepTime: Duration)(implicit system: ActorSystem): _root_.akka.actor.ActorRef =
     system.actorOf(Props(new Actor {
       var times: Int = _
 
-      def receive = {
+      def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
         case "stop"  ⇒ context.stop(self)
         case "times" ⇒ sender() ! times
         case x ⇒
@@ -48,7 +48,7 @@ class TailChoppingSpec extends AkkaSpec with DefaultTimeout with ImplicitSender 
 
       val counter1 = new AtomicInteger
       val actor1 = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "end"    ⇒ doneLatch.countDown()
           case msg: Int ⇒ counter1.addAndGet(msg)
         }
@@ -56,7 +56,7 @@ class TailChoppingSpec extends AkkaSpec with DefaultTimeout with ImplicitSender 
 
       val counter2 = new AtomicInteger
       val actor2 = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "end"    ⇒ doneLatch.countDown()
           case msg: Int ⇒ counter2.addAndGet(msg)
         }

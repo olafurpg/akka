@@ -12,7 +12,7 @@ import scala.util.Random
 import akka.testkit.DefaultTimeout
 
 class IndexSpec extends AkkaSpec with Matchers with DefaultTimeout {
-  implicit val ec = system.dispatcher
+  implicit val ec: _root_.scala.concurrent.ExecutionContextExecutor = system.dispatcher
   private def emptyIndex = new Index[String, Int](100, new Comparator[Int] {
     override def compare(a: Int, b: Int): Int = Integer.compare(a, b)
   })

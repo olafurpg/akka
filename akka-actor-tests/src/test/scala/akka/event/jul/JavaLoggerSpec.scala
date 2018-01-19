@@ -11,7 +11,7 @@ import scala.util.control.NoStackTrace
 
 object JavaLoggerSpec {
 
-  val config = ConfigFactory.parseString("""
+  val config: _root_.com.typesafe.config.Config = ConfigFactory.parseString("""
     akka {
       loglevel = INFO
       loggers = ["akka.event.jul.JavaLogger"]
@@ -19,7 +19,7 @@ object JavaLoggerSpec {
     }""")
 
   class LogProducer extends Actor with ActorLogging {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case e: Exception ⇒
         log.error(e, e.getMessage)
       case (s: String, x: Int) ⇒
@@ -32,7 +32,7 @@ object JavaLoggerSpec {
 
 class JavaLoggerSpec extends AkkaSpec(JavaLoggerSpec.config) {
 
-  val logger = logging.Logger.getLogger(classOf[JavaLoggerSpec.LogProducer].getName)
+  val logger: _root_.java.util.logging.Logger = logging.Logger.getLogger(classOf[JavaLoggerSpec.LogProducer].getName)
   logger.setUseParentHandlers(false) // turn off output of test LogRecords
   logger.addHandler(new logging.Handler {
     def publish(record: logging.LogRecord) {
@@ -43,7 +43,7 @@ class JavaLoggerSpec extends AkkaSpec(JavaLoggerSpec.config) {
     def close() {}
   })
 
-  val producer = system.actorOf(Props[JavaLoggerSpec.LogProducer], name = "log")
+  val producer: _root_.akka.actor.ActorRef = system.actorOf(Props[JavaLoggerSpec.LogProducer], name = "log")
 
   "JavaLogger" must {
 

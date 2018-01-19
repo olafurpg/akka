@@ -22,7 +22,7 @@ object ActorRefSpec {
   class ReplyActor extends Actor {
     var replyTo: ActorRef = null
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "complexRequest" ⇒ {
         replyTo = sender()
         val worker = context.actorOf(Props[WorkerActor])
@@ -38,7 +38,7 @@ object ActorRefSpec {
 
   class WorkerActor() extends Actor {
     import context.system
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "work" ⇒ {
         work()
         sender() ! "workDone"
@@ -55,7 +55,7 @@ object ActorRefSpec {
 
   class SenderActor(replyActor: ActorRef, latch: TestLatch) extends Actor {
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "complex"  ⇒ replyActor ! "complexRequest"
       case "complex2" ⇒ replyActor ! "complexRequest2"
       case "simple"   ⇒ replyActor ! "simpleRequest"
@@ -69,43 +69,43 @@ object ActorRefSpec {
   }
 
   class OuterActor(val inner: ActorRef) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "self" ⇒ sender() ! self
       case x      ⇒ inner forward x
     }
   }
 
   class FailingOuterActor(val inner: ActorRef) extends Actor {
-    val fail = new InnerActor
+    val fail: _root_.akka.actor.ActorRefSpec.InnerActor = new InnerActor
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "self" ⇒ sender() ! self
       case x      ⇒ inner forward x
     }
   }
 
   class FailingInheritingOuterActor(_inner: ActorRef) extends OuterActor(_inner) {
-    val fail = new InnerActor
+    val fail: _root_.akka.actor.ActorRefSpec.InnerActor = new InnerActor
   }
 
   class InnerActor extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "innerself" ⇒ sender() ! self
       case other       ⇒ sender() ! other
     }
   }
 
   class FailingInnerActor extends Actor {
-    val fail = new InnerActor
+    val fail: _root_.akka.actor.ActorRefSpec.InnerActor = new InnerActor
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "innerself" ⇒ sender() ! self
       case other       ⇒ sender() ! other
     }
   }
 
   class FailingInheritingInnerActor extends InnerActor {
-    val fail = new InnerActor
+    val fail: _root_.akka.actor.ActorRefSpec.InnerActor = new InnerActor
   }
 }
 
@@ -134,7 +134,7 @@ class ActorRefSpec extends AkkaSpec with DefaultTimeout {
     "not allow Actors to be created outside of an actorOf" in {
       import system.actorOf
       intercept[akka.actor.ActorInitializationException] {
-        new Actor { def receive = { case _ ⇒ } }
+        new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ } }
       }
 
       def contextStackMustBeEmpty(): Unit = ActorCell.contextStack.get.headOption should ===(None)
@@ -143,8 +143,8 @@ class ActorRefSpec extends AkkaSpec with DefaultTimeout {
         intercept[akka.actor.ActorInitializationException] {
           wrap(result ⇒
             actorOf(Props(new Actor {
-              val nested = promiseIntercept(new Actor { def receive = { case _ ⇒ } })(result)
-              def receive = { case _ ⇒ }
+              val nested: _root_.akka.actor.Actor = promiseIntercept(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ } })(result)
+              def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ }
             })))
         }
 
@@ -209,7 +209,7 @@ class ActorRefSpec extends AkkaSpec with DefaultTimeout {
         intercept[akka.actor.ActorInitializationException] {
           wrap(result ⇒
             actorOf(Props(new OuterActor(actorOf(Props(new InnerActor {
-              val a = promiseIntercept(new InnerActor)(result)
+              val a: _root_.akka.actor.Actor = promiseIntercept(new InnerActor)(result)
             }))))))
         }
 
@@ -344,8 +344,8 @@ class ActorRefSpec extends AkkaSpec with DefaultTimeout {
 
     "support nested actorOfs" in {
       val a = system.actorOf(Props(new Actor {
-        val nested = system.actorOf(Props(new Actor { def receive = { case _ ⇒ } }))
-        def receive = { case _ ⇒ sender() ! nested }
+        val nested: _root_.akka.actor.ActorRef = system.actorOf(Props(new Actor { def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ } }))
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ sender() ! nested }
       }))
 
       val nested = Await.result((a ? "any").mapTo[ActorRef], timeout.duration)
@@ -400,7 +400,7 @@ class ActorRefSpec extends AkkaSpec with DefaultTimeout {
     "stop when sent a poison pill" in {
       val timeout = Timeout(20.seconds)
       val ref = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case 5 ⇒ sender() ! "five"
           case 0 ⇒ sender() ! "null"
         }
@@ -423,17 +423,17 @@ class ActorRefSpec extends AkkaSpec with DefaultTimeout {
 
         val boss = system.actorOf(Props(new Actor {
 
-          override val supervisorStrategy =
+          override val supervisorStrategy: _root_.akka.actor.OneForOneStrategy =
             OneForOneStrategy(maxNrOfRetries = 2, withinTimeRange = 1 second)(List(classOf[Throwable]))
 
-          val ref = context.actorOf(
+          val ref: _root_.akka.actor.ActorRef = context.actorOf(
             Props(new Actor {
-              def receive = { case _ ⇒ }
-              override def preRestart(reason: Throwable, msg: Option[Any]) = latch.countDown()
-              override def postRestart(reason: Throwable) = latch.countDown()
+              def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ }
+              override def preRestart(reason: Throwable, msg: Option[Any]): _root_.scala.Unit = latch.countDown()
+              override def postRestart(reason: Throwable): _root_.scala.Unit = latch.countDown()
             }))
 
-          def receive = { case "sendKill" ⇒ ref ! Kill }
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case "sendKill" ⇒ ref ! Kill }
         }))
 
         boss ! "sendKill"
@@ -444,12 +444,12 @@ class ActorRefSpec extends AkkaSpec with DefaultTimeout {
     "be able to check for existence of children" in {
       val parent = system.actorOf(Props(new Actor {
 
-        val child = context.actorOf(
+        val child: _root_.akka.actor.ActorRef = context.actorOf(
           Props(new Actor {
-            def receive = { case _ ⇒ }
+            def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ }
           }), "child")
 
-        def receive = { case name: String ⇒ sender() ! context.child(name).isDefined }
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case name: String ⇒ sender() ! context.child(name).isDefined }
       }), "parent")
 
       assert(Await.result((parent ? "child"), timeout.duration) === true)

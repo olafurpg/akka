@@ -5,7 +5,7 @@ import akka.testkit.{ ImplicitSender, AkkaSpec }
 import com.typesafe.config.ConfigFactory
 
 object ForkJoinPoolStarvationSpec {
-  val config = ConfigFactory.parseString(
+  val config: _root_.com.typesafe.config.Config = ConfigFactory.parseString(
     """
       |actorhang {
       |
@@ -24,7 +24,7 @@ object ForkJoinPoolStarvationSpec {
   class SelfBusyActor extends Actor {
     self ! "tick"
 
-    override def receive = {
+    override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "tick" ⇒
         self ! "tick"
     }
@@ -32,7 +32,7 @@ object ForkJoinPoolStarvationSpec {
 
   class InnocentActor extends Actor {
 
-    override def receive = {
+    override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case "ping" ⇒
         sender ! "All fine"
     }

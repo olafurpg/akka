@@ -16,7 +16,7 @@ class SmallestMailboxSpec extends AkkaSpec("akka.actor.serialize-messages = off"
     "deliver messages to idle actor" in {
       val usedActors = new ConcurrentHashMap[Int, String]()
       val router = system.actorOf(SmallestMailboxPool(3).props(routeeProps = Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case (busy: TestLatch, receivedLatch: TestLatch) ⇒
             usedActors.put(0, self.path.toString)
             self ! "another in busy mailbox"

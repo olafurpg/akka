@@ -10,7 +10,7 @@ import akka.testkit.AkkaSpec
 class DispatcherActorsSpec extends AkkaSpec {
   class SlowActor(finishedCounter: CountDownLatch) extends Actor {
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case x: Int ⇒ {
         Thread.sleep(50) // slow actor
         finishedCounter.countDown()
@@ -19,7 +19,7 @@ class DispatcherActorsSpec extends AkkaSpec {
   }
 
   class FastActor(finishedCounter: CountDownLatch) extends Actor {
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case x: Int ⇒ {
         finishedCounter.countDown()
       }

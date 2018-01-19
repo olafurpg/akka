@@ -23,7 +23,7 @@ class BalancingDispatcherSpec extends AkkaSpec(BalancingDispatcherSpec.config) {
     @volatile
     var invocationCount = 0
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case x: Int ⇒ {
         Thread.sleep(delay)
         invocationCount += 1
@@ -33,15 +33,15 @@ class BalancingDispatcherSpec extends AkkaSpec(BalancingDispatcherSpec.config) {
   }
 
   class FirstActor extends Actor {
-    def receive = { case _ ⇒ {} }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ {} }
   }
 
   class SecondActor extends Actor {
-    def receive = { case _ ⇒ {} }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ {} }
   }
 
   class ParentActor extends Actor {
-    def receive = { case _ ⇒ {} }
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case _ ⇒ {} }
   }
 
   class ChildActor extends ParentActor {

@@ -22,7 +22,7 @@ object DeadLetterSupressionSpec {
 class DeadLetterSupressionSpec extends AkkaSpec with ImplicitSender {
   import DeadLetterSupressionSpec._
 
-  val deadActor = system.actorOf(TestActors.echoActorProps)
+  val deadActor: _root_.akka.actor.ActorRef = system.actorOf(TestActors.echoActorProps)
   watch(deadActor)
   deadActor ! PoisonPill
   expectTerminated(deadActor)

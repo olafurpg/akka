@@ -39,7 +39,7 @@ class SupervisorMiscSpec extends AkkaSpec(SupervisorMiscSpec.config) with Defaul
 
         val workerProps = Props(new Actor {
           override def postRestart(cause: Throwable) { countDownLatch.countDown() }
-          def receive = {
+          def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
             case "status" ⇒ this.sender() ! "OK"
             case _        ⇒ this.context.stop(self)
           }
@@ -69,7 +69,7 @@ class SupervisorMiscSpec extends AkkaSpec(SupervisorMiscSpec.config) with Defaul
     "be able to create named children in its constructor" in {
       val a = system.actorOf(Props(new Actor {
         context.actorOf(Props.empty, "bob")
-        def receive = { case x: Exception ⇒ throw x }
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case x: Exception ⇒ throw x }
         override def preStart(): Unit = testActor ! "preStart"
       }))
       val m = "weird message"
@@ -83,8 +83,8 @@ class SupervisorMiscSpec extends AkkaSpec(SupervisorMiscSpec.config) with Defaul
 
     "be able to recreate child when old child is Terminated" in {
       val parent = system.actorOf(Props(new Actor {
-        val kid = context.watch(context.actorOf(Props.empty, "foo"))
-        def receive = {
+        val kid: _root_.akka.actor.ActorRef = context.watch(context.actorOf(Props.empty, "foo"))
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Terminated(`kid`) ⇒
             try {
               val newKid = context.actorOf(Props.empty, "foo")
@@ -107,7 +107,7 @@ class SupervisorMiscSpec extends AkkaSpec(SupervisorMiscSpec.config) with Defaul
 
     "not be able to recreate child when old child is alive" in {
       val parent = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "engage" ⇒
             try {
               val kid = context.actorOf(Props.empty, "foo")
@@ -125,14 +125,14 @@ class SupervisorMiscSpec extends AkkaSpec(SupervisorMiscSpec.config) with Defaul
 
     "be able to create a similar kid in the fault handling strategy" in {
       val parent = system.actorOf(Props(new Actor {
-        override val supervisorStrategy = new OneForOneStrategy()(SupervisorStrategy.defaultStrategy.decider) {
+        override val supervisorStrategy: _root_.akka.actor.OneForOneStrategy = new OneForOneStrategy()(SupervisorStrategy.defaultStrategy.decider) {
           override def handleChildTerminated(context: ActorContext, child: ActorRef, children: Iterable[ActorRef]): Unit = {
             val newKid = context.actorOf(Props.empty, child.path.name)
             testActor ! { if ((newKid ne child) && newKid.path == child.path) "green" else "red" }
           }
         }
 
-        def receive = { case "engage" ⇒ context.stop(context.actorOf(Props.empty, "Robert")) }
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case "engage" ⇒ context.stop(context.actorOf(Props.empty, "Robert")) }
       }))
       parent ! "engage"
       expectMsg("green")
@@ -143,10 +143,10 @@ class SupervisorMiscSpec extends AkkaSpec(SupervisorMiscSpec.config) with Defaul
 
     "have access to the failing child’s reference in supervisorStrategy" in {
       val parent = system.actorOf(Props(new Actor {
-        override val supervisorStrategy = OneForOneStrategy() {
+        override val supervisorStrategy: _root_.akka.actor.OneForOneStrategy = OneForOneStrategy() {
           case _: Exception ⇒ testActor ! sender(); SupervisorStrategy.Stop
         }
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case "doit" ⇒ context.actorOf(Props.empty, "child") ! Kill
         }
       }))

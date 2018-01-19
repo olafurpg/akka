@@ -15,13 +15,13 @@ import akka.util.Timeout
 object FSMActorSpec {
 
   class Latches(implicit system: ActorSystem) {
-    val unlockedLatch = TestLatch()
-    val lockedLatch = TestLatch()
-    val unhandledLatch = TestLatch()
-    val terminatedLatch = TestLatch()
-    val transitionLatch = TestLatch()
-    val initialStateLatch = TestLatch()
-    val transitionCallBackLatch = TestLatch()
+    val unlockedLatch: _root_.akka.testkit.TestLatch = TestLatch()
+    val lockedLatch: _root_.akka.testkit.TestLatch = TestLatch()
+    val unhandledLatch: _root_.akka.testkit.TestLatch = TestLatch()
+    val terminatedLatch: _root_.akka.testkit.TestLatch = TestLatch()
+    val transitionLatch: _root_.akka.testkit.TestLatch = TestLatch()
+    val initialStateLatch: _root_.akka.testkit.TestLatch = TestLatch()
+    val transitionCallBackLatch: _root_.akka.testkit.TestLatch = TestLatch()
   }
 
   sealed trait LockState
@@ -78,7 +78,7 @@ object FSMActorSpec {
     // verify that old-style does still compile
     onTransition(transitionHandler _)
 
-    def transitionHandler(from: LockState, to: LockState) = {
+    def transitionHandler(from: LockState, to: LockState): _root_.scala.Unit = {
       // dummy
     }
 
@@ -103,7 +103,7 @@ class FSMActorSpec extends AkkaSpec(Map("akka.actor.debug.fsm" → true)) with I
   import FSMActorSpec._
   import FSM.`→`
 
-  val timeout = Timeout(2 seconds)
+  val timeout: _root_.akka.util.Timeout = Timeout(2 seconds)
 
   "An FSM Actor" must {
 
@@ -118,7 +118,7 @@ class FSMActorSpec extends AkkaSpec(Map("akka.actor.debug.fsm" → true)) with I
       val lock = system.actorOf(Props(new Lock("33221", 1 second, latches)))
 
       val transitionTester = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Transition(_, _, _)                          ⇒ transitionCallBackLatch.open
           case CurrentState(_, s: LockState) if s eq Locked ⇒ initialStateLatch.open // SI-5900 workaround
         }
@@ -145,7 +145,7 @@ class FSMActorSpec extends AkkaSpec(Map("akka.actor.debug.fsm" → true)) with I
 
       val answerLatch = TestLatch()
       val tester = system.actorOf(Props(new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case Hello   ⇒ lock ! "hello"
           case "world" ⇒ answerLatch.open
           case Bye     ⇒ lock ! "bye"
@@ -183,7 +183,7 @@ class FSMActorSpec extends AkkaSpec(Map("akka.actor.debug.fsm" → true)) with I
        * It is necessary here because of the path-dependent type fsm.StopEvent.
        */
       lazy val fsm = new Actor with FSM[Int, Null] {
-        override def preStart = { started.countDown }
+        override def preStart: _root_.scala.Unit = { started.countDown }
         startWith(1, null)
         when(1) { FSM.NullFunction }
         onTermination {
