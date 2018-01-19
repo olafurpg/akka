@@ -36,10 +36,10 @@ import scala.util.{ Failure, Success }
 
   import InputStreamPublisher._
 
-  val arr = new Array[Byte](chunkSize)
+  val arr: _root_.scala.Array[_root_.scala.Byte] = new Array[Byte](chunkSize)
   var readBytesTotal = 0L
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case ActorPublisherMessage.Request(elements) ⇒ readAndSignal()
     case Continue                                ⇒ readAndSignal()
     case ActorPublisherMessage.Cancel            ⇒ context.stop(self)

@@ -34,7 +34,7 @@ object ActorSubscriberMessage {
   /**
    * Java API: get the singleton instance of the `OnComplete` message
    */
-  def onCompleteInstance = OnComplete
+  def onCompleteInstance: _root_.akka.stream.actor.ActorSubscriberMessage.OnComplete.type = OnComplete
 }
 
 /**
@@ -64,7 +64,7 @@ case object OneByOneRequestStrategy extends RequestStrategy {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.stream.actor.OneByOneRequestStrategy.type = this
 }
 
 /**
@@ -77,7 +77,7 @@ case object ZeroRequestStrategy extends RequestStrategy {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.stream.actor.ZeroRequestStrategy.type = this
 }
 
 object WatermarkRequestStrategy {
@@ -313,7 +313,7 @@ private[akka] final class ActorSubscriberImpl[T](val impl: ActorRef) extends Sub
 private[akka] object ActorSubscriberState extends ExtensionId[ActorSubscriberState] with ExtensionIdProvider {
   override def get(system: ActorSystem): ActorSubscriberState = super.get(system)
 
-  override def lookup() = ActorSubscriberState
+  override def lookup(): _root_.akka.stream.actor.ActorSubscriberState.type = ActorSubscriberState
 
   override def createExtension(system: ExtendedActorSystem): ActorSubscriberState =
     new ActorSubscriberState

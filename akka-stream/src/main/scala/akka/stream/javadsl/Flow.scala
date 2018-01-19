@@ -206,7 +206,7 @@ final class Flow[-In, +Out, +Mat](delegate: scaladsl.Flow[In, Out, Mat]) extends
   import scala.collection.JavaConverters._
 
   override def shape: FlowShape[In, Out] = delegate.shape
-  override def traversalBuilder = delegate.traversalBuilder
+  override def traversalBuilder: _root_.akka.stream.impl.LinearTraversalBuilder = delegate.traversalBuilder
 
   override def toString: String = delegate.toString
 
@@ -2355,8 +2355,8 @@ object RunnableGraph {
 
   /** INTERNAL API */
   private final class RunnableGraphAdapter[Mat](runnable: scaladsl.RunnableGraph[Mat]) extends RunnableGraph[Mat] {
-    override def shape = ClosedShape
-    override def traversalBuilder = runnable.traversalBuilder
+    override def shape: _root_.akka.stream.ClosedShape.type = ClosedShape
+    override def traversalBuilder: _root_.akka.stream.impl.TraversalBuilder = runnable.traversalBuilder
 
     override def toString: String = runnable.toString
 

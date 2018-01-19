@@ -103,7 +103,7 @@ object Tcp extends ExtensionId[Tcp] with ExtensionIdProvider {
 
   override def get(system: ActorSystem): Tcp = super.get(system)
 
-  def lookup() = Tcp
+  def lookup(): _root_.akka.stream.javadsl.Tcp.type = Tcp
 
   def createExtension(system: ExtendedActorSystem): Tcp = new Tcp(system)
 }

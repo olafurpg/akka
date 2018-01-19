@@ -17,10 +17,10 @@ import scala.util.Try
  * INTERNAL API
  */
 @InternalApi private[akka] object MaybeSource extends GraphStageWithMaterializedValue[SourceShape[AnyRef], Promise[Option[AnyRef]]] {
-  val out = Outlet[AnyRef]("MaybeSource.out")
-  override val shape = SourceShape(out)
+  val out: _root_.akka.stream.Outlet[_root_.scala.AnyRef] = Outlet[AnyRef]("MaybeSource.out")
+  override val shape: _root_.akka.stream.SourceShape[_root_.scala.AnyRef] = SourceShape(out)
 
-  override protected def initialAttributes = DefaultAttributes.maybeSource
+  override protected def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.maybeSource
 
   override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Promise[Option[AnyRef]]) = {
     import scala.util.{ Success ⇒ ScalaSuccess, Failure ⇒ ScalaFailure }

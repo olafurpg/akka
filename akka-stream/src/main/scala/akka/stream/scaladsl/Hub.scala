@@ -375,7 +375,7 @@ private[akka] class BroadcastHub[T](bufferSize: Int) extends GraphStageWithMater
 
     private[this] val callbackPromise: Promise[AsyncCallback[HubEvent]] = Promise()
     private[this] val noRegistrationsState = Open(callbackPromise.future, Nil)
-    val state = new AtomicReference[HubState](noRegistrationsState)
+    val state: _root_.java.util.concurrent.atomic.AtomicReference[BroadcastHub.this.HubState] = new AtomicReference[HubState](noRegistrationsState)
 
     // Start from values that will almost immediately overflow. This has no effect on performance, any starting
     // number will do, however, this protects from regressions as these values *almost surely* overflow and fail
@@ -874,7 +874,7 @@ object PartitionHub {
     }
 
     object ConsumerQueue {
-      val empty = ConsumerQueue(Queue.empty, 0)
+      val empty: _root_.akka.stream.scaladsl.PartitionHub.Internal.ConsumerQueue = ConsumerQueue(Queue.empty, 0)
     }
 
     final case class ConsumerQueue(queue: Queue[Any], size: Int) {
@@ -1012,7 +1012,7 @@ object PartitionHub {
 
     private val callbackPromise: Promise[AsyncCallback[HubEvent]] = Promise()
     private val noRegistrationsState = Open(callbackPromise.future, Nil)
-    val state = new AtomicReference[HubState](noRegistrationsState)
+    val state: _root_.java.util.concurrent.atomic.AtomicReference[_root_.akka.stream.scaladsl.PartitionHub.Internal.HubState] = new AtomicReference[HubState](noRegistrationsState)
     private var initialized = false
 
     private val queue = createQueue()

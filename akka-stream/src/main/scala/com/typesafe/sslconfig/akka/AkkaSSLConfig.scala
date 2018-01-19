@@ -23,7 +23,7 @@ object AkkaSSLConfig extends ExtensionId[AkkaSSLConfig] with ExtensionIdProvider
   override def get(system: ActorSystem): AkkaSSLConfig = super.get(system)
   def apply()(implicit system: ActorSystem): AkkaSSLConfig = super.apply(system)
 
-  override def lookup() = AkkaSSLConfig
+  override def lookup(): _root_.com.typesafe.sslconfig.akka.AkkaSSLConfig.type = AkkaSSLConfig
 
   override def createExtension(system: ExtendedActorSystem): AkkaSSLConfig =
     new AkkaSSLConfig(system, defaultSSLConfigSettings(system))
@@ -66,9 +66,9 @@ final class AkkaSSLConfig(system: ExtendedActorSystem, val config: SSLConfigSett
   def convertSettings(f: java.util.function.Function[SSLConfigSettings, SSLConfigSettings]): AkkaSSLConfig =
     new AkkaSSLConfig(system, f.apply(config))
 
-  val hostnameVerifier = buildHostnameVerifier(config)
+  val hostnameVerifier: _root_.javax.net.ssl.HostnameVerifier = buildHostnameVerifier(config)
 
-  val sslEngineConfigurator = {
+  val sslEngineConfigurator: _root_.com.typesafe.sslconfig.akka.DefaultSSLEngineConfigurator = {
     val sslContext = if (config.default) {
       log.info("ssl-config.default is true, using the JDK's default SSLContext")
       validateDefaultTrustManager(config)

@@ -1076,7 +1076,7 @@ import scala.collection.immutable.Map.Map1
  * See comments in akka.stream.impl.package for more details.
  */
 @InternalApi private[akka] final class BuilderKey extends TraversalBuildStep {
-  override def toString = s"K:$hashCode"
+  override def toString: _root_.scala.Predef.String = s"K:$hashCode"
 }
 
 /**

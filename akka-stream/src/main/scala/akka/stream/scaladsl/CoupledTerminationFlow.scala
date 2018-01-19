@@ -75,7 +75,7 @@ private[stream] class CoupledTerminationBidi[I, O] extends GraphStage[BidiShape[
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
-    val handler1 = new InHandler with OutHandler {
+    val handler1: _root_.scala.AnyRef with _root_.akka.stream.stage.InHandler with _root_.akka.stream.stage.OutHandler {} = new InHandler with OutHandler {
       override def onPush(): Unit = push(out1, grab(in1))
       override def onPull(): Unit = pull(in1)
 
@@ -84,7 +84,7 @@ private[stream] class CoupledTerminationBidi[I, O] extends GraphStage[BidiShape[
       override def onUpstreamFailure(ex: Throwable): Unit = failStage(ex)
     }
 
-    val handler2 = new InHandler with OutHandler {
+    val handler2: _root_.scala.AnyRef with _root_.akka.stream.stage.InHandler with _root_.akka.stream.stage.OutHandler {} = new InHandler with OutHandler {
       override def onPush(): Unit = push(out2, grab(in2))
       override def onPull(): Unit = pull(in2)
 

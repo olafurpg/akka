@@ -80,7 +80,7 @@ final class Merge[T](val inputPorts: Int, val eagerComplete: Boolean) extends Gr
 
   val in: immutable.IndexedSeq[Inlet[T]] = Vector.tabulate(inputPorts)(i ⇒ Inlet[T]("Merge.in" + i))
   val out: Outlet[T] = Outlet[T]("Merge.out")
-  override def initialAttributes = DefaultAttributes.merge
+  override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.merge
   override val shape: UniformFanInShape[T, T] = UniformFanInShape(out, in: _*)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with OutHandler {
@@ -131,7 +131,7 @@ final class Merge[T](val inputPorts: Int, val eagerComplete: Boolean) extends Gr
           } else pendingQueue.enqueue(i)
         }
 
-        override def onUpstreamFinish() =
+        override def onUpstreamFinish(): _root_.scala.Unit =
           if (eagerComplete) {
             var ix2 = 0
             while (ix2 < in.size) {
@@ -165,7 +165,7 @@ object MergePreferred {
     override protected def construct(init: Init[T]): FanInShape[T] = new MergePreferredShape(secondaryPorts, init)
     override def deepCopy(): MergePreferredShape[T] = super.deepCopy().asInstanceOf[MergePreferredShape[T]]
 
-    val preferred = newInlet[T]("preferred")
+    val preferred: _root_.akka.stream.Inlet[T] = newInlet[T]("preferred")
   }
 
   /**
@@ -195,7 +195,7 @@ object MergePreferred {
 final class MergePreferred[T](val secondaryPorts: Int, val eagerComplete: Boolean) extends GraphStage[MergePreferred.MergePreferredShape[T]] {
   require(secondaryPorts >= 1, "A MergePreferred must have 1 or more secondary input ports")
 
-  override def initialAttributes = DefaultAttributes.mergePreferred
+  override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.mergePreferred
   override val shape: MergePreferred.MergePreferredShape[T] =
     new MergePreferred.MergePreferredShape(secondaryPorts, "MergePreferred")
 
@@ -204,7 +204,7 @@ final class MergePreferred[T](val secondaryPorts: Int, val eagerComplete: Boolea
   def preferred: Inlet[T] = shape.preferred
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
-    var openInputs = secondaryPorts + 1
+    var openInputs: _root_.scala.Int = secondaryPorts + 1
     def onComplete(): Unit = {
       openInputs -= 1
       if (eagerComplete || openInputs == 0) completeStage()
@@ -217,7 +217,7 @@ final class MergePreferred[T](val secondaryPorts: Int, val eagerComplete: Boolea
 
     setHandler(out, eagerTerminateOutput)
 
-    val pullMe = Array.tabulate(secondaryPorts)(i ⇒ {
+    val pullMe: _root_.scala.Array[_root_.scala.Function0[_root_.scala.Unit]] = Array.tabulate(secondaryPorts)(i ⇒ {
       val port = in(i)
       () ⇒ tryPull(port)
     })
@@ -243,7 +243,7 @@ final class MergePreferred[T](val secondaryPorts: Int, val eagerComplete: Boolea
         tryPull(preferred)
       }
 
-      val emitted = () ⇒ {
+      val emitted: _root_.scala.Function0[_root_.scala.Unit] = () ⇒ {
         preferredEmitting -= 1
         if (isAvailable(preferred)) emitPreferred()
         else if (preferredEmitting == 0) emitSecondary()
@@ -499,9 +499,9 @@ final class MergeSorted[T: Ordering] extends GraphStage[FanInShape2[T, T, T]] {
   private val right = Inlet[T]("right")
   private val out = Outlet[T]("out")
 
-  override val shape = new FanInShape2(left, right, out)
+  override val shape: _root_.akka.stream.FanInShape2[T, T, T] = new FanInShape2(left, right, out)
 
-  override def createLogic(attr: Attributes) = new GraphStageLogic(shape) {
+  override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic = new GraphStageLogic(shape) {
     import Ordering.Implicits._
     setHandler(left, ignoreTerminateInput)
     setHandler(right, ignoreTerminateInput)
@@ -514,12 +514,12 @@ final class MergeSorted[T: Ordering] extends GraphStage[FanInShape2[T, T, T]] {
       if (l < r) { other = r; emit(out, l, readL) }
       else { other = l; emit(out, r, readR) }
 
-    val dispatchR = dispatch(other, _: T)
-    val dispatchL = dispatch(_: T, other)
-    val passR = () ⇒ emit(out, other, () ⇒ { nullOut(); passAlong(right, out, doPull = true) })
-    val passL = () ⇒ emit(out, other, () ⇒ { nullOut(); passAlong(left, out, doPull = true) })
-    val readR = () ⇒ read(right)(dispatchR, passL)
-    val readL = () ⇒ read(left)(dispatchL, passR)
+    val dispatchR: T => _root_.scala.Unit = dispatch(other, _: T)
+    val dispatchL: T => _root_.scala.Unit = dispatch(_: T, other)
+    val passR: _root_.scala.Function0[_root_.scala.Unit] = () ⇒ emit(out, other, () ⇒ { nullOut(); passAlong(right, out, doPull = true) })
+    val passL: _root_.scala.Function0[_root_.scala.Unit] = () ⇒ emit(out, other, () ⇒ { nullOut(); passAlong(left, out, doPull = true) })
+    val readR: _root_.scala.Function0[_root_.scala.Unit] = () ⇒ read(right)(dispatchR, passL)
+    val readL: _root_.scala.Function0[_root_.scala.Unit] = () ⇒ read(left)(dispatchL, passR)
 
     override def preStart(): Unit = {
       // all fan-in stages need to eagerly pull all inputs to get cycles started
@@ -562,7 +562,7 @@ final class Broadcast[T](val outputPorts: Int, val eagerCancel: Boolean) extends
   require(outputPorts >= 1, "A Broadcast must have one or more output ports")
   val in: Inlet[T] = Inlet[T]("Broadcast.in")
   val out: immutable.IndexedSeq[Outlet[T]] = Vector.tabulate(outputPorts)(i ⇒ Outlet[T]("Broadcast.out" + i))
-  override def initialAttributes = DefaultAttributes.broadcast
+  override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.broadcast
   override val shape: UniformFanOutShape[T, T] = UniformFanOutShape(in, out: _*)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler {
@@ -604,7 +604,7 @@ final class Broadcast[T](val outputPorts: Int, val eagerCancel: Boolean) extends
             tryPull()
           }
 
-          override def onDownstreamFinish() = {
+          override def onDownstreamFinish(): _root_.scala.Unit = {
             if (eagerCancel) completeStage()
             else {
               downstreamsRunning -= 1
@@ -665,7 +665,7 @@ final class Partition[T](val outputPorts: Int, val partitioner: T ⇒ Int) exten
     private var outPendingIdx: Int = _
     private var downstreamRunning = outputPorts
 
-    def onPush() = {
+    def onPush(): _root_.scala.Unit = {
       val elem = grab(in)
       val idx = partitioner(elem)
       if (idx < 0 || idx >= outputPorts) {
@@ -693,7 +693,7 @@ final class Partition[T](val outputPorts: Int, val partitioner: T ⇒ Int) exten
     out.zipWithIndex.foreach {
       case (o, idx) ⇒
         setHandler(o, new OutHandler {
-          override def onPull() = {
+          override def onPull(): _root_.scala.Unit = {
 
             if (outPendingElem != null) {
               val elem = outPendingElem.asInstanceOf[T]
@@ -727,7 +727,7 @@ final class Partition[T](val outputPorts: Int, val partitioner: T ⇒ Int) exten
     }
   }
 
-  override def toString = s"Partition($outputPorts)"
+  override def toString: _root_.scala.Predef.String = s"Partition($outputPorts)"
 
 }
 
@@ -764,7 +764,7 @@ final class Balance[T](val outputPorts: Int, val waitForAllDownstreams: Boolean)
   require(outputPorts >= 1, "A Balance must have one or more output ports")
   val in: Inlet[T] = Inlet[T]("Balance.in")
   val out: immutable.IndexedSeq[Outlet[T]] = Vector.tabulate(outputPorts)(i ⇒ Outlet[T]("Balance.out" + i))
-  override def initialAttributes = DefaultAttributes.balance
+  override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.balance
   override val shape: UniformFanOutShape[T, T] = UniformFanOutShape[T, T](in, out: _*)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler {
@@ -815,7 +815,7 @@ final class Balance[T](val outputPorts: Int, val waitForAllDownstreams: Boolean)
           } else pendingQueue.enqueue(o)
         }
 
-        override def onDownstreamFinish() = {
+        override def onDownstreamFinish(): _root_.scala.Unit = {
           downstreamsRunning -= 1
           if (downstreamsRunning == 0) completeStage()
           else if (!hasPulled && needDownstreamPulls > 0) {
@@ -921,7 +921,7 @@ object ZipN {
   /**
    * Create a new `ZipN`.
    */
-  def apply[A](n: Int) = new ZipN[A](n)
+  def apply[A](n: Int): _root_.akka.stream.scaladsl.ZipN[A] = new ZipN[A](n)
 }
 
 /**
@@ -938,7 +938,7 @@ object ZipN {
  * '''Cancels when''' downstream cancels
  */
 final class ZipN[A](n: Int) extends ZipWithN[A, immutable.Seq[A]](ConstantFun.scalaIdentityFunction)(n) {
-  override def initialAttributes = DefaultAttributes.zipN
+  override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.zipN
   override def toString = "ZipN"
 }
 
@@ -946,7 +946,7 @@ object ZipWithN {
   /**
    * Create a new `ZipWithN`.
    */
-  def apply[A, O](zipper: immutable.Seq[A] ⇒ O)(n: Int) = new ZipWithN[A, O](zipper)(n)
+  def apply[A, O](zipper: immutable.Seq[A] ⇒ O)(n: Int): _root_.akka.stream.scaladsl.ZipWithN[A, O] = new ZipWithN[A, O](zipper)(n)
 }
 
 /**
@@ -963,8 +963,8 @@ object ZipWithN {
  * '''Cancels when''' downstream cancels
  */
 class ZipWithN[A, O](zipper: immutable.Seq[A] ⇒ O)(n: Int) extends GraphStage[UniformFanInShape[A, O]] {
-  override def initialAttributes = DefaultAttributes.zipWithN
-  override val shape = new UniformFanInShape[A, O](n)
+  override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.zipWithN
+  override val shape: _root_.akka.stream.UniformFanInShape[A, O] = new UniformFanInShape[A, O](n)
   def out: Outlet[O] = shape.out
 
   @deprecated("use `shape.inlets` or `shape.in(id)` instead", "2.5.5")
@@ -975,8 +975,8 @@ class ZipWithN[A, O](zipper: immutable.Seq[A] ⇒ O)(n: Int) extends GraphStage[
     // Without this field the completion signalling would take one extra pull
     var willShutDown = false
 
-    val grabInlet = grab[A] _
-    val pullInlet = pull[A] _
+    val grabInlet: _root_.akka.stream.Inlet[A] => A = grab[A] _
+    val pullInlet: _root_.akka.stream.Inlet[A] => _root_.scala.Unit = pull[A] _
 
     private def pushAll(): Unit = {
       push(out, zipper(shape.inlets.map(grabInlet)))
@@ -1041,10 +1041,10 @@ final class Concat[T](val inputPorts: Int) extends GraphStage[UniformFanInShape[
   require(inputPorts > 1, "A Concat must have more than 1 input ports")
   val in: immutable.IndexedSeq[Inlet[T]] = Vector.tabulate(inputPorts)(i ⇒ Inlet[T]("Concat.in" + i))
   val out: Outlet[T] = Outlet[T]("Concat.out")
-  override def initialAttributes = DefaultAttributes.concat
+  override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.concat
   override val shape: UniformFanInShape[T, T] = UniformFanInShape(out, in: _*)
 
-  override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) with OutHandler {
+  override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic with _root_.akka.stream.stage.OutHandler {} = new GraphStageLogic(shape) with OutHandler {
     var activeStream: Int = 0
 
     {
@@ -1054,11 +1054,11 @@ final class Concat[T](val inputPorts: Int) extends GraphStage[UniformFanInShape[
         val i = in(idxx)
         val idx = idxx // close over val
         setHandler(i, new InHandler {
-          override def onPush() = {
+          override def onPush(): _root_.scala.Unit = {
             push(out, grab(i))
           }
 
-          override def onUpstreamFinish() = {
+          override def onUpstreamFinish(): _root_.scala.Unit = {
             if (idx == activeStream) {
               activeStream += 1
               // Skip closed inputs
@@ -1072,7 +1072,7 @@ final class Concat[T](val inputPorts: Int) extends GraphStage[UniformFanInShape[
       }
     }
 
-    def onPull() = pull(in(activeStream))
+    def onPull(): _root_.scala.Unit = pull(in(activeStream))
 
     setHandler(out, this)
   }
@@ -1082,7 +1082,7 @@ final class Concat[T](val inputPorts: Int) extends GraphStage[UniformFanInShape[
 
 object OrElse {
   private val singleton = new OrElse[Nothing]
-  def apply[T]() = singleton.asInstanceOf[OrElse[T]]
+  def apply[T](): _root_.akka.stream.scaladsl.OrElse[T] = singleton.asInstanceOf[OrElse[T]]
 }
 
 /**
@@ -1104,9 +1104,9 @@ object OrElse {
  * '''Cancels when''' downstream cancels
  */
 private[stream] final class OrElse[T] extends GraphStage[UniformFanInShape[T, T]] {
-  val primary = Inlet[T]("OrElse.primary")
-  val secondary = Inlet[T]("OrElse.secondary")
-  val out = Outlet[T]("OrElse.out")
+  val primary: _root_.akka.stream.Inlet[T] = Inlet[T]("OrElse.primary")
+  val secondary: _root_.akka.stream.Inlet[T] = Inlet[T]("OrElse.secondary")
+  val out: _root_.akka.stream.Outlet[T] = Outlet[T]("OrElse.out")
 
   override val shape: UniformFanInShape[T, T] = UniformFanInShape(out, primary, secondary)
 

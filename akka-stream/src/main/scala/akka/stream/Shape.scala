@@ -231,8 +231,8 @@ abstract class AbstractShape extends Shape {
   final override lazy val inlets: immutable.Seq[Inlet[_]] = allInlets.asScala.toList
   final override lazy val outlets: immutable.Seq[Outlet[_]] = allOutlets.asScala.toList
 
-  final override def getInlets = allInlets
-  final override def getOutlets = allOutlets
+  final override def getInlets: _root_.java.util.List[akka.stream.Inlet[_]] = allInlets
+  final override def getOutlets: _root_.java.util.List[akka.stream.Outlet[_]] = allOutlets
 }
 
 /**
@@ -243,7 +243,7 @@ sealed abstract class ClosedShape extends Shape
 object ClosedShape extends ClosedShape {
   override val inlets: immutable.Seq[Inlet[_]] = EmptyImmutableSeq
   override val outlets: immutable.Seq[Outlet[_]] = EmptyImmutableSeq
-  override def deepCopy() = this
+  override def deepCopy(): _root_.akka.stream.ClosedShape.type = this
 
   /**
    * Java API: obtain ClosedShape instance
@@ -260,7 +260,7 @@ object ClosedShape extends ClosedShape {
  * meaningful type of Shape when the building is finished.
  */
 case class AmorphousShape(inlets: immutable.Seq[Inlet[_]], outlets: immutable.Seq[Outlet[_]]) extends Shape {
-  override def deepCopy() = AmorphousShape(inlets.map(_.carbonCopy()), outlets.map(_.carbonCopy()))
+  override def deepCopy(): _root_.akka.stream.AmorphousShape = AmorphousShape(inlets.map(_.carbonCopy()), outlets.map(_.carbonCopy()))
 }
 
 /**

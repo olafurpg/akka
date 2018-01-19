@@ -42,7 +42,7 @@ import scala.concurrent.{ Future, Promise }
   import ConnectionSourceStage._
 
   val out: Outlet[StreamTcp.IncomingConnection] = Outlet("IncomingConnections.out")
-  override def initialAttributes = Attributes.name("ConnectionSource")
+  override def initialAttributes: _root_.akka.stream.Attributes = Attributes.name("ConnectionSource")
   val shape: SourceShape[StreamTcp.IncomingConnection] = SourceShape(out)
 
   // TODO: Timeout on bind
@@ -52,9 +52,9 @@ import scala.concurrent.{ Future, Promise }
     val logic = new TimerGraphStageLogic(shape) {
       implicit def self: ActorRef = stageActor.ref
 
-      val connectionFlowsAwaitingInitialization = new AtomicLong()
+      val connectionFlowsAwaitingInitialization: _root_.java.util.concurrent.atomic.AtomicLong = new AtomicLong()
       var listener: ActorRef = _
-      val unbindPromise = Promise[Unit]()
+      val unbindPromise: _root_.scala.concurrent.Promise[_root_.scala.Unit] = Promise[Unit]()
       var unbindStarted = false
 
       override def preStart(): Unit = {
@@ -305,7 +305,7 @@ private[stream] object ConnectionSourceStage {
       } else completeStage()
     }
 
-    val readHandler = new OutHandler {
+    val readHandler: _root_.scala.AnyRef with _root_.akka.stream.stage.OutHandler {} = new OutHandler {
       override def onPull(): Unit = {
         connection ! ResumeReading
       }
@@ -373,7 +373,7 @@ private[stream] object ConnectionSourceStage {
 
   val bytesIn: Inlet[ByteString] = Inlet("IncomingTCP.in")
   val bytesOut: Outlet[ByteString] = Outlet("IncomingTCP.out")
-  override def initialAttributes = Attributes.name("IncomingConnection")
+  override def initialAttributes: _root_.akka.stream.Attributes = Attributes.name("IncomingConnection")
   val shape: FlowShape[ByteString, ByteString] = FlowShape(bytesIn, bytesOut)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = {
@@ -383,7 +383,7 @@ private[stream] object ConnectionSourceStage {
     new TcpStreamLogic(shape, Inbound(connection, halfClose, ioSettings), remoteAddress)
   }
 
-  override def toString = s"TCP-from($remoteAddress)"
+  override def toString: _root_.scala.Predef.String = s"TCP-from($remoteAddress)"
 }
 
 /**
@@ -403,7 +403,7 @@ private[stream] object ConnectionSourceStage {
 
   val bytesIn: Inlet[ByteString] = Inlet("IncomingTCP.in")
   val bytesOut: Outlet[ByteString] = Outlet("IncomingTCP.out")
-  override def initialAttributes = Attributes.name("OutgoingConnection")
+  override def initialAttributes: _root_.akka.stream.Attributes = Attributes.name("OutgoingConnection")
   val shape: FlowShape[ByteString, ByteString] = FlowShape(bytesIn, bytesOut)
 
   override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[StreamTcp.OutgoingConnection]) = {
@@ -425,7 +425,7 @@ private[stream] object ConnectionSourceStage {
     (logic, localAddressPromise.future.map(OutgoingConnection(remoteAddress, _))(ExecutionContexts.sameThreadExecutionContext))
   }
 
-  override def toString = s"TCP-to($remoteAddress)"
+  override def toString: _root_.scala.Predef.String = s"TCP-to($remoteAddress)"
 }
 
 /** INTERNAL API */

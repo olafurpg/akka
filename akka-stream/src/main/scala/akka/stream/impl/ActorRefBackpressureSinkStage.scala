@@ -21,14 +21,14 @@ import akka.stream.stage._
                                                                    onFailureMessage:  (Throwable) ⇒ Any)
   extends GraphStage[SinkShape[In]] {
   val in: Inlet[In] = Inlet[In]("ActorRefBackpressureSink.in")
-  override def initialAttributes = DefaultAttributes.actorRefWithAck
+  override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.actorRefWithAck
   override val shape: SinkShape[In] = SinkShape(in)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
     new GraphStageLogic(shape) with InHandler {
       implicit def self: ActorRef = stageActor.ref
 
-      val maxBuffer = inheritedAttributes.getAttribute(classOf[InputBuffer], InputBuffer(16, 16)).max
+      val maxBuffer: _root_.scala.Int = inheritedAttributes.getAttribute(classOf[InputBuffer], InputBuffer(16, 16)).max
       require(maxBuffer > 0, "Buffer size must be greater than 0")
 
       val buffer: util.Deque[In] = new util.ArrayDeque[In]()
@@ -52,7 +52,7 @@ import akka.stream.stage._
         }
       }
 
-      override def preStart() = {
+      override def preStart(): _root_.scala.Unit = {
         setKeepGoing(true)
         getStageActor(receive).watch(ref)
         ref ! onInitMessage

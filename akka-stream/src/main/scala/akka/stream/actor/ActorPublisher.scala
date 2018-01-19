@@ -68,7 +68,7 @@ object ActorPublisherMessage {
   /**
    * Java API: get the singleton instance of the `Cancel` message
    */
-  def cancelInstance = Cancel
+  def cancelInstance: _root_.akka.stream.actor.ActorPublisherMessage.Cancel.type = Cancel
 
   /**
    * This message is delivered to the [[ActorPublisher]] actor in order to signal the exceeding of an subscription timeout.
@@ -79,7 +79,7 @@ object ActorPublisherMessage {
   /**
    * Java API: get the singleton instance of the `SubscriptionTimeoutExceeded` message
    */
-  def subscriptionTimeoutExceededInstance = SubscriptionTimeoutExceeded
+  def subscriptionTimeoutExceededInstance: _root_.akka.stream.actor.ActorPublisherMessage.SubscriptionTimeoutExceeded.type = SubscriptionTimeoutExceeded
 }
 
 /**
@@ -415,7 +415,7 @@ private[akka] object ActorPublisherState extends ExtensionId[ActorPublisherState
 
   override def get(system: ActorSystem): ActorPublisherState = super.get(system)
 
-  override def lookup() = ActorPublisherState
+  override def lookup(): _root_.akka.stream.actor.ActorPublisherState.type = ActorPublisherState
 
   override def createExtension(system: ExtendedActorSystem): ActorPublisherState =
     new ActorPublisherState

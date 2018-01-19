@@ -33,7 +33,7 @@ import scala.concurrent.duration.{ Duration, FiniteDuration }
   }
 
   final class Initial[T](val timeout: FiniteDuration) extends SimpleLinearGraphStage[T] {
-    override def initialAttributes = DefaultAttributes.initial
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.initial
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
       new TimerGraphStageLogic(shape) with InHandler with OutHandler {
@@ -60,7 +60,7 @@ import scala.concurrent.duration.{ Duration, FiniteDuration }
   }
 
   final class Completion[T](val timeout: FiniteDuration) extends SimpleLinearGraphStage[T] {
-    override def initialAttributes = DefaultAttributes.completion
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.completion
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
       new TimerGraphStageLogic(shape) with InHandler with OutHandler {
@@ -81,7 +81,7 @@ import scala.concurrent.duration.{ Duration, FiniteDuration }
   }
 
   final class Idle[T](val timeout: FiniteDuration) extends SimpleLinearGraphStage[T] {
-    override def initialAttributes = DefaultAttributes.idle
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.idle
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
       new TimerGraphStageLogic(shape) with InHandler with OutHandler {
@@ -108,7 +108,7 @@ import scala.concurrent.duration.{ Duration, FiniteDuration }
   }
 
   final class BackpressureTimeout[T](val timeout: FiniteDuration) extends SimpleLinearGraphStage[T] {
-    override def initialAttributes = DefaultAttributes.backpressureTimeout
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.backpressureTimeout
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
       new TimerGraphStageLogic(shape) with InHandler with OutHandler {
@@ -140,13 +140,13 @@ import scala.concurrent.duration.{ Duration, FiniteDuration }
   }
 
   final class IdleTimeoutBidi[I, O](val timeout: FiniteDuration) extends GraphStage[BidiShape[I, I, O, O]] {
-    val in1 = Inlet[I]("in1")
-    val in2 = Inlet[O]("in2")
-    val out1 = Outlet[I]("out1")
-    val out2 = Outlet[O]("out2")
-    val shape = BidiShape(in1, out1, in2, out2)
+    val in1: _root_.akka.stream.Inlet[I] = Inlet[I]("in1")
+    val in2: _root_.akka.stream.Inlet[O] = Inlet[O]("in2")
+    val out1: _root_.akka.stream.Outlet[I] = Outlet[I]("out1")
+    val out2: _root_.akka.stream.Outlet[O] = Outlet[O]("out2")
+    val shape: _root_.akka.stream.BidiShape[I, I, O, O] = BidiShape(in1, out1, in2, out2)
 
-    override def initialAttributes = DefaultAttributes.idleTimeoutBidi
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.idleTimeoutBidi
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new TimerGraphStageLogic(shape) {
       private var nextDeadline: Long = System.nanoTime + timeout.toNanos
@@ -178,7 +178,7 @@ import scala.concurrent.duration.{ Duration, FiniteDuration }
   }
 
   final class DelayInitial[T](val delay: FiniteDuration) extends SimpleLinearGraphStage[T] {
-    override def initialAttributes = DefaultAttributes.delayInitial
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.delayInitial
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
       new TimerGraphStageLogic(shape) with InHandler with OutHandler {
@@ -209,7 +209,7 @@ import scala.concurrent.duration.{ Duration, FiniteDuration }
     val in: Inlet[I] = Inlet("IdleInject.in")
     val out: Outlet[O] = Outlet("IdleInject.out")
 
-    override def initialAttributes = DefaultAttributes.idleInject
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.idleInject
 
     override val shape: FlowShape[I, O] = FlowShape(in, out)
 

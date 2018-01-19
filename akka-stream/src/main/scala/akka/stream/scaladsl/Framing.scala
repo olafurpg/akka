@@ -162,7 +162,7 @@ object Framing {
   }
 
   private class SimpleFramingProtocolEncoder(maximumMessageLength: Long) extends SimpleLinearGraphStage[ByteString] {
-    override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) with InHandler with OutHandler {
+    override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic with _root_.akka.stream.stage.InHandler with _root_.akka.stream.stage.OutHandler {} = new GraphStageLogic(shape) with InHandler with OutHandler {
       setHandlers(in, out, this)
 
       override def onPush(): Unit = {
@@ -184,8 +184,8 @@ object Framing {
   private class DelimiterFramingStage(val separatorBytes: ByteString, val maximumLineBytes: Int, val allowTruncation: Boolean)
     extends GraphStage[FlowShape[ByteString, ByteString]] {
 
-    val in = Inlet[ByteString]("DelimiterFramingStage.in")
-    val out = Outlet[ByteString]("DelimiterFramingStage.out")
+    val in: _root_.akka.stream.Inlet[_root_.akka.util.ByteString] = Inlet[ByteString]("DelimiterFramingStage.in")
+    val out: _root_.akka.stream.Outlet[_root_.akka.util.ByteString] = Outlet[ByteString]("DelimiterFramingStage.out")
     override val shape: FlowShape[ByteString, ByteString] = FlowShape(in, out)
 
     override def initialAttributes: Attributes = DefaultAttributes.delimiterFraming
@@ -284,8 +284,8 @@ object Framing {
       case ByteOrder.LITTLE_ENDIAN ⇒ littleEndianDecoder
     }
 
-    val in = Inlet[ByteString]("LengthFieldFramingStage.in")
-    val out = Outlet[ByteString]("LengthFieldFramingStage.out")
+    val in: _root_.akka.stream.Inlet[_root_.akka.util.ByteString] = Inlet[ByteString]("LengthFieldFramingStage.in")
+    val out: _root_.akka.stream.Outlet[_root_.akka.util.ByteString] = Outlet[ByteString]("LengthFieldFramingStage.out")
     override val shape: FlowShape[ByteString, ByteString] = FlowShape(in, out)
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
@@ -343,7 +343,7 @@ object Framing {
         tryPushFrame()
       }
 
-      override def onPull() = tryPushFrame()
+      override def onPull(): _root_.scala.Unit = tryPushFrame()
 
       override def onUpstreamFinish(): Unit = {
         if (buffer.isEmpty) {

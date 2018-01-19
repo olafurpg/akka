@@ -510,7 +510,7 @@ object RunnableGraph {
  * Flow with attached input and output, can be executed.
  */
 final case class RunnableGraph[+Mat](override val traversalBuilder: TraversalBuilder) extends Graph[ClosedShape, Mat] {
-  override def shape = ClosedShape
+  override def shape: _root_.akka.stream.ClosedShape.type = ClosedShape
 
   /**
    * Transform only the materialized value of this RunnableGraph, leaving all other properties as they were.

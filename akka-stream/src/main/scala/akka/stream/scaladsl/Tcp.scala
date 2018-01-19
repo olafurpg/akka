@@ -69,7 +69,7 @@ object Tcp extends ExtensionId[Tcp] with ExtensionIdProvider {
 
   override def get(system: ActorSystem): Tcp = super.get(system)
 
-  def lookup() = Tcp
+  def lookup(): _root_.akka.stream.scaladsl.Tcp.type = Tcp
 
   def createExtension(system: ExtendedActorSystem): Tcp = new Tcp(system)
 
@@ -89,7 +89,7 @@ final class Tcp(system: ExtendedActorSystem) extends akka.actor.Extension {
   private val settings = ActorMaterializerSettings(system)
 
   // TODO maybe this should be a new setting, like `akka.stream.tcp.bind.timeout` / `shutdown-timeout` instead?
-  val bindShutdownTimeout = settings.subscriptionTimeoutSettings.timeout
+  val bindShutdownTimeout: _root_.scala.concurrent.duration.FiniteDuration = settings.subscriptionTimeoutSettings.timeout
 
   /**
    * Creates a [[Tcp.ServerBinding]] instance which represents a prospective TCP server binding on the given `endpoint`.

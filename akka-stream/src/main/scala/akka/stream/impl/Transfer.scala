@@ -45,11 +45,11 @@ import akka.annotation.InternalApi
  */
 @InternalApi private[akka] trait DefaultInputTransferStates extends Inputs {
   override val NeedsInput: TransferState = new TransferState {
-    def isReady = inputsAvailable
-    def isCompleted = inputsDepleted
+    def isReady: _root_.scala.Boolean = inputsAvailable
+    def isCompleted: _root_.scala.Boolean = inputsDepleted
   }
   override val NeedsInputOrComplete: TransferState = new TransferState {
-    def isReady = inputsAvailable || inputsDepleted
+    def isReady: _root_.scala.Boolean = inputsAvailable || inputsDepleted
     def isCompleted = false
   }
 }
@@ -81,11 +81,11 @@ import akka.annotation.InternalApi
  */
 @InternalApi private[akka] trait DefaultOutputTransferStates extends Outputs {
   override val NeedsDemand: TransferState = new TransferState {
-    def isReady = demandAvailable
-    def isCompleted = isClosed
+    def isReady: _root_.scala.Boolean = demandAvailable
+    def isCompleted: _root_.scala.Boolean = isClosed
   }
   override def NeedsDemandOrCancel: TransferState = new TransferState {
-    def isReady = demandAvailable || isClosed
+    def isReady: _root_.scala.Boolean = demandAvailable || isClosed
     def isCompleted = false
   }
 }
@@ -97,7 +97,7 @@ import akka.annotation.InternalApi
 @InternalApi private[akka] trait TransferState {
   def isReady: Boolean
   def isCompleted: Boolean
-  def isExecutable = isReady && !isCompleted
+  def isExecutable: _root_.scala.Boolean = isReady && !isCompleted
 
   def ||(other: TransferState): TransferState = new TransferState {
     def isReady: Boolean = TransferState.this.isReady || other.isReady
@@ -189,7 +189,7 @@ import akka.annotation.InternalApi
 
   final def isPumpFinished: Boolean = transferState.isCompleted
 
-  protected final val completedPhase = TransferPhase(Completed) {
+  protected final val completedPhase: _root_.akka.stream.impl.TransferPhase = TransferPhase(Completed) {
     () ⇒ throw new IllegalStateException("The action of completed phase must be never executed")
   }
 

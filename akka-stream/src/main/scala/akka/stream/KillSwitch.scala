@@ -69,11 +69,11 @@ object KillSwitches {
   }
 
   private[stream] object UniqueKillSwitchStage extends GraphStageWithMaterializedValue[FlowShape[Any, Any], UniqueKillSwitch] {
-    override val initialAttributes = Attributes.name("breaker")
-    override val shape = FlowShape(Inlet[Any]("KillSwitch.in"), Outlet[Any]("KillSwitch.out"))
+    override val initialAttributes: _root_.akka.stream.Attributes = Attributes.name("breaker")
+    override val shape: _root_.akka.stream.FlowShape[_root_.scala.Any, _root_.scala.Any] = FlowShape(Inlet[Any]("KillSwitch.in"), Outlet[Any]("KillSwitch.out"))
     override def toString: String = "UniqueKillSwitchFlow"
 
-    override def createLogicAndMaterializedValue(attr: Attributes) = {
+    override def createLogicAndMaterializedValue(attr: Attributes): (_root_.akka.stream.KillSwitches.KillableGraphStageLogic with _root_.akka.stream.stage.InHandler with _root_.akka.stream.stage.OutHandler {}, _root_.akka.stream.UniqueKillSwitch) = {
       val promise = Promise[Done]
       val switch = new UniqueKillSwitch(promise)
 
@@ -90,13 +90,13 @@ object KillSwitches {
 
   private[stream] object UniqueBidiKillSwitchStage extends GraphStageWithMaterializedValue[BidiShape[Any, Any, Any, Any], UniqueKillSwitch] {
 
-    override val initialAttributes = Attributes.name("breaker")
-    override val shape = BidiShape(
+    override val initialAttributes: _root_.akka.stream.Attributes = Attributes.name("breaker")
+    override val shape: _root_.akka.stream.BidiShape[_root_.scala.Any, _root_.scala.Any, _root_.scala.Any, _root_.scala.Any] = BidiShape(
       Inlet[Any]("KillSwitchBidi.in1"), Outlet[Any]("KillSwitchBidi.out1"),
       Inlet[Any]("KillSwitchBidi.in2"), Outlet[Any]("KillSwitchBidi.out2"))
     override def toString: String = "UniqueKillSwitchBidi"
 
-    override def createLogicAndMaterializedValue(attr: Attributes) = {
+    override def createLogicAndMaterializedValue(attr: Attributes): (_root_.akka.stream.KillSwitches.KillableGraphStageLogic, _root_.akka.stream.UniqueKillSwitch) = {
       val promise = Promise[Done]
       val switch = new UniqueKillSwitch(promise)
 

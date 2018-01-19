@@ -12,10 +12,10 @@ import akka.stream.stage._
  * INTERNAL API
  */
 @InternalApi private[akka] final object EmptySource extends GraphStage[SourceShape[Nothing]] {
-  val out = Outlet[Nothing]("EmptySource.out")
-  override val shape = SourceShape(out)
+  val out: _root_.akka.stream.Outlet[_root_.scala.Nothing] = Outlet[Nothing]("EmptySource.out")
+  override val shape: _root_.akka.stream.SourceShape[_root_.scala.Nothing] = SourceShape(out)
 
-  override protected def initialAttributes = DefaultAttributes.lazySource
+  override protected def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.lazySource
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
     new GraphStageLogic(shape) with OutHandler {

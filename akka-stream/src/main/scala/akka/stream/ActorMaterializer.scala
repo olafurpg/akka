@@ -243,7 +243,7 @@ object ActorMaterializerSettings {
     outputBurstLimit:            Int,
     fuzzingMode:                 Boolean,
     autoFusing:                  Boolean,
-    maxFixedBufferSize:          Int) =
+    maxFixedBufferSize:          Int): _root_.akka.stream.ActorMaterializerSettings =
     new ActorMaterializerSettings(
       initialInputBufferSize, maxInputBufferSize, dispatcher, supervisionDecider, subscriptionTimeoutSettings, debugLogging,
       outputBurstLimit, fuzzingMode, autoFusing, maxFixedBufferSize)
@@ -285,7 +285,7 @@ object ActorMaterializerSettings {
     outputBurstLimit:            Int,
     fuzzingMode:                 Boolean,
     autoFusing:                  Boolean,
-    maxFixedBufferSize:          Int) =
+    maxFixedBufferSize:          Int): _root_.akka.stream.ActorMaterializerSettings =
     new ActorMaterializerSettings(
       initialInputBufferSize, maxInputBufferSize, dispatcher, supervisionDecider, subscriptionTimeoutSettings, debugLogging,
       outputBurstLimit, fuzzingMode, autoFusing, maxFixedBufferSize)
@@ -538,10 +538,10 @@ object IOSettings {
     new IOSettings(tcpWriteBufferSize)
 
   /** Java API */
-  def create(config: Config) = apply(config)
+  def create(config: Config): _root_.akka.stream.IOSettings = apply(config)
 
   /** Java API */
-  def create(system: ActorSystem) = apply(system)
+  def create(system: ActorSystem): _root_.akka.stream.IOSettings = apply(system)
 
   /** Java API */
   def create(tcpWriteBufferSize: Int): IOSettings =
@@ -560,7 +560,7 @@ final class IOSettings private (val tcpWriteBufferSize: Int) {
     case _             ⇒ false
   }
 
-  override def toString =
+  override def toString: _root_.scala.Predef.String =
     s"""IoSettings(${tcpWriteBufferSize})"""
 }
 

@@ -26,7 +26,7 @@ import scala.concurrent.{ Future, Promise }
 
   override protected def label: String = s"FileSink($f, $options)"
 
-  override def create(context: MaterializationContext) = {
+  override def create(context: MaterializationContext): (_root_.org.reactivestreams.Subscriber[_root_.akka.util.ByteString], _root_.scala.concurrent.Future[_root_.akka.stream.IOResult]) = {
     val materializer = ActorMaterializerHelper.downcast(context.materializer)
 
     val maxInputBufferSize = context.effectiveAttributes.mandatoryAttribute[Attributes.InputBuffer].max
@@ -53,7 +53,7 @@ import scala.concurrent.{ Future, Promise }
 @InternalApi private[akka] final class OutputStreamSink(createOutput: () ⇒ OutputStream, val attributes: Attributes, shape: SinkShape[ByteString], autoFlush: Boolean)
   extends SinkModule[ByteString, Future[IOResult]](shape) {
 
-  override def create(context: MaterializationContext) = {
+  override def create(context: MaterializationContext): (_root_.org.reactivestreams.Subscriber[_root_.akka.util.ByteString], _root_.scala.concurrent.Future[_root_.akka.stream.IOResult]) = {
     val materializer = ActorMaterializerHelper.downcast(context.materializer)
     val ioResultPromise = Promise[IOResult]()
 

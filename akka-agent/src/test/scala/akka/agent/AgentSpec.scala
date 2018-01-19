@@ -11,14 +11,14 @@ import scala.concurrent.stm._
 import java.util.concurrent.{ CountDownLatch, TimeUnit }
 
 class CountDownFunction[A](num: Int = 1) extends Function1[A, A] {
-  val latch = new CountDownLatch(num)
-  def apply(a: A) = { latch.countDown(); a }
-  def await(timeout: Duration) = latch.await(timeout.length, timeout.unit)
+  val latch: _root_.java.util.concurrent.CountDownLatch = new CountDownLatch(num)
+  def apply(a: A): A = { latch.countDown(); a }
+  def await(timeout: Duration): _root_.scala.Boolean = latch.await(timeout.length, timeout.unit)
 }
 
 class AgentSpec extends AkkaSpec {
 
-  implicit val timeout = Timeout(5.seconds.dilated)
+  implicit val timeout: _root_.akka.util.Timeout = Timeout(5.seconds.dilated)
   import system.dispatcher
   "Agent" must {
     "update with send dispatches in order sent" in {

@@ -72,7 +72,7 @@ import akka.util.OptionVal
 
   override protected def label: String = s"PublisherSource($p)"
 
-  override def create(context: MaterializationContext) = (p, NotUsed)
+  override def create(context: MaterializationContext): (_root_.org.reactivestreams.Publisher[Out], _root_.akka.NotUsed.type) = (p, NotUsed)
 
   override protected def newInstance(shape: SourceShape[Out]): SourceModule[Out, NotUsed] = new PublisherSource[Out](p, attributes, shape)
   override def withAttributes(attr: Attributes): SourceModule[Out, NotUsed] = new PublisherSource[Out](p, attr, amendShape(attr))
@@ -85,7 +85,7 @@ import akka.util.OptionVal
  */
 @InternalApi private[akka] final class ActorPublisherSource[Out](props: Props, val attributes: Attributes, shape: SourceShape[Out]) extends SourceModule[Out, ActorRef](shape) {
 
-  override def create(context: MaterializationContext) = {
+  override def create(context: MaterializationContext): (_root_.org.reactivestreams.Publisher[Out], _root_.akka.actor.ActorRef) = {
     val publisherRef = ActorMaterializerHelper.downcast(context.materializer).actorOf(context, props)
     (akka.stream.actor.ActorPublisher[Out](publisherRef), publisherRef)
   }
@@ -104,7 +104,7 @@ import akka.util.OptionVal
 
   override protected def label: String = s"ActorRefSource($bufferSize, $overflowStrategy)"
 
-  override def create(context: MaterializationContext) = {
+  override def create(context: MaterializationContext): (_root_.org.reactivestreams.Publisher[Out], _root_.akka.actor.ActorRef) = {
     val mat = ActorMaterializerHelper.downcast(context.materializer)
     val ref = mat.actorOf(context, ActorRefSourceActor.props(bufferSize, overflowStrategy, mat.settings))
     (akka.stream.actor.ActorPublisher[Out](ref), ref)

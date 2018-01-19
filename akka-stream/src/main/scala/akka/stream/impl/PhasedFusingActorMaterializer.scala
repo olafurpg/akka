@@ -382,7 +382,7 @@ private final case class SavedIslandData(islandGlobalOffset: Int, lastVisitedOff
    * When these attributes are needed later in the materialization process it is important that the
    * they are gotten through the attributes and not through the [[ActorMaterializerSettings]]
    */
-  val defaultAttributes = {
+  val defaultAttributes: _root_.akka.stream.Attributes = {
     Attributes(
       Attributes.InputBuffer(settings.initialInputBufferSize, settings.maxInputBufferSize) ::
         ActorAttributes.SupervisionStrategy(settings.supervisionDecider) ::
@@ -615,7 +615,7 @@ private final case class SavedIslandData(islandGlobalOffset: Int, lastVisitedOff
   private var outConnections: List[Connection] = Nil
   private var fullIslandName: OptionVal[String] = OptionVal.None
 
-  val shell = new GraphInterpreterShell(
+  val shell: _root_.akka.stream.impl.fusing.GraphInterpreterShell = new GraphInterpreterShell(
     connections = null,
     logics = null,
     settings,
@@ -887,7 +887,7 @@ private final case class SavedIslandData(islandGlobalOffset: Int, lastVisitedOff
       TLSActor.props(maxInputBuffer, tls.createSSLEngine, tls.verifySession, tls.closing).withDispatcher(dispatcher)
     tlsActor = materializer.actorOf(props, islandName)
     def factory(id: Int) = new ActorPublisher[Any](tlsActor) {
-      override val wakeUpMsg = FanOut.SubstreamSubscribePending(id)
+      override val wakeUpMsg: _root_.akka.stream.impl.FanOut.SubstreamSubscribePending = FanOut.SubstreamSubscribePending(id)
     }
     publishers = Vector.tabulate(2)(factory)
     tlsActor ! FanOut.ExposedPublishers(publishers)

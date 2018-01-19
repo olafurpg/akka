@@ -10,7 +10,7 @@ import akka.stream.impl.io.compression._
 import akka.util.ByteString
 
 object Compression {
-  final val MaxBytesPerChunkDefault = 64 * 1024
+  final val MaxBytesPerChunkDefault: _root_.scala.Int = 64 * 1024
 
   /**
    * Creates a flow that gzip-compresses a stream of ByteStrings. Note that the compressor

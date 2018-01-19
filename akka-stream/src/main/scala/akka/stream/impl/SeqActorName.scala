@@ -24,7 +24,7 @@ import akka.annotation.{ DoNotInherit, InternalApi }
  * INTERNAL API
  */
 @InternalApi private[akka] object SeqActorName {
-  def apply(prefix: String) = new SeqActorNameImpl(prefix, new AtomicLong(0))
+  def apply(prefix: String): _root_.akka.stream.impl.SeqActorNameImpl = new SeqActorNameImpl(prefix, new AtomicLong(0))
 }
 
 /**

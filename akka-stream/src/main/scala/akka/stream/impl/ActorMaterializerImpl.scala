@@ -91,7 +91,7 @@ import scala.concurrent.{ Await, ExecutionContextExecutor }
  * The default phases are left in-tact since we still respect `.async` and other tags that were marked within a sub-fused graph.
  */
 private[akka] class SubFusingActorMaterializerImpl(val delegate: ExtendedActorMaterializer, registerShell: GraphInterpreterShell ⇒ ActorRef) extends Materializer {
-  val subFusingPhase = new Phase[Any] {
+  val subFusingPhase: _root_.scala.AnyRef with _root_.akka.stream.impl.Phase[_root_.scala.Any] {} = new Phase[Any] {
     override def apply(settings: ActorMaterializerSettings, attributes: Attributes,
                        materializer: PhasedFusingActorMaterializer, islandName: String): PhaseIsland[Any] = {
       new GraphStageIsland(settings, attributes, materializer, islandName, OptionVal(registerShell)).asInstanceOf[PhaseIsland[Any]]
@@ -131,7 +131,7 @@ private[akka] class SubFusingActorMaterializerImpl(val delegate: ExtendedActorMa
  */
 @InternalApi private[akka] object FlowNames extends ExtensionId[FlowNames] with ExtensionIdProvider {
   override def get(system: ActorSystem): FlowNames = super.get(system)
-  override def lookup() = FlowNames
+  override def lookup(): _root_.akka.stream.impl.FlowNames.type = FlowNames
   override def createExtension(system: ExtendedActorSystem): FlowNames = new FlowNames
 }
 
@@ -139,7 +139,7 @@ private[akka] class SubFusingActorMaterializerImpl(val delegate: ExtendedActorMa
  * INTERNAL API
  */
 @InternalApi private[akka] class FlowNames extends Extension {
-  val name = SeqActorName("Flow")
+  val name: _root_.akka.stream.impl.SeqActorNameImpl = SeqActorName("Flow")
 }
 
 /**
@@ -173,9 +173,9 @@ private[akka] class SubFusingActorMaterializerImpl(val delegate: ExtendedActorMa
 @InternalApi private[akka] class StreamSupervisor(settings: ActorMaterializerSettings, haveShutDown: AtomicBoolean) extends Actor {
   import akka.stream.impl.StreamSupervisor._
 
-  override def supervisorStrategy = SupervisorStrategy.stoppingStrategy
+  override def supervisorStrategy: _root_.akka.actor.SupervisorStrategy = SupervisorStrategy.stoppingStrategy
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case Materialize(props, name) ⇒
       val impl = context.actorOf(props, name)
       sender() ! impl

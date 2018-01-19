@@ -19,7 +19,7 @@ import scala.util.{ Failure, Success }
 
 /** INTERNAL API */
 @InternalApi private[akka] object FileSubscriber {
-  def props(f: Path, completionPromise: Promise[IOResult], bufSize: Int, startPosition: Long, openOptions: Set[OpenOption]) = {
+  def props(f: Path, completionPromise: Promise[IOResult], bufSize: Int, startPosition: Long, openOptions: Set[OpenOption]): _root_.akka.actor.Props = {
     require(bufSize > 0, "buffer size must be > 0")
     require(startPosition >= 0, s"startPosition must be >= 0 (was $startPosition)")
     Props(classOf[FileSubscriber], f, completionPromise, bufSize, startPosition, openOptions).withDeploy(Deploy.local)
@@ -31,7 +31,7 @@ import scala.util.{ Failure, Success }
   extends akka.stream.actor.ActorSubscriber
   with ActorLogging {
 
-  override protected val requestStrategy = WatermarkRequestStrategy(highWatermark = bufSize)
+  override protected val requestStrategy: _root_.akka.stream.actor.WatermarkRequestStrategy = WatermarkRequestStrategy(highWatermark = bufSize)
 
   private var chan: FileChannel = _
 
@@ -50,7 +50,7 @@ import scala.util.{ Failure, Success }
       cancel()
   }
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case ActorSubscriberMessage.OnNext(bytes: ByteString) ⇒
       try {
         bytesWritten += chan.write(bytes.asByteBuffer)

@@ -14,7 +14,7 @@ import scala.annotation.tailrec
 @InternalApi private[akka] class DeflateCompressor(level: Int = Deflater.BEST_COMPRESSION, nowrap: Boolean = false) extends Compressor {
   import DeflateCompressor._
 
-  protected lazy val deflater = new Deflater(level, nowrap)
+  protected lazy val deflater: _root_.java.util.zip.Deflater = new Deflater(level, nowrap)
 
   override final def compressAndFlush(input: ByteString): ByteString = {
     val buffer = newTempBuffer(input.size)

@@ -14,20 +14,20 @@ import scala.annotation.switch
  */
 @InternalApi private[akka] object JsonObjectParser {
 
-  final val SquareBraceStart = '['.toByte
-  final val SquareBraceEnd = ']'.toByte
-  final val CurlyBraceStart = '{'.toByte
-  final val CurlyBraceEnd = '}'.toByte
-  final val DoubleQuote = '"'.toByte
-  final val Backslash = '\\'.toByte
-  final val Comma = ','.toByte
+  final val SquareBraceStart: _root_.scala.Byte = '['.toByte
+  final val SquareBraceEnd: _root_.scala.Byte = ']'.toByte
+  final val CurlyBraceStart: _root_.scala.Byte = '{'.toByte
+  final val CurlyBraceEnd: _root_.scala.Byte = '}'.toByte
+  final val DoubleQuote: _root_.scala.Byte = '"'.toByte
+  final val Backslash: _root_.scala.Byte = '\\'.toByte
+  final val Comma: _root_.scala.Byte = ','.toByte
 
-  final val LineBreak = '\n'.toByte
-  final val LineBreak2 = '\r'.toByte
-  final val Tab = '\t'.toByte
-  final val Space = ' '.toByte
+  final val LineBreak: _root_.scala.Byte = '\n'.toByte
+  final val LineBreak2: _root_.scala.Byte = '\r'.toByte
+  final val Tab: _root_.scala.Byte = '\t'.toByte
+  final val Space: _root_.scala.Byte = ' '.toByte
 
-  final val Whitespace = Set(LineBreak, LineBreak2, Tab, Space)
+  final val Whitespace: _root_.scala.collection.immutable.Set[_root_.scala.Byte] = Set(LineBreak, LineBreak2, Tab, Space)
 
   def isWhitespace(input: Byte): Boolean =
     Whitespace.contains(input)

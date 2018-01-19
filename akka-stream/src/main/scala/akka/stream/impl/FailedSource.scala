@@ -12,8 +12,8 @@ import akka.stream.stage.{ GraphStage, GraphStageLogic, OutHandler }
  * INTERNAL API
  */
 @InternalApi private[akka] final class FailedSource[T](failure: Throwable) extends GraphStage[SourceShape[T]] {
-  val out = Outlet[T]("FailedSource.out")
-  override val shape = SourceShape(out)
+  val out: _root_.akka.stream.Outlet[T] = Outlet[T]("FailedSource.out")
+  override val shape: _root_.akka.stream.SourceShape[T] = SourceShape(out)
 
   override protected def initialAttributes: Attributes = DefaultAttributes.failedSource
 
@@ -27,5 +27,5 @@ import akka.stream.stage.{ GraphStage, GraphStageLogic, OutHandler }
     setHandler(out, this)
   }
 
-  override def toString = s"FailedSource(${failure.getClass.getName})"
+  override def toString: _root_.scala.Predef.String = s"FailedSource(${failure.getClass.getName})"
 }

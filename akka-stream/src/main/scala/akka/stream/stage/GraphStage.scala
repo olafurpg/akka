@@ -1296,7 +1296,7 @@ abstract class GraphStageLogic private[stream] (val inCount: Int, val outCount: 
       _sink.cancelSubstream()
     }
 
-    override def toString = s"SubSinkInlet($name)"
+    override def toString: _root_.scala.Predef.String = s"SubSinkInlet($name)"
   }
 
   /**
@@ -1389,7 +1389,7 @@ abstract class GraphStageLogic private[stream] (val inCount: Int, val outCount: 
       _source.failSubstream(ex)
     }
 
-    override def toString = s"SubSourceOutlet($name)"
+    override def toString: _root_.scala.Predef.String = s"SubSourceOutlet($name)"
   }
 
 }
@@ -1484,7 +1484,7 @@ abstract class TimerGraphStageLogic(_shape: Shape) extends GraphStageLogic(_shap
     cancelTimer(timerKey)
     val id = timerIdGen.next()
     val task = interpreter.materializer.schedulePeriodically(initialDelay, interval, new Runnable {
-      def run() = getTimerAsyncCallback.invoke(Scheduled(timerKey, id, repeating = true))
+      def run(): _root_.scala.Unit = getTimerAsyncCallback.invoke(Scheduled(timerKey, id, repeating = true))
     })
     keyToTimers(timerKey) = Timer(id, task)
   }
@@ -1498,7 +1498,7 @@ abstract class TimerGraphStageLogic(_shape: Shape) extends GraphStageLogic(_shap
     cancelTimer(timerKey)
     val id = timerIdGen.next()
     val task = interpreter.materializer.scheduleOnce(delay, new Runnable {
-      def run() = getTimerAsyncCallback.invoke(Scheduled(timerKey, id, repeating = false))
+      def run(): _root_.scala.Unit = getTimerAsyncCallback.invoke(Scheduled(timerKey, id, repeating = false))
     })
     keyToTimers(timerKey) = Timer(id, task)
   }

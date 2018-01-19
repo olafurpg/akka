@@ -23,12 +23,12 @@ object ThrottleMode {
   /**
    * Java API: Tells throttle to make pauses before emitting messages to meet throttle rate
    */
-  def shaping = Shaping
+  def shaping: _root_.akka.stream.ThrottleMode.Shaping.type = Shaping
 
   /**
    * Java API: Makes throttle fail with exception when upstream is faster than throttle rate
    */
-  def enforcing = Enforcing
+  def enforcing: _root_.akka.stream.ThrottleMode.Enforcing.type = Enforcing
 }
 
 /**

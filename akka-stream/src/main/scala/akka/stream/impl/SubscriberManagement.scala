@@ -30,7 +30,7 @@ private[akka] object SubscriberManagement {
     def apply[T](subscriber: Subscriber[T]): Unit = tryOnError(subscriber, cause)
   }
 
-  val ShutDown = new ErrorCompleted(ActorPublisher.NormalShutdownReason)
+  val ShutDown: _root_.akka.stream.impl.SubscriberManagement.ErrorCompleted = new ErrorCompleted(ActorPublisher.NormalShutdownReason)
 }
 
 /**
@@ -96,7 +96,7 @@ private[akka] trait SubscriberManagement[T] extends ResizableMultiReaderRingBuff
   // if non-null, holds the end-of-stream state
   private[this] var endOfStream: EndOfStream = NotReached
 
-  def cursors = subscriptions
+  def cursors: SubscriberManagement.this.Subscriptions = subscriptions
 
   /**
    * more demand was signaled from a given subscriber

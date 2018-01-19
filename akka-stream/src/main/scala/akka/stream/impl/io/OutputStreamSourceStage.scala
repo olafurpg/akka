@@ -35,8 +35,8 @@ private[stream] object OutputStreamSourceStage {
 }
 
 final private[stream] class OutputStreamSourceStage(writeTimeout: FiniteDuration) extends GraphStageWithMaterializedValue[SourceShape[ByteString], OutputStream] {
-  val out = Outlet[ByteString]("OutputStreamSource.out")
-  override def initialAttributes = DefaultAttributes.outputStreamSource
+  val out: _root_.akka.stream.Outlet[_root_.akka.util.ByteString] = Outlet[ByteString]("OutputStreamSource.out")
+  override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.outputStreamSource
   override val shape: SourceShape[ByteString] = SourceShape.of(out)
 
   override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, OutputStream) = {
@@ -159,7 +159,7 @@ private[akka] class OutputStreamAdapter(
 
   var isActive = true
   var isPublisherAlive = true
-  def publisherClosedException = new IOException("Reactive stream is terminated, no writes are possible")
+  def publisherClosedException: _root_.java.io.IOException = new IOException("Reactive stream is terminated, no writes are possible")
 
   @scala.throws(classOf[IOException])
   private[this] def send(sendAction: () ⇒ Unit): Unit = {

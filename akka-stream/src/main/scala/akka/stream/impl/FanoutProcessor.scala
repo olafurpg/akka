@@ -24,10 +24,10 @@ import org.reactivestreams.Subscriber
 
   private var downstreamBufferSpace: Long = 0L
   private var downstreamCompleted = false
-  override def demandAvailable = downstreamBufferSpace > 0
+  override def demandAvailable: _root_.scala.Boolean = downstreamBufferSpace > 0
   override def demandCount: Long = downstreamBufferSpace
 
-  override val subreceive = new SubReceive(waitingExposedPublisher)
+  override val subreceive: _root_.akka.stream.impl.SubReceive = new SubReceive(waitingExposedPublisher)
 
   def enqueueOutputElement(elem: Any): Unit = {
     ReactiveStreamsCompliance.requireNonNullElement(elem)

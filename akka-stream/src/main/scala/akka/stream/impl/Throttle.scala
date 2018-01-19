@@ -38,7 +38,7 @@ import scala.concurrent.duration.{ FiniteDuration, _ }
 
     var willStop = false
     var currentElement: T = _
-    val enforcing = mode match {
+    val enforcing: _root_.scala.Boolean = mode match {
       case Enforcing ⇒ true
       case Shaping   ⇒ false
     }

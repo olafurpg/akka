@@ -94,7 +94,7 @@ import org.reactivestreams.{ Subscriber, Subscription }
 
     private var preferredId = 0
     private var _lastDequeuedId = 0
-    def lastDequeuedId = _lastDequeuedId
+    def lastDequeuedId: _root_.scala.Int = _lastDequeuedId
 
     def cancel(): Unit =
       if (!allCancelled) {
@@ -106,7 +106,7 @@ import org.reactivestreams.{ Subscriber, Subscription }
         }
       }
 
-    def cancel(input: Int) =
+    def cancel(input: Int): _root_.scala.Unit =
       if (!cancelled(input)) {
         inputs(input).cancel()
         cancelled(input, on = true)
@@ -204,22 +204,22 @@ import org.reactivestreams.{ Subscriber, Subscription }
       dequeue(id)
     }
 
-    val AllOfMarkedInputs = new TransferState {
+    val AllOfMarkedInputs: _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
       override def isCompleted: Boolean = markedDepleted > 0
       override def isReady: Boolean = markedPending == markCount
     }
 
-    val AnyOfMarkedInputs = new TransferState {
+    val AnyOfMarkedInputs: _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
       override def isCompleted: Boolean = markedDepleted == markCount && markedPending == 0
       override def isReady: Boolean = markedPending > 0
     }
 
-    def inputsAvailableFor(id: Int) = new TransferState {
+    def inputsAvailableFor(id: Int): _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
       override def isCompleted: Boolean = depleted(id) || cancelled(id) || (!pending(id) && completed(id))
       override def isReady: Boolean = pending(id)
     }
 
-    def inputsOrCompleteAvailableFor(id: Int) = new TransferState {
+    def inputsOrCompleteAvailableFor(id: Int): _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
       override def isCompleted: Boolean = false
       override def isReady: Boolean = pending(id) || depleted(id)
     }
@@ -257,7 +257,7 @@ import org.reactivestreams.{ Subscriber, Subscription }
   import FanIn._
 
   protected val primaryOutputs: Outputs = new SimpleOutputs(self, this)
-  protected val inputBunch = new InputBunch(inputCount, settings.maxInputBufferSize, this) {
+  protected val inputBunch: _root_.akka.stream.impl.FanIn.InputBunch = new InputBunch(inputCount, settings.maxInputBufferSize, this) {
     override def onError(input: Int, e: Throwable): Unit = fail(e)
     override def onCompleteWhenNoInput(): Unit = pumpFinished()
   }
@@ -288,7 +288,7 @@ import org.reactivestreams.{ Subscriber, Subscription }
     throw new IllegalStateException("This actor cannot be restarted")
   }
 
-  def receive = inputBunch.subreceive.orElse[Any, Unit](primaryOutputs.subreceive)
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = inputBunch.subreceive.orElse[Any, Unit](primaryOutputs.subreceive)
 
 }
 

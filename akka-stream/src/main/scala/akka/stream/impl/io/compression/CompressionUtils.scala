@@ -20,7 +20,7 @@ import akka.util.ByteString
     Flow.fromGraph {
       new SimpleLinearGraphStage[ByteString] {
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
-          val compressor = newCompressor()
+          val compressor: _root_.akka.stream.impl.io.compression.Compressor = newCompressor()
 
           override def onPush(): Unit = {
             val data = compressor.compressAndFlush(grab(in))

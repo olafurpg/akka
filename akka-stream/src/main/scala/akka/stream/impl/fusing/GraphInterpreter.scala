@@ -84,7 +84,7 @@ import scala.util.control.NonFatal
     var portState: Int = InReady
     var slot: Any = Empty
 
-    override def toString =
+    override def toString: _root_.java.lang.String =
       if (GraphInterpreter.Debug) s"Connection($id, $inOwner, $outOwner, $inHandler, $outHandler, $portState, $slot)"
       else s"Connection($id, $portState, $slot, $inHandler, $outHandler)"
   }
@@ -95,7 +95,7 @@ import scala.util.control.NonFatal
      * when this accidentally leaks onto threads that are not stopped when this
      * class should be unloaded.
      */
-    override def initialValue = new Array(1)
+    override def initialValue: _root_.scala.Array[_root_.scala.AnyRef] = new Array(1)
   }
 
   /**

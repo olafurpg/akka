@@ -18,7 +18,7 @@ object Supervision {
    * Java API: The stream will be completed with failure if application code for processing an element
    * throws an exception.
    */
-  def stop = Stop
+  def stop: _root_.akka.stream.Supervision.Stop.type = Stop
 
   /**
    * Scala API: The element is dropped and the stream continues if application code for processing
@@ -30,7 +30,7 @@ object Supervision {
    * Java API: The element is dropped and the stream continues if application code for processing
    * an element throws an exception.
    */
-  def resume = Resume
+  def resume: _root_.akka.stream.Supervision.Resume.type = Resume
 
   /**
    * Scala API: The element is dropped and the stream continues after restarting the stage
@@ -46,7 +46,7 @@ object Supervision {
    * Restarting a stage means that any accumulated state is cleared. This is typically
    * performed by creating a new instance of the stage.
    */
-  def restart = Restart
+  def restart: _root_.akka.stream.Supervision.Restart.type = Restart
 
   type Decider = Function[Throwable, Directive]
 
@@ -55,7 +55,7 @@ object Supervision {
    */
   val stoppingDecider: Decider with japi.Function[Throwable, Directive] =
     new Decider with japi.Function[Throwable, Directive] {
-      override def apply(e: Throwable) = Stop
+      override def apply(e: Throwable): _root_.akka.stream.Supervision.Stop.type = Stop
     }
 
   /**
@@ -68,7 +68,7 @@ object Supervision {
    */
   val resumingDecider: Decider with japi.Function[Throwable, Directive] =
     new Decider with japi.Function[Throwable, Directive] {
-      override def apply(e: Throwable) = Resume
+      override def apply(e: Throwable): _root_.akka.stream.Supervision.Resume.type = Resume
     }
 
   /**
@@ -81,7 +81,7 @@ object Supervision {
    */
   val restartingDecider: Decider with japi.Function[Throwable, Directive] =
     new Decider with japi.Function[Throwable, Directive] {
-      override def apply(e: Throwable) = Restart
+      override def apply(e: Throwable): _root_.akka.stream.Supervision.Restart.type = Restart
     }
 
   /**

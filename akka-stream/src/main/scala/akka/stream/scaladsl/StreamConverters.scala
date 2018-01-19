@@ -181,7 +181,7 @@ object StreamConverters {
             nextElementFuture = queue.pull()
             next
           }
-        }, 0), false).onClose(new Runnable { def run = queue.cancel() }))
+        }, 0), false).onClose(new Runnable { def run: _root_.scala.Unit = queue.cancel() }))
       .withAttributes(DefaultAttributes.asJavaStream)
   }
 

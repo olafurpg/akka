@@ -39,7 +39,7 @@ private[stream] object InputStreamSinkStage {
  */
 @InternalApi final private[stream] class InputStreamSinkStage(readTimeout: FiniteDuration) extends GraphStageWithMaterializedValue[SinkShape[ByteString], InputStream] {
 
-  val in = Inlet[ByteString]("InputStreamSink.in")
+  val in: _root_.akka.stream.Inlet[_root_.akka.util.ByteString] = Inlet[ByteString]("InputStreamSink.in")
   override def initialAttributes: Attributes = DefaultAttributes.inputStreamSink
   override val shape: SinkShape[ByteString] = SinkShape.of(in)
 
@@ -65,7 +65,7 @@ private[stream] object InputStreamSinkStage {
         if (dataQueue.remainingCapacity() > 1 && !hasBeenPulled(in))
           pull(in)
 
-      override def preStart() = {
+      override def preStart(): _root_.scala.Unit = {
         dataQueue.add(Initialized)
         pull(in)
       }
@@ -114,7 +114,7 @@ private[stream] object InputStreamSinkStage {
   var isInitialized = false
   var isActive = true
   var isStageAlive = true
-  def subscriberClosedException = new IOException("Reactive stream is terminated, no reads are possible")
+  def subscriberClosedException: _root_.java.io.IOException = new IOException("Reactive stream is terminated, no reads are possible")
   var detachedChunk: Option[ByteString] = None
 
   @scala.throws(classOf[IOException])

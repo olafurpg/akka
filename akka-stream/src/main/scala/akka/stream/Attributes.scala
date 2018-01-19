@@ -331,7 +331,7 @@ object Attributes {
    * Passing in null as any of the arguments sets the level to its default value, which is:
    * `Debug` for `onElement` and `onFinish`, and `Error` for `onFailure`.
    */
-  def createLogLevels(onElement: Logging.LogLevel, onFinish: Logging.LogLevel, onFailure: Logging.LogLevel) =
+  def createLogLevels(onElement: Logging.LogLevel, onFinish: Logging.LogLevel, onFailure: Logging.LogLevel): _root_.akka.stream.Attributes =
     logLevels(
       onElement = Option(onElement).getOrElse(Logging.DebugLevel),
       onFinish = Option(onFinish).getOrElse(Logging.DebugLevel),
@@ -343,7 +343,7 @@ object Attributes {
    *
    * See [[Attributes.createLogLevels]] for Java API
    */
-  def logLevels(onElement: Logging.LogLevel = Logging.DebugLevel, onFinish: Logging.LogLevel = Logging.DebugLevel, onFailure: Logging.LogLevel = Logging.ErrorLevel) =
+  def logLevels(onElement: Logging.LogLevel = Logging.DebugLevel, onFinish: Logging.LogLevel = Logging.DebugLevel, onFailure: Logging.LogLevel = Logging.ErrorLevel): _root_.akka.stream.Attributes =
     Attributes(LogLevels(onElement, onFinish, onFailure))
 
   /**
@@ -398,7 +398,7 @@ object ActorAttributes {
    * Passing in null as any of the arguments sets the level to its default value, which is:
    * `Debug` for `onElement` and `onFinish`, and `Error` for `onFailure`.
    */
-  def createLogLevels(onElement: Logging.LogLevel, onFinish: Logging.LogLevel, onFailure: Logging.LogLevel) =
+  def createLogLevels(onElement: Logging.LogLevel, onFinish: Logging.LogLevel, onFailure: Logging.LogLevel): _root_.akka.stream.Attributes =
     logLevels(
       onElement = Option(onElement).getOrElse(Logging.DebugLevel),
       onFinish = Option(onFinish).getOrElse(Logging.DebugLevel),
@@ -410,7 +410,7 @@ object ActorAttributes {
    *
    * See [[Attributes.createLogLevels]] for Java API
    */
-  def logLevels(onElement: Logging.LogLevel = Logging.DebugLevel, onFinish: Logging.LogLevel = Logging.DebugLevel, onFailure: Logging.LogLevel = Logging.ErrorLevel) =
+  def logLevels(onElement: Logging.LogLevel = Logging.DebugLevel, onFinish: Logging.LogLevel = Logging.DebugLevel, onFailure: Logging.LogLevel = Logging.ErrorLevel): _root_.akka.stream.Attributes =
     Attributes(LogLevels(onElement, onFinish, onFailure))
 
 }

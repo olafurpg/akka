@@ -15,7 +15,7 @@ import akka.stream.ActorMaterializerSettings
  * INTERNAL API
  */
 @InternalApi private[akka] object ActorRefSourceActor {
-  def props(bufferSize: Int, overflowStrategy: OverflowStrategy, settings: ActorMaterializerSettings) = {
+  def props(bufferSize: Int, overflowStrategy: OverflowStrategy, settings: ActorMaterializerSettings): _root_.akka.actor.Props = {
     require(overflowStrategy != OverflowStrategies.Backpressure, "Backpressure overflowStrategy not supported")
     val maxFixedBufferSize = settings.maxFixedBufferSize
     Props(new ActorRefSourceActor(bufferSize, overflowStrategy, maxFixedBufferSize))
@@ -30,9 +30,9 @@ import akka.stream.ActorMaterializerSettings
   import akka.stream.actor.ActorPublisherMessage._
 
   // when bufferSize is 0 there the buffer is not used
-  protected val buffer = if (bufferSize == 0) null else Buffer[Any](bufferSize, maxFixedBufferSize)
+  protected val buffer: _root_.akka.stream.impl.Buffer[_root_.scala.Any] = if (bufferSize == 0) null else Buffer[Any](bufferSize, maxFixedBufferSize)
 
-  def receive = ({
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = ({
     case Cancel ⇒
       context.stop(self)
 

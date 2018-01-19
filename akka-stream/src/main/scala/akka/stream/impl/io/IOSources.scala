@@ -29,7 +29,7 @@ import scala.util.{ Failure, Success, Try }
 
 private[akka] object FileSource {
 
-  val completionHandler = new CompletionHandler[Integer, Try[Int] ⇒ Unit] {
+  val completionHandler: _root_.java.lang.Object with _root_.java.nio.channels.CompletionHandler[_root_.java.lang.Integer, _root_.scala.util.Try[_root_.scala.Int] => _root_.scala.Unit] {} = new CompletionHandler[Integer, Try[Int] ⇒ Unit] {
 
     override def completed(result: Integer, attachment: Try[Int] ⇒ Unit): Unit = {
       attachment(Success(result))
@@ -48,19 +48,19 @@ private[akka] object FileSource {
 private[akka] final class FileSource(path: Path, chunkSize: Int, startPosition: Long)
   extends GraphStageWithMaterializedValue[SourceShape[ByteString], Future[IOResult]] {
   require(chunkSize > 0, "chunkSize must be greater than 0")
-  val out = Outlet[ByteString]("FileSource.out")
+  val out: _root_.akka.stream.Outlet[_root_.akka.util.ByteString] = Outlet[ByteString]("FileSource.out")
 
-  override val shape = SourceShape(out)
+  override val shape: _root_.akka.stream.SourceShape[_root_.akka.util.ByteString] = SourceShape(out)
 
   override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[IOResult]) = {
     val ioResultPromise = Promise[IOResult]()
 
     val logic = new GraphStageLogic(shape) with OutHandler {
       handler ⇒
-      val buffer = ByteBuffer.allocate(chunkSize)
-      val maxReadAhead = inheritedAttributes.getAttribute(classOf[InputBuffer], InputBuffer(16, 16)).max
+      val buffer: _root_.java.nio.ByteBuffer = ByteBuffer.allocate(chunkSize)
+      val maxReadAhead: _root_.scala.Int = inheritedAttributes.getAttribute(classOf[InputBuffer], InputBuffer(16, 16)).max
       var channel: FileChannel = _
-      var position = startPosition
+      var position: _root_.scala.Long = startPosition
       var chunkCallback: Try[Int] ⇒ Unit = _
       var eofEncountered = false
       var availableChunks: Vector[ByteString] = Vector.empty[ByteString]
@@ -137,7 +137,7 @@ private[akka] final class FileSource(path: Path, chunkSize: Int, startPosition: 
     (logic, ioResultPromise.future)
   }
 
-  override def toString = s"FileSource($path, $chunkSize)"
+  override def toString: _root_.scala.Predef.String = s"FileSource($path, $chunkSize)"
 }
 
 /**
@@ -146,7 +146,7 @@ private[akka] final class FileSource(path: Path, chunkSize: Int, startPosition: 
  */
 @InternalApi private[akka] final class InputStreamSource(createInputStream: () ⇒ InputStream, chunkSize: Int, val attributes: Attributes, shape: SourceShape[ByteString])
   extends SourceModule[ByteString, Future[IOResult]](shape) {
-  override def create(context: MaterializationContext) = {
+  override def create(context: MaterializationContext): (_root_.org.reactivestreams.Publisher[_root_.akka.util.ByteString], _root_.scala.concurrent.Future[_root_.akka.stream.IOResult]) = {
     val materializer = ActorMaterializerHelper.downcast(context.materializer)
     val ioResultPromise = Promise[IOResult]()
 

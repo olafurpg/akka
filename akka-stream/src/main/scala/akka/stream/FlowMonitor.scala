@@ -59,5 +59,5 @@ object FlowMonitorState {
   /**
    * Java API
    */
-  def finished[U]() = Finished
+  def finished[U](): _root_.akka.stream.FlowMonitorState.Finished.type = Finished
 }

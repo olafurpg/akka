@@ -130,15 +130,15 @@ private final class RestartWithBackoffSource[T](
   onlyOnFailures: Boolean,
   maxRestarts:    Int) extends GraphStage[SourceShape[T]] { self ⇒
 
-  val out = Outlet[T]("RestartWithBackoffSource.out")
+  val out: _root_.akka.stream.Outlet[T] = Outlet[T]("RestartWithBackoffSource.out")
 
-  override def shape = SourceShape(out)
-  override def createLogic(inheritedAttributes: Attributes) = new RestartWithBackoffLogic(
+  override def shape: _root_.akka.stream.SourceShape[T] = SourceShape(out)
+  override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.scaladsl.RestartWithBackoffLogic[_root_.akka.stream.SourceShape[T]] = new RestartWithBackoffLogic(
     "Source", shape, minBackoff, maxBackoff, randomFactor, onlyOnFailures, maxRestarts) {
 
-    override protected def logSource = self.getClass
+    override protected def logSource: Class[_] = self.getClass
 
-    override protected def startGraph() = {
+    override protected def startGraph(): _root_.scala.Unit = {
       val sinkIn = createSubInlet(out)
       sourceFactory().runWith(sinkIn.sink)(subFusingMaterializer)
       if (isAvailable(out)) {
@@ -146,7 +146,7 @@ private final class RestartWithBackoffSource[T](
       }
     }
 
-    override protected def backoff() = {
+    override protected def backoff(): _root_.scala.Unit = {
       setHandler(out, new OutHandler {
         override def onPull() = ()
       })
@@ -231,19 +231,19 @@ private final class RestartWithBackoffSink[T](
   randomFactor: Double,
   maxRestarts:  Int) extends GraphStage[SinkShape[T]] { self ⇒
 
-  val in = Inlet[T]("RestartWithBackoffSink.in")
+  val in: _root_.akka.stream.Inlet[T] = Inlet[T]("RestartWithBackoffSink.in")
 
-  override def shape = SinkShape(in)
-  override def createLogic(inheritedAttributes: Attributes) = new RestartWithBackoffLogic(
+  override def shape: _root_.akka.stream.SinkShape[T] = SinkShape(in)
+  override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.scaladsl.RestartWithBackoffLogic[_root_.akka.stream.SinkShape[T]] = new RestartWithBackoffLogic(
     "Sink", shape, minBackoff, maxBackoff, randomFactor, onlyOnFailures = false, maxRestarts) {
-    override protected def logSource = self.getClass
+    override protected def logSource: Class[_] = self.getClass
 
-    override protected def startGraph() = {
+    override protected def startGraph(): _root_.scala.Unit = {
       val sourceOut = createSubOutlet(in)
       Source.fromGraph(sourceOut.source).runWith(sinkFactory())(subFusingMaterializer)
     }
 
-    override protected def backoff() = {
+    override protected def backoff(): _root_.scala.Unit = {
       setHandler(in, new InHandler {
         override def onPush() = ()
       })
@@ -326,18 +326,18 @@ private final class RestartWithBackoffFlow[In, Out](
   randomFactor: Double,
   maxRestarts:  Int) extends GraphStage[FlowShape[In, Out]] { self ⇒
 
-  val in = Inlet[In]("RestartWithBackoffFlow.in")
-  val out = Outlet[Out]("RestartWithBackoffFlow.out")
+  val in: _root_.akka.stream.Inlet[In] = Inlet[In]("RestartWithBackoffFlow.in")
+  val out: _root_.akka.stream.Outlet[Out] = Outlet[Out]("RestartWithBackoffFlow.out")
 
-  override def shape = FlowShape(in, out)
-  override def createLogic(inheritedAttributes: Attributes) = new RestartWithBackoffLogic(
+  override def shape: _root_.akka.stream.FlowShape[In, Out] = FlowShape(in, out)
+  override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.scaladsl.RestartWithBackoffLogic[_root_.akka.stream.FlowShape[In, Out]] = new RestartWithBackoffLogic(
     "Flow", shape, minBackoff, maxBackoff, randomFactor, onlyOnFailures = false, maxRestarts) {
 
     var activeOutIn: Option[(SubSourceOutlet[In], SubSinkInlet[Out])] = None
 
-    override protected def logSource = self.getClass
+    override protected def logSource: Class[_] = self.getClass
 
-    override protected def startGraph() = {
+    override protected def startGraph(): _root_.scala.Unit = {
       val sourceOut = createSubOutlet(in)
       val sinkIn = createSubInlet(out)
       Source.fromGraph(sourceOut.source).via(flowFactory()).runWith(sinkIn.sink)(subFusingMaterializer)
@@ -347,7 +347,7 @@ private final class RestartWithBackoffFlow[In, Out](
       activeOutIn = Some((sourceOut, sinkIn))
     }
 
-    override protected def backoff() = {
+    override protected def backoff(): _root_.scala.Unit = {
       setHandler(in, new InHandler {
         override def onPush() = ()
       })
@@ -385,7 +385,7 @@ private abstract class RestartWithBackoffLogic[S <: Shape](
   onlyOnFailures: Boolean,
   maxRestarts:    Int) extends TimerGraphStageLogicWithLogging(shape) {
   var restartCount = 0
-  var resetDeadline = minBackoff.fromNow
+  var resetDeadline: _root_.scala.concurrent.duration.Deadline = minBackoff.fromNow
   // This is effectively only used for flows, if either the main inlet or outlet of this stage finishes, then we
   // don't want to restart the sub inlet when it finishes, we just finish normally.
   var finishing = false
@@ -397,8 +397,8 @@ private abstract class RestartWithBackoffLogic[S <: Shape](
     val sinkIn = new SubSinkInlet[T](s"RestartWithBackoff$name.subIn")
 
     sinkIn.setHandler(new InHandler {
-      override def onPush() = push(out, sinkIn.grab())
-      override def onUpstreamFinish() = {
+      override def onPush(): _root_.scala.Unit = push(out, sinkIn.grab())
+      override def onUpstreamFinish(): _root_.scala.Unit = {
         if (finishing || maxRestartsReached() || onlyOnFailures) {
           complete(out)
         } else {
@@ -406,7 +406,7 @@ private abstract class RestartWithBackoffLogic[S <: Shape](
           scheduleRestartTimer()
         }
       }
-      override def onUpstreamFailure(ex: Throwable) = {
+      override def onUpstreamFailure(ex: Throwable): _root_.scala.Unit = {
         if (finishing || maxRestartsReached()) {
           fail(out, ex)
         } else {
@@ -417,8 +417,8 @@ private abstract class RestartWithBackoffLogic[S <: Shape](
     })
 
     setHandler(out, new OutHandler {
-      override def onPull() = sinkIn.pull()
-      override def onDownstreamFinish() = {
+      override def onPull(): _root_.scala.Unit = sinkIn.pull()
+      override def onDownstreamFinish(): _root_.scala.Unit = {
         finishing = true
         sinkIn.cancel()
       }
@@ -431,14 +431,14 @@ private abstract class RestartWithBackoffLogic[S <: Shape](
     val sourceOut = new SubSourceOutlet[T](s"RestartWithBackoff$name.subOut")
 
     sourceOut.setHandler(new OutHandler {
-      override def onPull() = if (isAvailable(in)) {
+      override def onPull(): _root_.scala.Unit = if (isAvailable(in)) {
         sourceOut.push(grab(in))
       } else {
         if (!hasBeenPulled(in)) {
           pull(in)
         }
       }
-      override def onDownstreamFinish() = {
+      override def onDownstreamFinish(): _root_.scala.Unit = {
         if (finishing || maxRestartsReached()) {
           cancel(in)
         } else {
@@ -449,14 +449,14 @@ private abstract class RestartWithBackoffLogic[S <: Shape](
     })
 
     setHandler(in, new InHandler {
-      override def onPush() = if (sourceOut.isAvailable) {
+      override def onPush(): _root_.scala.Unit = if (sourceOut.isAvailable) {
         sourceOut.push(grab(in))
       }
-      override def onUpstreamFinish() = {
+      override def onUpstreamFinish(): _root_.scala.Unit = {
         finishing = true
         sourceOut.complete()
       }
-      override def onUpstreamFailure(ex: Throwable) = {
+      override def onUpstreamFailure(ex: Throwable): _root_.scala.Unit = {
         finishing = true
         sourceOut.fail(ex)
       }
@@ -465,7 +465,7 @@ private abstract class RestartWithBackoffLogic[S <: Shape](
     sourceOut
   }
 
-  protected final def maxRestartsReached() = {
+  protected final def maxRestartsReached(): _root_.scala.Boolean = {
     // Check if the last start attempt was more than the minimum backoff
     if (resetDeadline.isOverdue()) {
       log.debug("Last restart attempt was more than {} ago, resetting restart count", minBackoff)
@@ -475,7 +475,7 @@ private abstract class RestartWithBackoffLogic[S <: Shape](
   }
 
   // Set a timer to restart after the calculated delay
-  protected final def scheduleRestartTimer() = {
+  protected final def scheduleRestartTimer(): _root_.scala.Unit = {
     val restartDelay = BackoffSupervisor.calculateDelay(restartCount, minBackoff, maxBackoff, randomFactor)
     log.debug("Restarting graph in {}", restartDelay)
     scheduleOnce("RestartTimer", restartDelay)
@@ -485,11 +485,11 @@ private abstract class RestartWithBackoffLogic[S <: Shape](
   }
 
   // Invoked when the backoff timer ticks
-  override protected def onTimer(timerKey: Any) = {
+  override protected def onTimer(timerKey: Any): _root_.scala.Unit = {
     startGraph()
     resetDeadline = minBackoff.fromNow
   }
 
   // When the stage starts, start the source
-  override def preStart() = startGraph()
+  override def preStart(): _root_.scala.Unit = startGraph()
 }

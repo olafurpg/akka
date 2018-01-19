@@ -16,7 +16,7 @@ import akka.japi.{ Pair ⇒ JPair }
     @throws(classOf[Exception]) override def apply(param: Any): Any = param
   }
 
-  val JavaPairFunction = new JFun2[AnyRef, AnyRef, AnyRef JPair AnyRef] {
+  val JavaPairFunction: _root_.scala.AnyRef with _root_.akka.japi.function.Function2[_root_.scala.AnyRef, _root_.scala.AnyRef, _root_.akka.japi.Pair[_root_.scala.AnyRef, _root_.scala.AnyRef]] {} = new JFun2[AnyRef, AnyRef, AnyRef JPair AnyRef] {
     def apply(p1: AnyRef, p2: AnyRef): AnyRef JPair AnyRef = JPair(p1, p2)
   }
 
@@ -30,16 +30,16 @@ import akka.japi.{ Pair ⇒ JPair }
   def scalaAnyTwoToNone[A, B, C]: (A, B) ⇒ Option[C] = two2none
   def javaAnyToNone[A, B]: A ⇒ Option[B] = none
 
-  val conforms = (a: Any) ⇒ a
+  val conforms: _root_.scala.Any => _root_.scala.Any = (a: Any) ⇒ a
 
-  val zeroLong = (_: Any) ⇒ 0L
+  val zeroLong: _root_.scala.Any => _root_.scala.Long = (_: Any) ⇒ 0L
 
-  val oneLong = (_: Any) ⇒ 1L
+  val oneLong: _root_.scala.Any => _root_.scala.Long = (_: Any) ⇒ 1L
 
-  val oneInt = (_: Any) ⇒ 1
+  val oneInt: _root_.scala.Any => _root_.scala.Int = (_: Any) ⇒ 1
 
-  val none = (_: Any) ⇒ None
+  val none: _root_.scala.Any => _root_.scala.None.type = (_: Any) ⇒ None
 
-  val two2none = (_: Any, _: Any) ⇒ None
+  val two2none: (_root_.scala.Any, _root_.scala.Any) => _root_.scala.None.type = (_: Any, _: Any) ⇒ None
 
 }

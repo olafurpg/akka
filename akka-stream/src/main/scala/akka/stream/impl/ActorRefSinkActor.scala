@@ -26,11 +26,11 @@ import akka.annotation.InternalApi
 @InternalApi private[akka] class ActorRefSinkActor(ref: ActorRef, highWatermark: Int, onCompleteMessage: Any) extends ActorSubscriber {
   import ActorSubscriberMessage._
 
-  override val requestStrategy = WatermarkRequestStrategy(highWatermark)
+  override val requestStrategy: _root_.akka.stream.actor.WatermarkRequestStrategy = WatermarkRequestStrategy(highWatermark)
 
   context.watch(ref)
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case OnNext(elem) ⇒
       ref.tell(elem, ActorRef.noSender)
     case OnError(cause) ⇒

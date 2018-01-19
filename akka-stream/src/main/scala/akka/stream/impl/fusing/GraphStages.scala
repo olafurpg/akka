@@ -51,13 +51,13 @@ import scala.util.control.NonFatal
    * INTERNAL API
    */
   @InternalApi private[akka] abstract class SimpleLinearGraphStage[T] extends GraphStage[FlowShape[T, T]] {
-    val in = Inlet[T](Logging.simpleName(this) + ".in")
-    val out = Outlet[T](Logging.simpleName(this) + ".out")
-    override val shape = FlowShape(in, out)
+    val in: _root_.akka.stream.Inlet[T] = Inlet[T](Logging.simpleName(this) + ".in")
+    val out: _root_.akka.stream.Outlet[T] = Outlet[T](Logging.simpleName(this) + ".out")
+    override val shape: _root_.akka.stream.FlowShape[T, T] = FlowShape(in, out)
   }
 
   private object Identity extends SimpleLinearGraphStage[Any] {
-    override def initialAttributes = DefaultAttributes.identityOp
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.identityOp
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
       def onPush(): Unit = push(out, grab(in))
@@ -70,13 +70,13 @@ import scala.util.control.NonFatal
     override def toString = "Identity"
   }
 
-  def identity[T] = Identity.asInstanceOf[SimpleLinearGraphStage[T]]
+  def identity[T]: _root_.akka.stream.impl.fusing.GraphStages.SimpleLinearGraphStage[T] = Identity.asInstanceOf[SimpleLinearGraphStage[T]]
 
   /**
    * INTERNAL API
    */
   @InternalApi private[akka] final class Detacher[T] extends SimpleLinearGraphStage[T] {
-    override def initialAttributes = DefaultAttributes.detacher
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.detacher
 
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
 
@@ -111,9 +111,9 @@ import scala.util.control.NonFatal
   def detacher[T]: GraphStage[FlowShape[T, T]] = _detacher.asInstanceOf[GraphStage[FlowShape[T, T]]]
 
   private object TerminationWatcher extends GraphStageWithMaterializedValue[FlowShape[Any, Any], Future[Done]] {
-    val in = Inlet[Any]("terminationWatcher.in")
-    val out = Outlet[Any]("terminationWatcher.out")
-    override val shape = FlowShape(in, out)
+    val in: _root_.akka.stream.Inlet[_root_.scala.Any] = Inlet[Any]("terminationWatcher.in")
+    val out: _root_.akka.stream.Outlet[_root_.scala.Any] = Outlet[Any]("terminationWatcher.out")
+    override val shape: _root_.akka.stream.FlowShape[_root_.scala.Any, _root_.scala.Any] = FlowShape(in, out)
     override def initialAttributes: Attributes = DefaultAttributes.terminationWatcher
 
     override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[Done]) = {
@@ -154,16 +154,16 @@ import scala.util.control.NonFatal
     TerminationWatcher.asInstanceOf[GraphStageWithMaterializedValue[FlowShape[T, T], Future[Done]]]
 
   private class FlowMonitorImpl[T] extends AtomicReference[Any](Initialized) with FlowMonitor[T] {
-    override def state = get match {
+    override def state: _root_.akka.stream.FlowMonitorState.StreamState[T] = get match {
       case s: StreamState[_] ⇒ s.asInstanceOf[StreamState[T]]
       case msg               ⇒ Received(msg.asInstanceOf[T])
     }
   }
 
   private class MonitorFlow[T] extends GraphStageWithMaterializedValue[FlowShape[T, T], FlowMonitor[T]] {
-    val in = Inlet[T]("FlowMonitor.in")
-    val out = Outlet[T]("FlowMonitor.out")
-    val shape = FlowShape.of(in, out)
+    val in: _root_.akka.stream.Inlet[T] = Inlet[T]("FlowMonitor.in")
+    val out: _root_.akka.stream.Outlet[T] = Outlet[T]("FlowMonitor.out")
+    val shape: _root_.akka.stream.FlowShape[T, T] = FlowShape.of(in, out)
 
     override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, FlowMonitor[T]) = {
       val monitor: FlowMonitorImpl[T] = new FlowMonitorImpl[T]
@@ -232,16 +232,16 @@ import scala.util.control.NonFatal
 
   final class TickSource[T](val initialDelay: FiniteDuration, val interval: FiniteDuration, val tick: T)
     extends GraphStageWithMaterializedValue[SourceShape[T], Cancellable] {
-    override val shape = SourceShape(Outlet[T]("TickSource.out"))
-    val out = shape.out
+    override val shape: _root_.akka.stream.SourceShape[T] = SourceShape(Outlet[T]("TickSource.out"))
+    val out: _root_.akka.stream.Outlet[T] = shape.out
     override def initialAttributes: Attributes = DefaultAttributes.tickSource
     override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Cancellable) = {
 
       val logic = new TimerGraphStageLogic(shape) with Cancellable {
-        val cancelled = new AtomicBoolean(false)
+        val cancelled: _root_.java.util.concurrent.atomic.AtomicBoolean = new AtomicBoolean(false)
         val cancelCallback: AtomicReference[Option[AsyncCallback[Unit]]] = new AtomicReference(None)
 
-        override def preStart() = {
+        override def preStart(): _root_.scala.Unit = {
           cancelCallback.set(Some(getAsyncCallback[Unit](_ ⇒ completeStage())))
           if (cancelled.get)
             completeStage()
@@ -251,16 +251,16 @@ import scala.util.control.NonFatal
 
         setHandler(out, eagerTerminateOutput)
 
-        override protected def onTimer(timerKey: Any) =
+        override protected def onTimer(timerKey: Any): _root_.scala.Unit =
           if (isAvailable(out) && !isCancelled) push(out, tick)
 
-        override def cancel() = {
+        override def cancel(): _root_.scala.Boolean = {
           val success = !cancelled.getAndSet(true)
           if (success) cancelCallback.get.foreach(_.invoke(()))
           success
         }
 
-        override def isCancelled = cancelled.get
+        override def isCancelled: _root_.scala.Boolean = cancelled.get
 
         override def toString: String = "TickSourceLogic"
       }
@@ -274,9 +274,9 @@ import scala.util.control.NonFatal
   final class SingleSource[T](val elem: T) extends GraphStage[SourceShape[T]] {
     override def initialAttributes: Attributes = DefaultAttributes.singleSource
     ReactiveStreamsCompliance.requireNonNullElement(elem)
-    val out = Outlet[T]("single.out")
-    val shape = SourceShape(out)
-    def createLogic(attr: Attributes) =
+    val out: _root_.akka.stream.Outlet[T] = Outlet[T]("single.out")
+    val shape: _root_.akka.stream.SourceShape[T] = SourceShape(out)
+    def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic with _root_.akka.stream.stage.OutHandler {} =
       new GraphStageLogic(shape) with OutHandler {
         def onPull(): Unit = {
           push(out, elem)
@@ -294,9 +294,9 @@ import scala.util.control.NonFatal
     ReactiveStreamsCompliance.requireNonNullElement(futureSource)
 
     val out: Outlet[T] = Outlet("FutureFlattenSource.out")
-    override val shape = SourceShape(out)
+    override val shape: _root_.akka.stream.SourceShape[T] = SourceShape(out)
 
-    override def initialAttributes = DefaultAttributes.futureFlattenSource
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.futureFlattenSource
 
     override def createLogicAndMaterializedValue(attr: Attributes): (GraphStageLogic, Future[M]) = {
       val materialized = Promise[M]()
@@ -373,10 +373,10 @@ import scala.util.control.NonFatal
 
   final class FutureSource[T](val future: Future[T]) extends GraphStage[SourceShape[T]] {
     ReactiveStreamsCompliance.requireNonNullElement(future)
-    val shape = SourceShape(Outlet[T]("FutureSource.out"))
-    val out = shape.out
+    val shape: _root_.akka.stream.SourceShape[T] = SourceShape(Outlet[T]("FutureSource.out"))
+    val out: _root_.akka.stream.Outlet[T] = shape.out
     override def initialAttributes: Attributes = DefaultAttributes.futureSource
-    override def createLogic(attr: Attributes) =
+    override def createLogic(attr: Attributes): _root_.akka.stream.stage.GraphStageLogic with _root_.akka.stream.stage.OutHandler {} =
       new GraphStageLogic(shape) with OutHandler {
         def onPull(): Unit = {
           if (future.isCompleted) {
@@ -408,10 +408,10 @@ import scala.util.control.NonFatal
    */
   @InternalApi private[akka] object IgnoreSink extends GraphStageWithMaterializedValue[SinkShape[Any], Future[Done]] {
 
-    val in = Inlet[Any]("Ignore.in")
-    val shape = SinkShape(in)
+    val in: _root_.akka.stream.Inlet[_root_.scala.Any] = Inlet[Any]("Ignore.in")
+    val shape: _root_.akka.stream.SinkShape[_root_.scala.Any] = SinkShape(in)
 
-    override def initialAttributes = DefaultAttributes.ignoreSink
+    override def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.ignoreSink
 
     override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[Done]) = {
       val promise = Promise[Done]()

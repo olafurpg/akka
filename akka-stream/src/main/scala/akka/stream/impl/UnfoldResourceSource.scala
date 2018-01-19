@@ -19,12 +19,12 @@ import scala.util.control.NonFatal
   create:   () ⇒ S,
   readData: (S) ⇒ Option[T],
   close:    (S) ⇒ Unit) extends GraphStage[SourceShape[T]] {
-  val out = Outlet[T]("UnfoldResourceSource.out")
-  override val shape = SourceShape(out)
+  val out: _root_.akka.stream.Outlet[T] = Outlet[T]("UnfoldResourceSource.out")
+  override val shape: _root_.akka.stream.SourceShape[T] = SourceShape(out)
   override def initialAttributes: Attributes = DefaultAttributes.unfoldResourceSource
 
-  def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) with OutHandler {
-    lazy val decider = inheritedAttributes.mandatoryAttribute[SupervisionStrategy].decider
+  def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic with _root_.akka.stream.stage.OutHandler {} = new GraphStageLogic(shape) with OutHandler {
+    lazy val decider: _root_.akka.stream.Supervision.Decider = inheritedAttributes.mandatoryAttribute[SupervisionStrategy].decider
     var open = false
     var blockingStream: S = _
     setHandler(out, this)

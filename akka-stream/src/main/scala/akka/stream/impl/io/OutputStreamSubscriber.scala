@@ -17,7 +17,7 @@ import scala.util.{ Failure, Success }
 
 /** INTERNAL API */
 @InternalApi private[akka] object OutputStreamSubscriber {
-  def props(os: OutputStream, completionPromise: Promise[IOResult], bufSize: Int, autoFlush: Boolean) = {
+  def props(os: OutputStream, completionPromise: Promise[IOResult], bufSize: Int, autoFlush: Boolean): _root_.akka.actor.Props = {
     require(bufSize > 0, "buffer size must be > 0")
     Props(classOf[OutputStreamSubscriber], os, completionPromise, bufSize, autoFlush).withDeploy(Deploy.local)
   }
@@ -29,11 +29,11 @@ import scala.util.{ Failure, Success }
   extends akka.stream.actor.ActorSubscriber
   with ActorLogging {
 
-  override protected val requestStrategy = WatermarkRequestStrategy(highWatermark = bufSize)
+  override protected val requestStrategy: _root_.akka.stream.actor.WatermarkRequestStrategy = WatermarkRequestStrategy(highWatermark = bufSize)
 
   private var bytesWritten: Long = 0
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case ActorSubscriberMessage.OnNext(bytes: ByteString) ⇒
       try {
         // blocking write

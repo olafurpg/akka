@@ -42,7 +42,7 @@ trait Graph[+S <: Shape, +M] {
    *
    * @param dispatcher Run the graph on this dispatcher
    */
-  def async(dispatcher: String) =
+  def async(dispatcher: String): _root_.akka.stream.Graph[S, M] =
     addAttributes(
       Attributes.asyncBoundary and ActorAttributes.dispatcher(dispatcher)
     )
@@ -53,7 +53,7 @@ trait Graph[+S <: Shape, +M] {
    * @param dispatcher Run the graph on this dispatcher
    * @param inputBufferSize Set the input buffer to this size for the graph
    */
-  def async(dispatcher: String, inputBufferSize: Int) =
+  def async(dispatcher: String, inputBufferSize: Int): _root_.akka.stream.Graph[S, M] =
     addAttributes(
       Attributes.asyncBoundary and ActorAttributes.dispatcher(dispatcher)
         and Attributes.inputBuffer(inputBufferSize, inputBufferSize)

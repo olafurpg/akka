@@ -106,8 +106,8 @@ import akka.event.Logging
     inputBufferElements = 0
   }
 
-  override def inputsDepleted = upstreamCompleted && inputBufferElements == 0
-  override def inputsAvailable = inputBufferElements > 0
+  override def inputsDepleted: _root_.scala.Boolean = upstreamCompleted && inputBufferElements == 0
+  override def inputsAvailable: _root_.scala.Boolean = inputBufferElements > 0
 
   protected def onComplete(): Unit = {
     upstreamCompleted = true
@@ -167,13 +167,13 @@ import akka.event.Logging
   protected var subscriber: Subscriber[Any] = _
   protected var downstreamDemand: Long = 0L
   protected var downstreamCompleted = false
-  override def demandAvailable = downstreamDemand > 0
+  override def demandAvailable: _root_.scala.Boolean = downstreamDemand > 0
   override def demandCount: Long = downstreamDemand
 
-  override def subreceive = _subreceive
+  override def subreceive: _root_.akka.stream.impl.SubReceive = _subreceive
   private val _subreceive = new SubReceive(waitingExposedPublisher)
 
-  def isSubscribed = subscriber ne null
+  def isSubscribed: _root_.scala.Boolean = subscriber ne null
 
   def enqueueOutputElement(elem: Any): Unit = {
     ReactiveStreamsCompliance.requireNonNullElement(elem)
@@ -265,7 +265,7 @@ import akka.event.Logging
   /**
    * Subclass may override [[#activeReceive]]
    */
-  final override def receive = new ExposedPublisherReceive(activeReceive, unhandled) {
+  final override def receive: _root_.akka.stream.impl.ExposedPublisherReceive = new ExposedPublisherReceive(activeReceive, unhandled) {
     override def receiveExposedPublisher(ep: ExposedPublisher): Unit = {
       primaryOutputs.subreceive(ep)
       context become activeReceive

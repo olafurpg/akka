@@ -22,7 +22,7 @@ import org.reactivestreams.Subscription
   class SubstreamSubscription(val parent: ActorRef, val id: Int) extends Subscription {
     override def request(elements: Long): Unit = parent ! SubstreamRequestMore(id, elements)
     override def cancel(): Unit = parent ! SubstreamCancel(id)
-    override def toString = "SubstreamSubscription" + System.identityHashCode(this)
+    override def toString: _root_.java.lang.String = "SubstreamSubscription" + System.identityHashCode(this)
   }
 
   class FanoutOutputs(val id: Int, _impl: ActorRef, _pump: Pump) extends SimpleOutputs(_impl, _pump) {
@@ -76,7 +76,7 @@ import org.reactivestreams.Subscription
         }
       }
 
-    def complete(output: Int) =
+    def complete(output: Int): _root_.scala.Unit =
       if (!completed(output) && !errored(output) && !cancelled(output)) {
         outputs(output).complete()
         completed(output) = true
@@ -183,12 +183,12 @@ import org.reactivestreams.Subscription
 
     def onCancel(output: Int): Unit = ()
 
-    def demandAvailableFor(id: Int) = new TransferState {
+    def demandAvailableFor(id: Int): _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
       override def isCompleted: Boolean = cancelled(id) || completed(id) || errored(id)
       override def isReady: Boolean = pending(id)
     }
 
-    def demandOrCancelAvailableFor(id: Int) = new TransferState {
+    def demandOrCancelAvailableFor(id: Int): _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
       override def isCompleted: Boolean = false
       override def isReady: Boolean = pending(id) || cancelled(id)
     }
@@ -198,7 +198,7 @@ import org.reactivestreams.Subscription
      * have demand, and will complete as soon as any of the marked
      * outputs have canceled.
      */
-    val AllOfMarkedOutputs = new TransferState {
+    val AllOfMarkedOutputs: _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
       override def isCompleted: Boolean = markedCancelled > 0 || markedCount == 0
       override def isReady: Boolean = markedPending == markedCount
     }
@@ -208,7 +208,7 @@ import org.reactivestreams.Subscription
      * have demand, and will complete when all of the marked
      * outputs have canceled.
      */
-    val AnyOfMarkedOutputs = new TransferState {
+    val AnyOfMarkedOutputs: _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
       override def isCompleted: Boolean = markedCancelled == markedCount
       override def isReady: Boolean = markedPending > 0
     }
@@ -251,7 +251,7 @@ import org.reactivestreams.Subscription
 @DoNotInherit private[akka] abstract class FanOut(val settings: ActorMaterializerSettings, val outputCount: Int) extends Actor with ActorLogging with Pump {
   import FanOut._
 
-  protected val outputBunch = new OutputBunch(outputCount, self, this)
+  protected val outputBunch: _root_.akka.stream.impl.FanOut.OutputBunch = new OutputBunch(outputCount, self, this)
   protected val primaryInputs: Inputs = new BatchingInputBuffer(settings.maxInputBufferSize, this) {
     override def onError(e: Throwable): Unit = fail(e)
   }
@@ -282,7 +282,7 @@ import org.reactivestreams.Subscription
     throw new IllegalStateException("This actor cannot be restarted")
   }
 
-  def receive = primaryInputs.subreceive.orElse[Any, Unit](outputBunch.subreceive)
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = primaryInputs.subreceive.orElse[Any, Unit](outputBunch.subreceive)
 }
 
 /**

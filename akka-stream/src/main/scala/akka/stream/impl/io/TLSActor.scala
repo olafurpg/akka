@@ -56,10 +56,10 @@ import scala.util.{ Failure, Success, Try }
 
   import TLSActor._
 
-  protected val outputBunch = new OutputBunch(outputCount = 2, self, this)
+  protected val outputBunch: _root_.akka.stream.impl.FanOut.OutputBunch = new OutputBunch(outputCount = 2, self, this)
   outputBunch.markAllOutputs()
 
-  protected val inputBunch = new InputBunch(inputCount = 2, maxInputBufferSize, this) {
+  protected val inputBunch: _root_.akka.stream.impl.FanIn.InputBunch = new InputBunch(inputCount = 2, maxInputBufferSize, this) {
     override def onError(input: Int, e: Throwable): Unit = fail(e)
   }
 
@@ -152,13 +152,13 @@ import scala.util.{ Failure, Success, Try }
 
   // The engine could also be instantiated in ActorMaterializerImpl but if creation fails
   // during materialization it would be worse than failing later on.
-  val engine =
+  val engine: _root_.javax.net.ssl.SSLEngine =
     try createSSLEngine(context.system) catch { case NonFatal(ex) ⇒ fail(ex, closeTransport = true); throw ex }
 
   engine.beginHandshake()
   lastHandshakeStatus = engine.getHandshakeStatus
 
-  var currentSession = engine.getSession
+  var currentSession: _root_.javax.net.ssl.SSLSession = engine.getSession
 
   def setNewSessionParameters(params: NegotiateNewSession): Unit = {
     if (tracing) log.debug(s"applying $params")
@@ -193,35 +193,35 @@ import scala.util.{ Failure, Success, Try }
    * representing the Engine.
    */
 
-  val engineNeedsWrap = new TransferState {
-    def isReady = lastHandshakeStatus == NEED_WRAP
-    def isCompleted = engine.isOutboundDone
+  val engineNeedsWrap: _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
+    def isReady: _root_.scala.Boolean = lastHandshakeStatus == NEED_WRAP
+    def isCompleted: _root_.scala.Boolean = engine.isOutboundDone
   }
 
-  val engineInboundOpen = new TransferState {
+  val engineInboundOpen: _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
     def isReady = true
-    def isCompleted = engine.isInboundDone
+    def isCompleted: _root_.scala.Boolean = engine.isInboundDone
   }
 
-  val userHasData = new TransferState {
-    def isReady = !corkUser && userInChoppingBlock.isReady && lastHandshakeStatus != NEED_UNWRAP
-    def isCompleted = inputBunch.isCancelled(UserIn) || inputBunch.isDepleted(UserIn)
+  val userHasData: _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
+    def isReady: _root_.scala.Boolean = !corkUser && userInChoppingBlock.isReady && lastHandshakeStatus != NEED_UNWRAP
+    def isCompleted: _root_.scala.Boolean = inputBunch.isCancelled(UserIn) || inputBunch.isDepleted(UserIn)
   }
 
-  val userOutCancelled = new TransferState {
-    def isReady = outputBunch.isCancelled(UserOut)
-    def isCompleted = engine.isInboundDone || outputBunch.isErrored(UserOut)
+  val userOutCancelled: _root_.scala.AnyRef with _root_.akka.stream.impl.TransferState {} = new TransferState {
+    def isReady: _root_.scala.Boolean = outputBunch.isCancelled(UserOut)
+    def isCompleted: _root_.scala.Boolean = engine.isInboundDone || outputBunch.isErrored(UserOut)
   }
 
   // bidirectional case
-  val outbound = (userHasData || engineNeedsWrap) && outputBunch.demandAvailableFor(TransportOut)
-  val inbound = (transportInChoppingBlock && outputBunch.demandAvailableFor(UserOut)) || userOutCancelled
+  val outbound: _root_.akka.stream.impl.TransferState = (userHasData || engineNeedsWrap) && outputBunch.demandAvailableFor(TransportOut)
+  val inbound: _root_.akka.stream.impl.TransferState = (transportInChoppingBlock && outputBunch.demandAvailableFor(UserOut)) || userOutCancelled
 
   // half-closed
-  val outboundHalfClosed = engineNeedsWrap && outputBunch.demandAvailableFor(TransportOut)
-  val inboundHalfClosed = transportInChoppingBlock && engineInboundOpen
+  val outboundHalfClosed: _root_.akka.stream.impl.TransferState = engineNeedsWrap && outputBunch.demandAvailableFor(TransportOut)
+  val inboundHalfClosed: _root_.akka.stream.impl.TransferState = transportInChoppingBlock && engineInboundOpen
 
-  val bidirectional = TransferPhase(outbound || inbound) { () ⇒
+  val bidirectional: _root_.akka.stream.impl.TransferPhase = TransferPhase(outbound || inbound) { () ⇒
     if (tracing) log.debug("bidirectional")
     val continue = doInbound(isOutboundClosed = false, inbound)
     if (continue) {
@@ -230,20 +230,20 @@ import scala.util.{ Failure, Success, Try }
     }
   }
 
-  val flushingOutbound = TransferPhase(outboundHalfClosed) { () ⇒
+  val flushingOutbound: _root_.akka.stream.impl.TransferPhase = TransferPhase(outboundHalfClosed) { () ⇒
     if (tracing) log.debug("flushingOutbound")
     try doWrap()
     catch { case ex: SSLException ⇒ nextPhase(completedPhase) }
   }
 
-  val awaitingClose = TransferPhase(inputBunch.inputsAvailableFor(TransportIn) && engineInboundOpen) { () ⇒
+  val awaitingClose: _root_.akka.stream.impl.TransferPhase = TransferPhase(inputBunch.inputsAvailableFor(TransportIn) && engineInboundOpen) { () ⇒
     if (tracing) log.debug("awaitingClose")
     transportInChoppingBlock.chopInto(transportInBuffer)
     try doUnwrap(ignoreOutput = true)
     catch { case ex: SSLException ⇒ nextPhase(completedPhase) }
   }
 
-  val outboundClosed = TransferPhase(outboundHalfClosed || inbound) { () ⇒
+  val outboundClosed: _root_.akka.stream.impl.TransferPhase = TransferPhase(outboundHalfClosed || inbound) { () ⇒
     if (tracing) log.debug("outboundClosed")
     val continue = doInbound(isOutboundClosed = true, inbound)
     if (continue && outboundHalfClosed.isReady) {
@@ -253,7 +253,7 @@ import scala.util.{ Failure, Success, Try }
     }
   }
 
-  val inboundClosed = TransferPhase(outbound || inboundHalfClosed) { () ⇒
+  val inboundClosed: _root_.akka.stream.impl.TransferPhase = TransferPhase(outbound || inboundHalfClosed) { () ⇒
     if (tracing) log.debug("inboundClosed")
     val continue = doInbound(isOutboundClosed = false, inboundHalfClosed)
     if (continue) {
@@ -422,7 +422,7 @@ import scala.util.{ Failure, Success, Try }
     }
   }
 
-  override def receive = inputBunch.subreceive.orElse[Any, Unit](outputBunch.subreceive)
+  override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = inputBunch.subreceive.orElse[Any, Unit](outputBunch.subreceive)
 
   initialPhase(2, bidirectional)
 

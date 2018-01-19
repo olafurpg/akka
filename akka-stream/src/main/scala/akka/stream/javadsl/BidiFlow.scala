@@ -96,8 +96,8 @@ object BidiFlow {
 }
 
 final class BidiFlow[-I1, +O1, -I2, +O2, +Mat](delegate: scaladsl.BidiFlow[I1, O1, I2, O2, Mat]) extends Graph[BidiShape[I1, O1, I2, O2], Mat] {
-  override def traversalBuilder = delegate.traversalBuilder
-  override def shape = delegate.shape
+  override def traversalBuilder: _root_.akka.stream.impl.TraversalBuilder = delegate.traversalBuilder
+  override def shape: _root_.akka.stream.BidiShape[I1, O1, I2, O2] = delegate.shape
 
   def asScala: scaladsl.BidiFlow[I1, O1, I2, O2, Mat] = delegate
 

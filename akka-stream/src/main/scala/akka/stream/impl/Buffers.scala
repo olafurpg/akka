@@ -65,7 +65,7 @@ private[akka] object Buffer {
     else new ModuloFixedSizeBuffer(size)
 
   sealed abstract class FixedSizeBuffer[T](val capacity: Int) extends Buffer[T] {
-    override def toString = s"Buffer($capacity, $readIdx, $writeIdx)(${(readIdx until writeIdx).map(get).mkString(", ")})"
+    override def toString: _root_.scala.Predef.String = s"Buffer($capacity, $readIdx, $writeIdx)(${(readIdx until writeIdx).map(get).mkString(", ")})"
     private val buffer = new Array[AnyRef](capacity)
 
     protected var readIdx = 0L
@@ -164,11 +164,11 @@ private[akka] object Buffer {
     private var head = 0
     private var tail = 0
 
-    override def capacity = BoundedBuffer.this.capacity
-    override def used = tail - head
-    override def isFull = used == capacity
-    override def isEmpty = tail == head
-    override def nonEmpty = tail != head
+    override def capacity: _root_.scala.Int = BoundedBuffer.this.capacity
+    override def used: _root_.scala.Int = tail - head
+    override def isFull: _root_.scala.Boolean = used == capacity
+    override def isEmpty: _root_.scala.Boolean = tail == head
+    override def nonEmpty: _root_.scala.Boolean = tail != head
 
     override def enqueue(elem: T): Unit =
       if (tail - head == FixedQueueSize) {
@@ -205,10 +205,10 @@ private[akka] object Buffer {
   }
 
   private final class DynamicQueue(startIdx: Int) extends ju.LinkedList[T] with Buffer[T] {
-    override def capacity = BoundedBuffer.this.capacity
-    override def used = size
-    override def isFull = size == capacity
-    override def nonEmpty = !isEmpty()
+    override def capacity: _root_.scala.Int = BoundedBuffer.this.capacity
+    override def used: _root_.scala.Int = size
+    override def isFull: _root_.scala.Boolean = size == capacity
+    override def nonEmpty: _root_.scala.Boolean = !isEmpty()
 
     override def enqueue(elem: T): Unit = add(elem)
     override def dequeue(): T = remove()

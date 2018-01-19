@@ -16,17 +16,17 @@ import scala.util.control.NonFatal
  * INTERNAL API
  */
 @InternalApi private[akka] object LazySource {
-  def apply[T, M](sourceFactory: () ⇒ Source[T, M]) = new LazySource[T, M](sourceFactory)
+  def apply[T, M](sourceFactory: () ⇒ Source[T, M]): _root_.akka.stream.impl.LazySource[T, M] = new LazySource[T, M](sourceFactory)
 }
 
 /**
  * INTERNAL API
  */
 @InternalApi private[akka] final class LazySource[T, M](sourceFactory: () ⇒ Source[T, M]) extends GraphStageWithMaterializedValue[SourceShape[T], Future[M]] {
-  val out = Outlet[T]("LazySource.out")
-  override val shape = SourceShape(out)
+  val out: _root_.akka.stream.Outlet[T] = Outlet[T]("LazySource.out")
+  override val shape: _root_.akka.stream.SourceShape[T] = SourceShape(out)
 
-  override protected def initialAttributes = DefaultAttributes.lazySource
+  override protected def initialAttributes: _root_.akka.stream.Attributes = DefaultAttributes.lazySource
 
   override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[M]) = {
     val matPromise = Promise[M]()
@@ -72,7 +72,7 @@ import scala.util.control.NonFatal
 
       setHandler(out, this)
 
-      override def postStop() = {
+      override def postStop(): _root_.scala.Unit = {
         matPromise.tryFailure(new RuntimeException("LazySource stopped without completing the materialized future"))
       }
     }

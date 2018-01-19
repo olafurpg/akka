@@ -46,7 +46,7 @@ import scala.util.{ Failure, Success, Try }
       private[this] var state = s
       private[this] var asyncHandler: Function1[Try[Option[(S, E)]], Unit] = _
 
-      override def preStart() = {
+      override def preStart(): _root_.scala.Unit = {
         val ac = getAsyncCallback[Try[Option[(S, E)]]] {
           case Failure(ex)   ⇒ fail(out, ex)
           case Success(None) ⇒ complete(out)

@@ -331,7 +331,7 @@ import scala.util.control.NonFatal
     val in: Inlet[Any] = Inlet[Any]("UpstreamBoundary:" + internalPortName)
     in.id = 0
 
-    val publisher = new OutputBoundaryPublisher(this, internalPortName)
+    val publisher: _root_.akka.stream.impl.fusing.ActorGraphInterpreter.OutputBoundaryPublisher = new OutputBoundaryPublisher(this, internalPortName)
 
     @volatile private var actor: ActorRef = null
     def setActor(actor: ActorRef): Unit = this.actor = actor
@@ -401,7 +401,7 @@ import scala.util.control.NonFatal
           val subscription = new Subscription {
             override def request(elements: Long): Unit = actor ! RequestMore(ActorOutputBoundary.this, elements)
             override def cancel(): Unit = actor ! Cancel(ActorOutputBoundary.this)
-            override def toString = s"BoundarySubscription[$actor, $internalPortName]"
+            override def toString: _root_.scala.Predef.String = s"BoundarySubscription[$actor, $internalPortName]"
           }
 
           tryOnSubscribe(subscriber, subscription)
@@ -448,7 +448,7 @@ import scala.util.control.NonFatal
   import ActorGraphInterpreter._
 
   private var self: ActorRef = _
-  lazy val log = Logging(mat.system.eventStream, self)
+  lazy val log: _root_.akka.event.LoggingAdapter = Logging(mat.system.eventStream, self)
 
   /**
    * @param promise Will be completed upon processing the event, or failed if processing the event throws
@@ -525,7 +525,7 @@ import scala.util.control.NonFatal
    *  because no data can enter “fast enough” from the outside
    */
   // TODO: Fix event limit heuristic
-  val shellEventLimit = attributes.mandatoryAttribute[Attributes.InputBuffer].max * 16
+  val shellEventLimit: _root_.scala.Int = attributes.mandatoryAttribute[Attributes.InputBuffer].max * 16
   // Limits the number of events processed by the interpreter on an abort event.
   // TODO: Better heuristic here
   private val abortLimit = shellEventLimit * 2
@@ -571,7 +571,7 @@ import scala.util.control.NonFatal
 
   private var waitingForShutdown: Boolean = false
 
-  val resume = ResumeShell(this)
+  val resume: GraphInterpreterShell.this.ResumeShell = ResumeShell(this)
 
   def sendResume(sendResume: Boolean): Unit = {
     resumeScheduled = true
@@ -667,9 +667,9 @@ import scala.util.control.NonFatal
 @InternalApi private[akka] final class ActorGraphInterpreter(_initial: GraphInterpreterShell) extends Actor with ActorLogging {
   import ActorGraphInterpreter._
 
-  var activeInterpreters = Set.empty[GraphInterpreterShell]
+  var activeInterpreters: _root_.scala.collection.immutable.Set[_root_.akka.stream.impl.fusing.GraphInterpreterShell] = Set.empty[GraphInterpreterShell]
   var newShells: List[GraphInterpreterShell] = Nil
-  val subFusingMaterializerImpl = new SubFusingActorMaterializerImpl(_initial.mat, registerShell)
+  val subFusingMaterializerImpl: _root_.akka.stream.impl.SubFusingActorMaterializerImpl = new SubFusingActorMaterializerImpl(_initial.mat, registerShell)
 
   def tryInit(shell: GraphInterpreterShell): Boolean =
     try {
