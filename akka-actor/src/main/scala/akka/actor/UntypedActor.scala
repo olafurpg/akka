@@ -163,7 +163,7 @@ abstract class UntypedActor extends Actor {
   @throws(classOf[Exception])
   override def postRestart(reason: Throwable): Unit = super.postRestart(reason)
 
-  final def receive = { case msg ⇒ onReceive(msg) }
+  final def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = { case msg ⇒ onReceive(msg) }
 
   /**
    * Recommended convention is to call this method if the message

@@ -167,7 +167,7 @@ object MonitorableThreadFactory {
           result.set(Some(thunk))
           true
         }
-        def isReleasable = result.get.isDefined
+        def isReleasable: _root_.scala.Boolean = result.get.isDefined
       })
       result.get.get // Exception intended if None
     }
@@ -208,31 +208,31 @@ trait ExecutorServiceDelegate extends ExecutorService {
 
   def executor: ExecutorService
 
-  def execute(command: Runnable) = executor.execute(command)
+  def execute(command: Runnable): _root_.scala.Unit = executor.execute(command)
 
   def shutdown() { executor.shutdown() }
 
-  def shutdownNow() = executor.shutdownNow()
+  def shutdownNow(): _root_.java.util.List[_root_.java.lang.Runnable] = executor.shutdownNow()
 
-  def isShutdown = executor.isShutdown
+  def isShutdown: _root_.scala.Boolean = executor.isShutdown
 
-  def isTerminated = executor.isTerminated
+  def isTerminated: _root_.scala.Boolean = executor.isTerminated
 
-  def awaitTermination(l: Long, timeUnit: TimeUnit) = executor.awaitTermination(l, timeUnit)
+  def awaitTermination(l: Long, timeUnit: TimeUnit): _root_.scala.Boolean = executor.awaitTermination(l, timeUnit)
 
-  def submit[T](callable: Callable[T]) = executor.submit(callable)
+  def submit[T](callable: Callable[T]): _root_.java.util.concurrent.Future[T] = executor.submit(callable)
 
-  def submit[T](runnable: Runnable, t: T) = executor.submit(runnable, t)
+  def submit[T](runnable: Runnable, t: T): _root_.java.util.concurrent.Future[T] = executor.submit(runnable, t)
 
-  def submit(runnable: Runnable) = executor.submit(runnable)
+  def submit(runnable: Runnable): java.util.concurrent.Future[_] = executor.submit(runnable)
 
-  def invokeAll[T](callables: Collection[_ <: Callable[T]]) = executor.invokeAll(callables)
+  def invokeAll[T](callables: Collection[_ <: Callable[T]]): _root_.java.util.List[_root_.java.util.concurrent.Future[T]] = executor.invokeAll(callables)
 
-  def invokeAll[T](callables: Collection[_ <: Callable[T]], l: Long, timeUnit: TimeUnit) = executor.invokeAll(callables, l, timeUnit)
+  def invokeAll[T](callables: Collection[_ <: Callable[T]], l: Long, timeUnit: TimeUnit): _root_.java.util.List[_root_.java.util.concurrent.Future[T]] = executor.invokeAll(callables, l, timeUnit)
 
-  def invokeAny[T](callables: Collection[_ <: Callable[T]]) = executor.invokeAny(callables)
+  def invokeAny[T](callables: Collection[_ <: Callable[T]]): T = executor.invokeAny(callables)
 
-  def invokeAny[T](callables: Collection[_ <: Callable[T]], l: Long, timeUnit: TimeUnit) = executor.invokeAny(callables, l, timeUnit)
+  def invokeAny[T](callables: Collection[_ <: Callable[T]], l: Long, timeUnit: TimeUnit): T = executor.invokeAny(callables, l, timeUnit)
 }
 
 /**

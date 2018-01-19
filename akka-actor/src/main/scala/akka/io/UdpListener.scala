@@ -33,12 +33,12 @@ private[io] class UdpListener(
 
   context.watch(bind.handler) // sign death pact
 
-  val channel = bind.options.collectFirst {
+  val channel: _root_.java.nio.channels.DatagramChannel = bind.options.collectFirst {
     case creator: DatagramChannelCreator ⇒ creator
   }.getOrElse(DatagramChannelCreator()).create()
   channel.configureBlocking(false)
 
-  val localAddress =
+  val localAddress: _root_.scala.Any =
     try {
       val socket = channel.socket
       bind.options.foreach(_.beforeDatagramBind(socket))

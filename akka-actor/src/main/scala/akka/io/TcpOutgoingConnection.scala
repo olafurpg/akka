@@ -119,9 +119,9 @@ private[io] class TcpOutgoingConnection(
 
 @InternalApi
 private[io] object TcpOutgoingConnection {
-  val FinishConnectNeverReturnedTrueException =
+  val FinishConnectNeverReturnedTrueException: _root_.java.net.ConnectException with _root_.scala.util.control.NoStackTrace {} =
     new ConnectException("Could not establish connection because finishConnect never returned true") with NoStackTrace
 
-  def connectTimeoutExpired(timeout: Option[FiniteDuration]) =
+  def connectTimeoutExpired(timeout: Option[FiniteDuration]): _root_.java.net.ConnectException with _root_.scala.util.control.NoStackTrace {} =
     new ConnectException(s"Connect timeout of $timeout expired") with NoStackTrace
 }

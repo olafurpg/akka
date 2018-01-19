@@ -91,9 +91,9 @@ private[io] object SelectionHandler {
 
   private[io] abstract class SelectorBasedManager(selectorSettings: SelectionHandlerSettings, nrOfSelectors: Int) extends Actor {
 
-    override def supervisorStrategy = connectionSupervisorStrategy
+    override def supervisorStrategy: _root_.akka.actor.SupervisorStrategy = connectionSupervisorStrategy
 
-    val selectorPool = context.actorOf(
+    val selectorPool: _root_.akka.actor.ActorRef = context.actorOf(
       props = RandomPool(nrOfSelectors).props(Props(classOf[SelectionHandler], selectorSettings)).withDeploy(Deploy.local),
       name = "selectors")
 
@@ -121,7 +121,7 @@ private[io] object SelectionHandler {
     private[this] val selector = SelectorProvider.provider.openSelector
     private[this] val wakeUp = new AtomicBoolean(false)
 
-    final val OP_READ_AND_WRITE = OP_READ | OP_WRITE // compile-time constant
+    final val OP_READ_AND_WRITE: _root_.scala.Int = OP_READ | OP_WRITE // compile-time constant
 
     private[this] val select = new Task {
       def tryRun(): Unit = {
@@ -279,7 +279,7 @@ private[io] class SelectionHandler(settings: SelectionHandlerSettings) extends A
 
   // we can never recover from failures of a connection or listener child
   // and log the failure at debug level
-  override def supervisorStrategy = {
+  override def supervisorStrategy: _root_.akka.actor.OneForOneStrategy = {
     def stoppingDecider: SupervisorStrategy.Decider = {
       case _: Exception ⇒ SupervisorStrategy.Stop
     }

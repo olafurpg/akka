@@ -15,7 +15,7 @@ import scala.annotation.tailrec
 object Deploy {
   final val NoDispatcherGiven = ""
   final val NoMailboxGiven = ""
-  val local = Deploy(scope = LocalScope)
+  val local: _root_.akka.actor.Deploy = Deploy(scope = LocalScope)
 }
 
 /**
@@ -104,7 +104,7 @@ case object LocalScope extends LocalScope {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.actor.LocalScope.type = this
 
   def withFallback(other: Scope): Scope = this
 }
@@ -121,7 +121,7 @@ case object NoScopeGiven extends NoScopeGiven {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.actor.NoScopeGiven.type = this
 }
 
 /**
@@ -134,7 +134,7 @@ private[akka] class Deployer(val settings: ActorSystem.Settings, val dynamicAcce
   private val resizerEnabled: Config = ConfigFactory.parseString("resizer.enabled=on")
   private val deployments = new AtomicReference(WildcardIndex[Deploy]())
   private val config = settings.config.getConfig("akka.actor.deployment")
-  protected val default = config.getConfig("default")
+  protected val default: _root_.com.typesafe.config.Config = config.getConfig("default")
   val routerTypeMapping: Map[String, String] =
     settings.config.getConfig("akka.actor.router.type-mapping").root.unwrapped.asScala.collect {
       case (key, value: String) ⇒ (key → value)

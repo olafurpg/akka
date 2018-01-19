@@ -204,15 +204,15 @@ private final case class BackoffOptionsImpl(
   supervisorStrategy: OneForOneStrategy    = OneForOneStrategy()(SupervisorStrategy.defaultStrategy.decider),
   replyWhileStopped:  Option[Any]          = None) extends BackoffOptions {
 
-  val backoffReset = reset.getOrElse(AutoReset(minBackoff))
+  val backoffReset: _root_.akka.pattern.BackoffReset = reset.getOrElse(AutoReset(minBackoff))
 
-  def withAutoReset(resetBackoff: FiniteDuration) = copy(reset = Some(AutoReset(resetBackoff)))
-  def withManualReset = copy(reset = Some(ManualReset))
-  def withSupervisorStrategy(supervisorStrategy: OneForOneStrategy) = copy(supervisorStrategy = supervisorStrategy)
-  def withDefaultStoppingStrategy = copy(supervisorStrategy = OneForOneStrategy()(SupervisorStrategy.stoppingStrategy.decider))
-  def withReplyWhileStopped(replyWhileStopped: Any) = copy(replyWhileStopped = Some(replyWhileStopped))
+  def withAutoReset(resetBackoff: FiniteDuration): _root_.akka.pattern.BackoffOptionsImpl = copy(reset = Some(AutoReset(resetBackoff)))
+  def withManualReset: _root_.akka.pattern.BackoffOptionsImpl = copy(reset = Some(ManualReset))
+  def withSupervisorStrategy(supervisorStrategy: OneForOneStrategy): _root_.akka.pattern.BackoffOptionsImpl = copy(supervisorStrategy = supervisorStrategy)
+  def withDefaultStoppingStrategy: _root_.akka.pattern.BackoffOptionsImpl = copy(supervisorStrategy = OneForOneStrategy()(SupervisorStrategy.stoppingStrategy.decider))
+  def withReplyWhileStopped(replyWhileStopped: Any): _root_.akka.pattern.BackoffOptionsImpl = copy(replyWhileStopped = Some(replyWhileStopped))
 
-  def props = {
+  def props: _root_.akka.actor.Props = {
     require(minBackoff > Duration.Zero, "minBackoff must be > 0")
     require(maxBackoff >= minBackoff, "maxBackoff must be >= minBackoff")
     require(0.0 <= randomFactor && randomFactor <= 1.0, "randomFactor must be between 0.0 and 1.0")

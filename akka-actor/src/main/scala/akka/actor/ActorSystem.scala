@@ -748,7 +748,7 @@ private[akka] class ActorSystemImpl(
   import settings._
 
   // this provides basic logging (to stdout) until .start() is called below
-  val eventStream = new EventStream(this, DebugEventStream)
+  val eventStream: _root_.akka.event.EventStream = new EventStream(this, DebugEventStream)
   eventStream.startStdoutLogger(settings)
 
   val logFilter: LoggingFilter = {
@@ -820,7 +820,7 @@ private[akka] class ActorSystemImpl(
   }
 
   def start(): this.type = _start
-  def registerOnTermination[T](code: ⇒ T) { registerOnTermination(new Runnable { def run = code }) }
+  def registerOnTermination[T](code: ⇒ T) { registerOnTermination(new Runnable { def run: _root_.scala.Unit = code }) }
   def registerOnTermination(code: Runnable) { terminationCallbacks.add(code) }
 
   override def terminate(): Future[Terminated] = {

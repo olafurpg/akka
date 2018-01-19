@@ -52,7 +52,7 @@ private[io] abstract class TcpConnection(val tcp: TcpExt, val channel: SocketCha
   def unsignDeathPact(): Unit =
     if (watchedActor ne context.system.deadLetters) context.unwatch(watchedActor)
 
-  def writePending = pendingWrite ne EmptyPendingWrite
+  def writePending: _root_.scala.Boolean = pendingWrite ne EmptyPendingWrite
 
   // STATES
 
@@ -268,7 +268,7 @@ private[io] abstract class TcpConnection(val tcp: TcpExt, val channel: SocketCha
 
   def doWrite(info: ConnectionInfo): Unit = pendingWrite = pendingWrite.doWrite(info)
 
-  def closeReason =
+  def closeReason: _root_.akka.io.Tcp.ConnectionClosed with _root_.scala.Product with _root_.scala.Serializable {} =
     if (channel.socket.isOutputShutdown) ConfirmedClosed
     else PeerClosed
 
@@ -519,9 +519,9 @@ private[io] object TcpConnection {
 
   val doNothing: () ⇒ Unit = () ⇒ ()
 
-  val DroppingWriteBecauseWritingIsSuspendedException =
+  val DroppingWriteBecauseWritingIsSuspendedException: _root_.java.io.IOException with _root_.scala.util.control.NoStackTrace {} =
     new IOException("Dropping write because writing is suspended") with NoStackTrace
 
-  val DroppingWriteBecauseQueueIsFullException =
+  val DroppingWriteBecauseQueueIsFullException: _root_.java.io.IOException with _root_.scala.util.control.NoStackTrace {} =
     new IOException("Dropping write because queue is full") with NoStackTrace
 }

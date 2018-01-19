@@ -60,7 +60,7 @@ private[akka] object MessageDispatcher {
   // dispatcher debugging helper using println (see below)
   // since this is a compile-time constant, scalac will elide code behind if (MessageDispatcher.debug) (RK checked with 2.9.1)
   final val debug = false // Deliberately without type ascription to make it a compile-time constant
-  lazy val actors = new Index[MessageDispatcher, ActorRef](16, new ju.Comparator[ActorRef] {
+  lazy val actors: _root_.akka.util.Index[_root_.akka.dispatch.MessageDispatcher, _root_.akka.actor.ActorRef] = new Index[MessageDispatcher, ActorRef](16, new ju.Comparator[ActorRef] {
     override def compare(a: ActorRef, b: ActorRef): Int = a.compareTo(b)
   })
   def printActors(): Unit =
@@ -89,8 +89,8 @@ abstract class MessageDispatcher(val configurator: MessageDispatcherConfigurator
   import MessageDispatcher._
   import configurator.prerequisites
 
-  val mailboxes = prerequisites.mailboxes
-  val eventStream = prerequisites.eventStream
+  val mailboxes: _root_.akka.dispatch.Mailboxes = prerequisites.mailboxes
+  val eventStream: _root_.akka.event.EventStream = prerequisites.eventStream
 
   @volatile private[this] var _inhabitantsDoNotCallMeDirectly: Long = _ // DO NOT TOUCH!
   @volatile private[this] var _shutdownScheduleDoNotCallMeDirectly: Int = _ // DO NOT TOUCH!
@@ -290,7 +290,7 @@ abstract class MessageDispatcher(val configurator: MessageDispatcherConfigurator
   /**
    * INTERNAL API
    */
-  @inline protected[akka] final val isThroughputDeadlineTimeDefined = throughputDeadlineTime.toMillis > 0
+  @inline protected[akka] final val isThroughputDeadlineTimeDefined: _root_.scala.Boolean = throughputDeadlineTime.toMillis > 0
 
   /**
    * INTERNAL API

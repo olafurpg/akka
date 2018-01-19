@@ -21,7 +21,7 @@ object RoundRobinRoutingLogic {
  */
 @SerialVersionUID(1L)
 final class RoundRobinRoutingLogic extends RoutingLogic {
-  val next = new AtomicLong
+  val next: _root_.java.util.concurrent.atomic.AtomicLong = new AtomicLong
 
   override def select(message: Any, routees: immutable.IndexedSeq[Routee]): Routee =
     if (routees.nonEmpty) {
@@ -85,7 +85,7 @@ final case class RoundRobinPool(
 
   override def createRouter(system: ActorSystem): Router = new Router(RoundRobinRoutingLogic())
 
-  override def nrOfInstances(sys: ActorSystem) = this.nrOfInstances
+  override def nrOfInstances(sys: ActorSystem): _root_.scala.Int = this.nrOfInstances
 
   /**
    * Setting the supervisor strategy to be used for the “head” Router actor.

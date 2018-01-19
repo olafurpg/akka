@@ -38,8 +38,8 @@ private[akka] object Mailbox {
   final val Scheduled = 2 // Deliberately without type ascription to make it a compile-time constant
   // Shifted by 2: the suspend count!
   final val shouldScheduleMask = 3
-  final val shouldNotProcessMask = ~2
-  final val suspendMask = ~3
+  final val shouldNotProcessMask: _root_.scala.Int = ~2
+  final val suspendMask: _root_.scala.Int = ~3
   final val suspendUnit = 4
 
   // mailbox debugging helper using println (see below)
@@ -477,8 +477,8 @@ trait MultipleConsumerSemantics
  */
 trait QueueBasedMessageQueue extends MessageQueue with MultipleConsumerSemantics {
   def queue: Queue[Envelope]
-  def numberOfMessages = queue.size
-  def hasMessages = !queue.isEmpty
+  def numberOfMessages: _root_.scala.Int = queue.size
+  def hasMessages: _root_.scala.Boolean = !queue.isEmpty
   def cleanUp(owner: ActorRef, deadLetters: MessageQueue): Unit = {
     if (hasMessages) {
       var envelope = dequeue
@@ -772,7 +772,7 @@ final case class UnboundedDequeBasedMailbox() extends MailboxType with ProducesM
 
 object UnboundedDequeBasedMailbox {
   class MessageQueue extends LinkedBlockingDeque[Envelope] with UnboundedDequeBasedMessageQueue {
-    final val queue = this
+    final val queue: _root_.akka.dispatch.UnboundedDequeBasedMailbox.MessageQueue = this
   }
 }
 
@@ -797,7 +797,7 @@ case class BoundedDequeBasedMailbox( final val capacity: Int, override final val
 object BoundedDequeBasedMailbox {
   class MessageQueue(capacity: Int, val pushTimeOut: FiniteDuration)
     extends LinkedBlockingDeque[Envelope](capacity) with BoundedDequeBasedMessageQueue {
-    final val queue = this
+    final val queue: _root_.akka.dispatch.BoundedDequeBasedMailbox.MessageQueue = this
   }
 }
 
@@ -875,8 +875,8 @@ object BoundedControlAwareMailbox {
     private final val notFull = putLock.newCondition()
 
     // no need to use blocking queues here, as blocking is being handled in `enqueueWithTimeout`
-    val controlQueue = new ConcurrentLinkedQueue[Envelope]()
-    val queue = new ConcurrentLinkedQueue[Envelope]()
+    val controlQueue: _root_.java.util.concurrent.ConcurrentLinkedQueue[_root_.akka.dispatch.Envelope] = new ConcurrentLinkedQueue[Envelope]()
+    val queue: _root_.java.util.concurrent.ConcurrentLinkedQueue[_root_.akka.dispatch.Envelope] = new ConcurrentLinkedQueue[Envelope]()
 
     override def enqueue(receiver: ActorRef, handle: Envelope): Unit = handle match {
       case envelope @ Envelope(_: ControlMessage, _) ⇒ enqueueWithTimeout(controlQueue, receiver, envelope)

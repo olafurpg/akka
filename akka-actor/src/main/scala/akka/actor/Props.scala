@@ -34,17 +34,17 @@ object Props extends AbstractProps {
   /**
    * The default Deploy instance which is used when creating a Props
    */
-  final val defaultDeploy = Deploy()
+  final val defaultDeploy: _root_.akka.actor.Deploy = Deploy()
 
   /**
    * A Props instance whose creator will create an actor that doesn't respond to any message
    */
-  final val empty = Props[EmptyActor]
+  final val empty: _root_.akka.actor.Props = Props[EmptyActor]
 
   /**
    * The default Props instance, uses the settings from the Props object starting with default*.
    */
-  final val default = Props(defaultDeploy, classOf[CreatorFunctionConsumer], List(defaultCreator))
+  final val default: _root_.akka.actor.Props = Props(defaultDeploy, classOf[CreatorFunctionConsumer], List(defaultCreator))
 
   /**
    * INTERNAL API
@@ -52,7 +52,7 @@ object Props extends AbstractProps {
    * (Not because it is so immensely complicated, only because we might remove it if no longer needed internally)
    */
   private[akka] class EmptyActor extends Actor {
-    def receive = Actor.emptyBehavior
+    def receive: _root_.akka.actor.Actor.emptyBehavior.type = Actor.emptyBehavior
   }
 
   /**

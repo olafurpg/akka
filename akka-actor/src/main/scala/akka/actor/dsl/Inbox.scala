@@ -32,10 +32,10 @@ private[akka] object Inbox {
     def client: ActorRef
   }
   private final case class Get(deadline: Deadline, client: ActorRef = null) extends Query {
-    def withClient(c: ActorRef) = copy(client = c)
+    def withClient(c: ActorRef): _root_.akka.actor.dsl.Inbox.Get = copy(client = c)
   }
   private final case class Select(deadline: Deadline, predicate: PartialFunction[Any, Any], client: ActorRef = null) extends Query {
-    def withClient(c: ActorRef) = copy(client = c)
+    def withClient(c: ActorRef): _root_.akka.actor.dsl.Inbox.Select = copy(client = c)
   }
   private final case class StartWatch(target: ActorRef)
   private case object Kick
@@ -47,10 +47,10 @@ trait Inbox { this: ActorDSL.type ⇒
   import Inbox._
 
   protected trait InboxExtension { this: Extension ⇒
-    val DSLInboxQueueSize = config.getInt("inbox-size")
+    val DSLInboxQueueSize: _root_.scala.Int = config.getInt("inbox-size")
 
-    val inboxNr = new AtomicInteger
-    val inboxProps = Props(classOf[InboxActor], ActorDSL, DSLInboxQueueSize)
+    val inboxNr: _root_.java.util.concurrent.atomic.AtomicInteger = new AtomicInteger
+    val inboxProps: _root_.akka.actor.Props = Props(classOf[InboxActor], ActorDSL, DSLInboxQueueSize)
 
     def newReceiver: ActorRef = mkChild(inboxProps, "inbox-" + inboxNr.incrementAndGet)
   }
@@ -60,9 +60,9 @@ trait Inbox { this: ActorDSL.type ⇒
   }
 
   private class InboxActor(size: Int) extends Actor with ActorLogging {
-    var clients = Queue.empty[Query]
-    val messages = Queue.empty[Any]
-    var clientsByTimeout = TreeSet.empty[Query]
+    var clients: _root_.scala.collection.mutable.Queue[_root_.akka.actor.dsl.Inbox.Query] = Queue.empty[Query]
+    val messages: _root_.scala.collection.mutable.Queue[_root_.scala.Any] = Queue.empty[Any]
+    var clientsByTimeout: _root_.scala.collection.immutable.TreeSet[_root_.akka.actor.dsl.Inbox.Query] = TreeSet.empty[Query]
     var printedWarning = false
 
     def enqueueQuery(q: Query) {
@@ -93,7 +93,7 @@ trait Inbox { this: ActorDSL.type ⇒
 
     var currentDeadline: Option[(Deadline, Cancellable)] = None
 
-    def receive = ({
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = ({
       case g: Get ⇒
         if (messages.isEmpty) enqueueQuery(g)
         else sender() ! messages.dequeue()

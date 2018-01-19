@@ -394,7 +394,7 @@ private[akka] object LocalActorRefProvider {
   private class Guardian(override val supervisorStrategy: SupervisorStrategy) extends Actor
     with RequiresMessageQueue[UnboundedMessageQueueSemantics] {
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Terminated(_)    ⇒ context.stop(self)
       case StopChild(child) ⇒ context.stop(child)
     }
@@ -410,9 +410,9 @@ private[akka] object LocalActorRefProvider {
     extends Actor with RequiresMessageQueue[UnboundedMessageQueueSemantics] {
     import SystemGuardian._
 
-    var terminationHooks = Set.empty[ActorRef]
+    var terminationHooks: _root_.scala.collection.immutable.Set[_root_.akka.actor.ActorRef] = Set.empty[ActorRef]
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Terminated(`guardian`) ⇒
         // time for the systemGuardian to stop, but first notify all the
         // termination hooks, they will reply with TerminationHookDone
@@ -509,11 +509,11 @@ private[akka] class LocalActorRefProvider private[akka] (
   private[akka] val theOneWhoWalksTheBubblesOfSpaceTime: InternalActorRef = new MinimalActorRef {
     val causeOfTermination: Promise[Terminated] = Promise[Terminated]()
 
-    val path = rootPath / "bubble-walker"
+    val path: _root_.akka.actor.ActorPath = rootPath / "bubble-walker"
 
     def provider: ActorRefProvider = LocalActorRefProvider.this
 
-    def isWalking = causeOfTermination.future.isCompleted == false
+    def isWalking: _root_.scala.Boolean = causeOfTermination.future.isCompleted == false
 
     override def stop(): Unit = {
       causeOfTermination.trySuccess(Terminated(provider.rootGuardian)(existenceConfirmed = true, addressTerminated = true)) //Idempotent
@@ -631,7 +631,7 @@ private[akka] class LocalActorRefProvider private[akka] (
     ref
   }
 
-  lazy val tempContainer = new VirtualPathContainer(system.provider, tempNode, rootGuardian, log)
+  lazy val tempContainer: _root_.akka.actor.VirtualPathContainer = new VirtualPathContainer(system.provider, tempNode, rootGuardian, log)
 
   def registerTempActor(actorRef: InternalActorRef, path: ActorPath): Unit = {
     assert(path.parent eq tempNode, "cannot registerTempActor() with anything not obtained from tempPath()")

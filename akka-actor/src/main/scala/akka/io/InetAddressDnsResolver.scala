@@ -64,7 +64,7 @@ class InetAddressDnsResolver(cache: SimpleDnsCache, config: Config) extends Acto
   val positiveTtl: Long = getTtl("positive-ttl", positive = true)
   val negativeTtl: Long = getTtl("negative-ttl", positive = false)
 
-  override def receive = {
+  override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case Dns.Resolve(name) ⇒
       val answer = cache.cached(name) match {
         case Some(a) ⇒ a

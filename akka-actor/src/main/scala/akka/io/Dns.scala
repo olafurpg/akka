@@ -22,7 +22,7 @@ object Dns extends ExtensionId[DnsExt] with ExtensionIdProvider {
   sealed trait Command
 
   case class Resolve(name: String) extends Command with ConsistentHashable {
-    override def consistentHashKey = name
+    override def consistentHashKey: _root_.scala.Predef.String = name
   }
 
   case class Resolved(name: String, ipv4: immutable.Seq[Inet4Address], ipv6: immutable.Seq[Inet6Address]) extends Command {
@@ -55,7 +55,7 @@ object Dns extends ExtensionId[DnsExt] with ExtensionIdProvider {
     Dns(system).cache.resolve(name)(system, sender)
   }
 
-  override def lookup() = Dns
+  override def lookup(): _root_.akka.io.Dns.type = Dns
 
   override def createExtension(system: ExtendedActorSystem): DnsExt = new DnsExt(system)
 
@@ -66,7 +66,7 @@ object Dns extends ExtensionId[DnsExt] with ExtensionIdProvider {
 }
 
 class DnsExt(system: ExtendedActorSystem) extends IO.Extension {
-  val Settings = new Settings(system.settings.config.getConfig("akka.io.dns"))
+  val Settings: DnsExt.this.Settings = new Settings(system.settings.config.getConfig("akka.io.dns"))
 
   class Settings private[DnsExt] (_config: Config) {
 

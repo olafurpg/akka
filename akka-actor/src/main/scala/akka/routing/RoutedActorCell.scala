@@ -25,8 +25,8 @@ import scala.concurrent.duration._
  */
 private[akka] object RoutedActorCell {
   class RouterActorCreator(routerConfig: RouterConfig) extends IndirectActorProducer {
-    override def actorClass = classOf[RouterActor]
-    override def produce() = routerConfig.createRouterActor()
+    override def actorClass: _root_.java.lang.Class[_root_.akka.routing.RouterActor] = classOf[RouterActor]
+    override def produce(): _root_.akka.routing.RouterActor = routerConfig.createRouterActor()
   }
 
 }
@@ -141,7 +141,7 @@ private[akka] class RoutedActorCell(
  * INTERNAL API
  */
 private[akka] class RouterActor extends Actor {
-  val cell = context match {
+  val cell: _root_.akka.routing.RoutedActorCell = context match {
     case x: RoutedActorCell ⇒ x
     case _ ⇒
       throw ActorInitializationException("Router actor can only be used in RoutedActorRef, not in " + context.getClass)
@@ -152,7 +152,7 @@ private[akka] class RouterActor extends Actor {
       props.withDispatcher(context.props.dispatcher),
       name = "routingLogicController"))
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case GetRoutees ⇒
       sender() ! Routees(cell.router.routees)
     case AddRoutee(routee) ⇒
@@ -181,13 +181,13 @@ private[akka] class RouterActor extends Actor {
  */
 private[akka] class RouterPoolActor(override val supervisorStrategy: SupervisorStrategy) extends RouterActor {
 
-  val pool = cell.routerConfig match {
+  val pool: _root_.akka.routing.Pool = cell.routerConfig match {
     case x: Pool ⇒ x
     case other ⇒
       throw ActorInitializationException("RouterPoolActor can only be used with Pool, not " + other.getClass)
   }
 
-  override def receive = ({
+  override def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = ({
     case AdjustPoolSize(change: Int) ⇒
       if (change > 0) {
         val newRoutees = Vector.fill(change)(pool.newRoutee(cell.routeeProps, context))

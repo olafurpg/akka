@@ -42,7 +42,7 @@ case object PoisonPill extends PoisonPill {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.actor.PoisonPill.type = this
 }
 
 abstract class Kill extends AutoReceivedMessage with PossiblyHarmful
@@ -55,7 +55,7 @@ case object Kill extends Kill {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.actor.Kill.type = this
 }
 
 /**
@@ -142,7 +142,7 @@ case object ReceiveTimeout extends ReceiveTimeout {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.actor.ReceiveTimeout.type = this
 }
 
 /**
@@ -341,7 +341,7 @@ trait ActorLogging { this: Actor ⇒
  */
 trait DiagnosticActorLogging extends Actor {
   import akka.event.Logging._
-  val log = akka.event.Logging(this)
+  val log: _root_.akka.event.DiagnosticLoggingAdapter = akka.event.Logging(this)
   def mdc(currentMessage: Any): MDC = emptyMDC
 
   override protected[akka] def aroundReceive(receive: Actor.Receive, msg: Any): Unit = try {
@@ -367,7 +367,7 @@ object Actor {
   @SerialVersionUID(1L)
   object emptyBehavior extends Receive {
     def isDefinedAt(x: Any) = false
-    def apply(x: Any) = throw new UnsupportedOperationException("Empty behavior apply()")
+    def apply(x: Any): _root_.scala.Nothing = throw new UnsupportedOperationException("Empty behavior apply()")
   }
 
   /**
@@ -483,7 +483,7 @@ trait Actor {
    * self ! message
    * </pre>
    */
-  implicit final val self = context.self //MUST BE A VAL, TRUST ME
+  implicit final val self: _root_.akka.actor.ActorRef = context.self //MUST BE A VAL, TRUST ME
 
   /**
    * The reference sender Actor of the last received message.

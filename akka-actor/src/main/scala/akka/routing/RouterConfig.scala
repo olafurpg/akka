@@ -266,11 +266,11 @@ case object FromConfig extends FromConfig {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.routing.FromConfig.type = this
   @inline final def apply(
     resizer:            Option[Resizer]    = None,
     supervisorStrategy: SupervisorStrategy = Pool.defaultSupervisorStrategy,
-    routerDispatcher:   String             = Dispatchers.DefaultDispatcherId) =
+    routerDispatcher:   String             = Dispatchers.DefaultDispatcherId): _root_.akka.routing.FromConfig =
     new FromConfig(resizer, supervisorStrategy, routerDispatcher)
 
   @inline final def unapply(fc: FromConfig): Option[String] = Some(fc.routerDispatcher)
@@ -355,7 +355,7 @@ case object NoRouter extends NoRouter {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.routing.NoRouter.type = this
 
   def props(routeeProps: Props): Props = routeeProps.withRouter(this)
 
@@ -377,7 +377,7 @@ case object NoRouter extends NoRouter {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.routing.GetRoutees.type = this
 }
 
 /**

@@ -15,7 +15,7 @@ import scala.util.{ Failure, Success, Try }
  * INTERNAL API
  */
 private[akka] object CachingConfig {
-  val emptyConfig = ConfigFactory.empty()
+  val emptyConfig: _root_.com.typesafe.config.Config = ConfigFactory.empty()
 
   sealed abstract trait PathEntry {
     val valid: Boolean
@@ -25,9 +25,9 @@ private[akka] object CachingConfig {
   final case class ValuePathEntry(valid: Boolean, exists: Boolean, config: Config = emptyConfig) extends PathEntry
   final case class StringPathEntry(valid: Boolean, exists: Boolean, config: Config, value: String) extends PathEntry
 
-  val invalidPathEntry = ValuePathEntry(false, true)
-  val nonExistingPathEntry = ValuePathEntry(true, false)
-  val emptyPathEntry = ValuePathEntry(true, true)
+  val invalidPathEntry: _root_.akka.dispatch.CachingConfig.ValuePathEntry = ValuePathEntry(false, true)
+  val nonExistingPathEntry: _root_.akka.dispatch.CachingConfig.ValuePathEntry = ValuePathEntry(true, false)
+  val emptyPathEntry: _root_.akka.dispatch.CachingConfig.ValuePathEntry = ValuePathEntry(true, true)
 }
 
 /**
@@ -77,21 +77,21 @@ private[akka] class CachingConfig(_config: Config) extends Config {
     config.checkValid(reference, restrictToPaths: _*)
   }
 
-  def root() = config.root()
+  def root(): _root_.com.typesafe.config.ConfigObject = config.root()
 
-  def origin() = config.origin()
+  def origin(): _root_.com.typesafe.config.ConfigOrigin = config.origin()
 
-  def withFallback(other: ConfigMergeable) = new CachingConfig(config.withFallback(other))
+  def withFallback(other: ConfigMergeable): _root_.akka.dispatch.CachingConfig = new CachingConfig(config.withFallback(other))
 
-  def resolve() = resolve(ConfigResolveOptions.defaults())
+  def resolve(): _root_.com.typesafe.config.Config = resolve(ConfigResolveOptions.defaults())
 
-  def resolve(options: ConfigResolveOptions) = {
+  def resolve(options: ConfigResolveOptions): _root_.com.typesafe.config.Config = {
     val resolved = config.resolve(options)
     if (resolved eq config) this
     else new CachingConfig(resolved)
   }
 
-  def hasPath(path: String) = {
+  def hasPath(path: String): _root_.scala.Boolean = {
     val entry = getPathEntry(path)
     if (entry.valid)
       entry.exists
@@ -101,21 +101,21 @@ private[akka] class CachingConfig(_config: Config) extends Config {
 
   def hasPathOrNull(path: String): Boolean = config.hasPathOrNull(path)
 
-  def isEmpty = config.isEmpty
+  def isEmpty: _root_.scala.Boolean = config.isEmpty
 
-  def entrySet() = config.entrySet()
+  def entrySet(): _root_.java.util.Set[_root_.java.util.Map.Entry[_root_.java.lang.String, _root_.com.typesafe.config.ConfigValue]] = config.entrySet()
 
-  def getBoolean(path: String) = config.getBoolean(path)
+  def getBoolean(path: String): _root_.scala.Boolean = config.getBoolean(path)
 
-  def getNumber(path: String) = config.getNumber(path)
+  def getNumber(path: String): _root_.java.lang.Number = config.getNumber(path)
 
-  def getInt(path: String) = config.getInt(path)
+  def getInt(path: String): _root_.scala.Int = config.getInt(path)
 
-  def getLong(path: String) = config.getLong(path)
+  def getLong(path: String): _root_.scala.Long = config.getLong(path)
 
-  def getDouble(path: String) = config.getDouble(path)
+  def getDouble(path: String): _root_.scala.Double = config.getDouble(path)
 
-  def getString(path: String) = {
+  def getString(path: String): _root_.java.lang.String = {
     getPathEntry(path) match {
       case StringPathEntry(_, _, _, string) ⇒
         string
@@ -123,79 +123,79 @@ private[akka] class CachingConfig(_config: Config) extends Config {
     }
   }
 
-  def getObject(path: String) = config.getObject(path)
+  def getObject(path: String): _root_.com.typesafe.config.ConfigObject = config.getObject(path)
 
-  def getConfig(path: String) = config.getConfig(path)
+  def getConfig(path: String): _root_.com.typesafe.config.Config = config.getConfig(path)
 
-  def getAnyRef(path: String) = config.getAnyRef(path)
+  def getAnyRef(path: String): _root_.java.lang.Object = config.getAnyRef(path)
 
-  def getValue(path: String) = config.getValue(path)
+  def getValue(path: String): _root_.com.typesafe.config.ConfigValue = config.getValue(path)
 
-  def getBytes(path: String) = config.getBytes(path)
+  def getBytes(path: String): _root_.java.lang.Long = config.getBytes(path)
 
-  def getMilliseconds(path: String) = config.getDuration(path, TimeUnit.MILLISECONDS)
+  def getMilliseconds(path: String): _root_.java.lang.Long = config.getDuration(path, TimeUnit.MILLISECONDS)
 
-  def getNanoseconds(path: String) = config.getDuration(path, TimeUnit.NANOSECONDS)
+  def getNanoseconds(path: String): _root_.java.lang.Long = config.getDuration(path, TimeUnit.NANOSECONDS)
 
-  def getList(path: String) = config.getList(path)
+  def getList(path: String): _root_.com.typesafe.config.ConfigList = config.getList(path)
 
-  def getBooleanList(path: String) = config.getBooleanList(path)
+  def getBooleanList(path: String): _root_.java.util.List[_root_.java.lang.Boolean] = config.getBooleanList(path)
 
-  def getNumberList(path: String) = config.getNumberList(path)
+  def getNumberList(path: String): _root_.java.util.List[_root_.java.lang.Number] = config.getNumberList(path)
 
-  def getIntList(path: String) = config.getIntList(path)
+  def getIntList(path: String): _root_.java.util.List[_root_.java.lang.Integer] = config.getIntList(path)
 
-  def getLongList(path: String) = config.getLongList(path)
+  def getLongList(path: String): _root_.java.util.List[_root_.java.lang.Long] = config.getLongList(path)
 
-  def getDoubleList(path: String) = config.getDoubleList(path)
+  def getDoubleList(path: String): _root_.java.util.List[_root_.java.lang.Double] = config.getDoubleList(path)
 
-  def getStringList(path: String) = config.getStringList(path)
+  def getStringList(path: String): _root_.java.util.List[_root_.java.lang.String] = config.getStringList(path)
 
-  def getObjectList(path: String) = config.getObjectList(path)
+  def getObjectList(path: String): java.util.List[_ <: com.typesafe.config.ConfigObject] = config.getObjectList(path)
 
-  def getConfigList(path: String) = config.getConfigList(path)
+  def getConfigList(path: String): java.util.List[_ <: com.typesafe.config.Config] = config.getConfigList(path)
 
-  def getAnyRefList(path: String) = config.getAnyRefList(path)
+  def getAnyRefList(path: String): java.util.List[_] = config.getAnyRefList(path)
 
-  def getBytesList(path: String) = config.getBytesList(path)
+  def getBytesList(path: String): _root_.java.util.List[_root_.java.lang.Long] = config.getBytesList(path)
 
-  def getMillisecondsList(path: String) = config.getDurationList(path, TimeUnit.MILLISECONDS)
+  def getMillisecondsList(path: String): _root_.java.util.List[_root_.java.lang.Long] = config.getDurationList(path, TimeUnit.MILLISECONDS)
 
-  def getNanosecondsList(path: String) = config.getDurationList(path, TimeUnit.NANOSECONDS)
+  def getNanosecondsList(path: String): _root_.java.util.List[_root_.java.lang.Long] = config.getDurationList(path, TimeUnit.NANOSECONDS)
 
-  def withOnlyPath(path: String) = new CachingConfig(config.withOnlyPath(path))
+  def withOnlyPath(path: String): _root_.akka.dispatch.CachingConfig = new CachingConfig(config.withOnlyPath(path))
 
-  def withoutPath(path: String) = new CachingConfig(config.withoutPath(path))
+  def withoutPath(path: String): _root_.akka.dispatch.CachingConfig = new CachingConfig(config.withoutPath(path))
 
-  def atPath(path: String) = new CachingConfig(config.atPath(path))
+  def atPath(path: String): _root_.akka.dispatch.CachingConfig = new CachingConfig(config.atPath(path))
 
-  def atKey(key: String) = new CachingConfig(config.atKey(key))
+  def atKey(key: String): _root_.akka.dispatch.CachingConfig = new CachingConfig(config.atKey(key))
 
-  def withValue(path: String, value: ConfigValue) = new CachingConfig(config.withValue(path, value))
+  def withValue(path: String, value: ConfigValue): _root_.akka.dispatch.CachingConfig = new CachingConfig(config.withValue(path, value))
 
-  def getDuration(path: String, unit: TimeUnit) = config.getDuration(path, unit)
+  def getDuration(path: String, unit: TimeUnit): _root_.scala.Long = config.getDuration(path, unit)
 
-  def getDurationList(path: String, unit: TimeUnit) = config.getDurationList(path, unit)
+  def getDurationList(path: String, unit: TimeUnit): _root_.java.util.List[_root_.java.lang.Long] = config.getDurationList(path, unit)
 
   def getDuration(path: String): java.time.Duration = config.getDuration(path)
 
-  def getDurationList(path: String) = config.getDurationList(path)
+  def getDurationList(path: String): _root_.java.util.List[_root_.java.time.Duration] = config.getDurationList(path)
 
-  def getPeriod(path: String) = config.getPeriod(path)
+  def getPeriod(path: String): _root_.java.time.Period = config.getPeriod(path)
 
-  def getTemporal(path: String) = config.getTemporal(path)
+  def getTemporal(path: String): _root_.java.time.temporal.TemporalAmount = config.getTemporal(path)
 
   def getIsNull(path: String): Boolean = config.getIsNull(path)
 
-  def getMemorySize(path: String) = config.getMemorySize(path)
+  def getMemorySize(path: String): _root_.com.typesafe.config.ConfigMemorySize = config.getMemorySize(path)
 
-  def getMemorySizeList(path: String) = config.getMemorySizeList(path)
+  def getMemorySizeList(path: String): _root_.java.util.List[_root_.com.typesafe.config.ConfigMemorySize] = config.getMemorySizeList(path)
 
-  def isResolved() = config.isResolved()
+  def isResolved(): _root_.scala.Boolean = config.isResolved()
 
-  def resolveWith(source: Config, options: ConfigResolveOptions) = config.resolveWith(source, options)
+  def resolveWith(source: Config, options: ConfigResolveOptions): _root_.com.typesafe.config.Config = config.resolveWith(source, options)
 
-  def resolveWith(source: Config) = config.resolveWith(source)
+  def resolveWith(source: Config): _root_.com.typesafe.config.Config = config.resolveWith(source)
 
   override def getEnumList[T <: Enum[T]](enumClass: Class[T], path: String): util.List[T] = config.getEnumList(enumClass, path)
 

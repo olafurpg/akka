@@ -323,7 +323,7 @@ private[akka] trait Cell {
  * for! (waves hand)
  */
 private[akka] object ActorCell {
-  val contextStack = new ThreadLocal[List[ActorContext]] {
+  val contextStack: _root_.java.lang.ThreadLocal[_root_.scala.`package`.List[_root_.akka.actor.ActorContext]] = new ThreadLocal[List[ActorContext]] {
     override def initialValue: List[ActorContext] = Nil
   }
 
@@ -384,10 +384,10 @@ private[akka] class ActorCell(
 
   final def isLocal = true
 
-  final def systemImpl = system
-  protected final def guardian = self
-  protected final def lookupRoot = self
-  final def provider = system.provider
+  final def systemImpl: _root_.akka.actor.ActorSystemImpl = system
+  protected final def guardian: _root_.akka.actor.InternalActorRef = self
+  protected final def lookupRoot: _root_.akka.actor.InternalActorRef = self
+  final def provider: _root_.akka.actor.ActorRefProvider = system.provider
 
   protected def uid: Int = self.path.uid
   private[this] var _actor: Actor = _
@@ -398,9 +398,9 @@ private[akka] class ActorCell(
   private[this] var sysmsgStash: LatestFirstSystemMessageList = SystemMessageList.LNil
 
   // Java API
-  final def getParent() = parent
+  final def getParent(): _root_.akka.actor.InternalActorRef = parent
   // Java API
-  final def getSystem() = system
+  final def getSystem(): _root_.akka.actor.ActorSystemImpl = system
 
   protected def stash(msg: SystemMessage): Unit = {
     assert(msg.unlinked)

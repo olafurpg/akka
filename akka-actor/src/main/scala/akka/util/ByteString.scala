@@ -152,7 +152,7 @@ object ByteString {
   private[akka] object ByteString1C extends Companion {
     def fromString(s: String): ByteString1C = new ByteString1C(s.getBytes)
     def apply(bytes: Array[Byte]): ByteString1C = new ByteString1C(bytes)
-    val SerializationIdentity = 1.toByte
+    val SerializationIdentity: _root_.scala.Byte = 1.toByte
 
     def readFromInputStream(is: ObjectInputStream): ByteString1C = {
       val length = is.readInt()
@@ -258,7 +258,7 @@ object ByteString {
       if (length == 0) empty
       else new ByteString1(bytes, Math.max(0, startIndex), Math.max(0, length))
 
-    val SerializationIdentity = 0.toByte
+    val SerializationIdentity: _root_.scala.Byte = 0.toByte
 
     def readFromInputStream(is: ObjectInputStream): ByteString1 =
       ByteString1C.readFromInputStream(is).toByteString1
@@ -421,7 +421,7 @@ object ByteString {
         if (b2.isEmpty) 0 else 2
       else if (b2.isEmpty) 1 else 3
 
-    val SerializationIdentity = 2.toByte
+    val SerializationIdentity: _root_.scala.Byte = 2.toByte
 
     def readFromInputStream(is: ObjectInputStream): ByteStrings = {
       val nByteStrings = is.readInt()

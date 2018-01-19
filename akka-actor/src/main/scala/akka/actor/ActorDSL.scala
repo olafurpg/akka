@@ -73,7 +73,7 @@ object ActorDSL extends dsl.Inbox with dsl.Creators {
 
   protected object Extension extends ExtensionId[Extension] with ExtensionIdProvider {
 
-    override def lookup = Extension
+    override def lookup: _root_.akka.actor.ActorDSL.Extension.type = Extension
 
     override def createExtension(system: ExtendedActorSystem): Extension = new Extension(system)
 
@@ -88,15 +88,15 @@ object ActorDSL extends dsl.Inbox with dsl.Creators {
     private case class MkChild(props: Props, name: String) extends NoSerializationVerificationNeeded
     private val boss = system.systemActorOf(Props(
       new Actor {
-        def receive = {
+        def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
           case MkChild(props, name) ⇒ sender() ! context.actorOf(props, name)
           case any                  ⇒ sender() ! any
         }
       }), "dsl").asInstanceOf[RepointableActorRef]
 
-    lazy val config = system.settings.config.getConfig("akka.actor.dsl")
+    lazy val config: _root_.com.typesafe.config.Config = system.settings.config.getConfig("akka.actor.dsl")
 
-    val DSLDefaultTimeout = config.getMillisDuration("default-timeout")
+    val DSLDefaultTimeout: _root_.scala.concurrent.duration.FiniteDuration = config.getMillisDuration("default-timeout")
 
     def mkChild(p: Props, name: String): ActorRef =
       if (boss.isStarted)

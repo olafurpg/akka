@@ -55,7 +55,7 @@ trait EventBus {
  */
 trait ActorEventBus extends EventBus {
   type Subscriber = ActorRef
-  protected def compareSubscribers(a: ActorRef, b: ActorRef) = a compareTo b
+  protected def compareSubscribers(a: ActorRef, b: ActorRef): _root_.scala.Int = a compareTo b
 }
 
 /**
@@ -80,7 +80,7 @@ trait PredicateClassifier { this: EventBus ⇒
  */
 trait LookupClassification { this: EventBus ⇒
 
-  protected final val subscribers = new Index[Classifier, Subscriber](mapSize(), new Comparator[Subscriber] {
+  protected final val subscribers: _root_.akka.util.Index[LookupClassification.this.Classifier, LookupClassification.this.Subscriber] = new Index[Classifier, Subscriber](mapSize(), new Comparator[Subscriber] {
     def compare(a: Subscriber, b: Subscriber): Int = compareSubscribers(a, b)
   })
 
@@ -203,7 +203,7 @@ trait SubchannelClassification { this: EventBus ⇒
  * Note: the compareClassifiers and compareSubscribers must together form an absolute ordering (think java.util.Comparator.compare)
  */
 trait ScanningClassification { self: EventBus ⇒
-  protected final val subscribers = new ConcurrentSkipListSet[(Classifier, Subscriber)](new Comparator[(Classifier, Subscriber)] {
+  protected final val subscribers: _root_.java.util.concurrent.ConcurrentSkipListSet[(ScanningClassification.this.Classifier, ScanningClassification.this.Subscriber)] = new ConcurrentSkipListSet[(Classifier, Subscriber)](new Comparator[(Classifier, Subscriber)] {
     def compare(a: (Classifier, Subscriber), b: (Classifier, Subscriber)): Int = compareClassifiers(a._1, b._1) match {
       case 0     ⇒ compareSubscribers(a._2, b._2)
       case other ⇒ other
@@ -267,17 +267,17 @@ trait ManagedActorClassification { this: ActorEventBus with ActorClassifier ⇒
 
     def get(monitored: ActorRef): immutable.TreeSet[ActorRef] = backing.getOrElse(monitored, empty)
 
-    def add(monitored: ActorRef, monitor: ActorRef) = {
+    def add(monitored: ActorRef, monitor: ActorRef): ManagedActorClassification.this.ManagedActorClassificationMappings = {
       val watchers = backing.get(monitored).getOrElse(empty) + monitor
       new ManagedActorClassificationMappings(seqNr + 1, backing.updated(monitored, watchers))
     }
 
-    def remove(monitored: ActorRef, monitor: ActorRef) = {
+    def remove(monitored: ActorRef, monitor: ActorRef): ManagedActorClassification.this.ManagedActorClassificationMappings = {
       val monitors = backing.get(monitored).getOrElse(empty) - monitor
       new ManagedActorClassificationMappings(seqNr + 1, backing.updated(monitored, monitors))
     }
 
-    def remove(monitored: ActorRef) = {
+    def remove(monitored: ActorRef): ManagedActorClassification.this.ManagedActorClassificationMappings = {
       val v = backing - monitored
       new ManagedActorClassificationMappings(seqNr + 1, v)
     }
@@ -289,7 +289,7 @@ trait ManagedActorClassification { this: ActorEventBus with ActorClassifier ⇒
   private val empty = immutable.TreeSet.empty[ActorRef]
 
   /** The unsubscriber takes care of unsubscribing actors, which have terminated. */
-  protected lazy val unsubscriber = ActorClassificationUnsubscriber.start(system, this)
+  protected lazy val unsubscriber: _root_.akka.actor.ActorRef = ActorClassificationUnsubscriber.start(system, this)
 
   @tailrec
   protected final def associate(monitored: ActorRef, monitor: ActorRef): Boolean = {

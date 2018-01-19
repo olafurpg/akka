@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter
 
 object Helpers {
 
-  def toRootLowerCase(s: String) = s.toLowerCase(Locale.ROOT)
+  def toRootLowerCase(s: String): _root_.java.lang.String = s.toLowerCase(Locale.ROOT)
 
   val isWindows: Boolean = toRootLowerCase(System.getProperty("os.name", "")).indexOf("win") >= 0
 

@@ -103,7 +103,7 @@ trait TypedActorFactory {
 object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvider {
   override def get(system: ActorSystem): TypedActorExtension = super.get(system)
 
-  def lookup() = this
+  def lookup(): _root_.akka.actor.TypedActor.type = this
   def createExtension(system: ExtendedActorSystem): TypedActorExtension = new TypedActorExtension(system)
 
   /**
@@ -128,10 +128,10 @@ object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvi
    */
   final case class MethodCall(method: Method, parameters: Array[AnyRef]) {
 
-    def isOneWay = method.getReturnType == java.lang.Void.TYPE
-    def returnsFuture = classOf[Future[_]] isAssignableFrom method.getReturnType
-    def returnsJOption = classOf[akka.japi.Option[_]] isAssignableFrom method.getReturnType
-    def returnsOption = classOf[scala.Option[_]] isAssignableFrom method.getReturnType
+    def isOneWay: _root_.scala.Boolean = method.getReturnType == java.lang.Void.TYPE
+    def returnsFuture: _root_.scala.Boolean = classOf[Future[_]] isAssignableFrom method.getReturnType
+    def returnsJOption: _root_.scala.Boolean = classOf[akka.japi.Option[_]] isAssignableFrom method.getReturnType
+    def returnsOption: _root_.scala.Boolean = classOf[scala.Option[_]] isAssignableFrom method.getReturnType
 
     /**
      * Invokes the Method on the supplied instance
@@ -219,7 +219,7 @@ object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvi
    *
    * Throws ClassCastException if the supplied type T isn't the type of the proxy associated with this TypedActor.
    */
-  def self[T <: AnyRef] = selfReference.get.asInstanceOf[T] match {
+  def self[T <: AnyRef]: T = selfReference.get.asInstanceOf[T] match {
     case null ⇒ throw new IllegalStateException("Calling TypedActor.self outside of a TypedActor implementation method!")
     case some ⇒ some
   }
@@ -235,7 +235,7 @@ object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvi
   /**
    * Returns the default dispatcher (for a TypedActor) when inside a method call in a TypedActor.
    */
-  implicit def dispatcher = context.dispatcher
+  implicit def dispatcher: _root_.scala.concurrent.ExecutionContextExecutor = context.dispatcher
 
   /**
    * INTERNAL API
@@ -301,7 +301,7 @@ object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvi
       }
     }
 
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case m: MethodCall ⇒ withContext {
         if (m.isOneWay) m(me)
         else {
@@ -405,7 +405,7 @@ object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvi
    */
   private[akka] class TypedActorInvocationHandler(@transient val extension: TypedActorExtension, @transient val actorVar: AtomVar[ActorRef], @transient val timeout: Timeout) extends InvocationHandler with Serializable {
 
-    def actor = actorVar.get
+    def actor: _root_.akka.actor.ActorRef = actorVar.get
     @throws(classOf[Throwable])
     def invoke(proxy: AnyRef, method: Method, args: Array[AnyRef]): AnyRef = method.getName match {
       case "toString" ⇒ actor.toString
@@ -636,7 +636,7 @@ final case class ContextualTypedActorFactory(typedActor: TypedActorExtension, ac
 class TypedActorExtension(val system: ExtendedActorSystem) extends TypedActorFactory with Extension {
   import TypedActor._ //Import the goodies from the companion object
   protected def actorFactory: ActorRefFactory = system
-  protected def typedActor = this
+  protected def typedActor: _root_.akka.actor.TypedActorExtension = this
 
   import system.settings
   import akka.util.Helpers.ConfigOps
@@ -644,7 +644,7 @@ class TypedActorExtension(val system: ExtendedActorSystem) extends TypedActorFac
   /**
    * Default timeout for typed actor methods with non-void return type
    */
-  final val DefaultReturnTimeout = Timeout(settings.config.getMillisDuration("akka.actor.typed.timeout"))
+  final val DefaultReturnTimeout: _root_.akka.util.Timeout = Timeout(settings.config.getMillisDuration("akka.actor.typed.timeout"))
 
   /**
    * Retrieves the underlying ActorRef for the supplied TypedActor proxy, or null if none found

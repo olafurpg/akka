@@ -58,7 +58,7 @@ class Dispatchers(val settings: ActorSystem.Settings, val prerequisites: Dispatc
 
   import Dispatchers._
 
-  val cachingConfig = new CachingConfig(settings.config)
+  val cachingConfig: _root_.akka.dispatch.CachingConfig = new CachingConfig(settings.config)
 
   val defaultDispatcherConfig: Config =
     idConfig(DefaultDispatcherId).withFallback(settings.config.getConfig(DefaultDispatcherId))

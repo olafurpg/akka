@@ -43,7 +43,7 @@ trait LoggingBus extends ActorEventBus {
   /**
    * Query currently set log level. See object Logging for more information.
    */
-  def logLevel = _logLevel
+  def logLevel: _root_.akka.event.Logging.LogLevel = _logLevel
 
   /**
    * Change log level: default loggers (i.e. from configuration file) are
@@ -128,7 +128,7 @@ trait LoggingBus extends ActorEventBus {
       try {
         if (system.settings.DebugUnhandledMessage)
           subscribe(system.systemActorOf(Props(new Actor {
-            def receive = {
+            def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
               case UnhandledMessage(msg, sender, rcp) ⇒
                 publish(Debug(rcp.path.toString, rcp.getClass, "unhandled message from " + sender + ": " + msg))
             }
@@ -269,19 +269,19 @@ class DummyClassForStringSources
  */
 object LogSource {
   implicit val fromString: LogSource[String] = new LogSource[String] {
-    def genString(s: String) = s
-    override def genString(s: String, system: ActorSystem) = s + "(" + system + ")"
-    override def getClazz(s: String) = classOf[DummyClassForStringSources]
+    def genString(s: String): _root_.scala.Predef.String = s
+    override def genString(s: String, system: ActorSystem): _root_.java.lang.String = s + "(" + system + ")"
+    override def getClazz(s: String): _root_.java.lang.Class[_root_.akka.event.DummyClassForStringSources] = classOf[DummyClassForStringSources]
   }
 
   implicit val fromActor: LogSource[Actor] = new LogSource[Actor] {
-    def genString(a: Actor) = fromActorRef.genString(a.self)
-    override def genString(a: Actor, system: ActorSystem) = fromActorRef.genString(a.self, system)
+    def genString(a: Actor): _root_.scala.Predef.String = fromActorRef.genString(a.self)
+    override def genString(a: Actor, system: ActorSystem): _root_.scala.Predef.String = fromActorRef.genString(a.self, system)
   }
 
   implicit val fromActorRef: LogSource[ActorRef] = new LogSource[ActorRef] {
-    def genString(a: ActorRef) = a.path.toString
-    override def genString(a: ActorRef, system: ActorSystem) = try {
+    def genString(a: ActorRef): _root_.java.lang.String = a.path.toString
+    override def genString(a: ActorRef, system: ActorSystem): _root_.scala.Predef.String = try {
       a.path.toStringWithAddress(system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress)
     } catch {
       // it can fail if the ActorSystem (remoting) is not completely started yet
@@ -419,7 +419,7 @@ object Logging {
    */
   private[akka] class LogExt(system: ExtendedActorSystem) extends Extension {
     private val loggerId = new AtomicInteger
-    def id() = loggerId.incrementAndGet()
+    def id(): _root_.scala.Int = loggerId.incrementAndGet()
   }
 
   /**
@@ -438,10 +438,10 @@ object Logging {
    * to DebugLevel (4). In case you want to add more levels, loggers need to
    * be subscribed to their event bus channels manually.
    */
-  final val ErrorLevel = LogLevel(1)
-  final val WarningLevel = LogLevel(2)
-  final val InfoLevel = LogLevel(3)
-  final val DebugLevel = LogLevel(4)
+  final val ErrorLevel: _root_.akka.event.Logging.LogLevel = LogLevel(1)
+  final val WarningLevel: _root_.akka.event.Logging.LogLevel = LogLevel(2)
+  final val InfoLevel: _root_.akka.event.Logging.LogLevel = LogLevel(3)
+  final val DebugLevel: _root_.akka.event.Logging.LogLevel = LogLevel(4)
 
   /**
    * Internal Akka use only
@@ -744,7 +744,7 @@ object Logging {
    */
   case class Error(cause: Throwable, logSource: String, logClass: Class[_], message: Any = "") extends LogEvent {
     def this(logSource: String, logClass: Class[_], message: Any) = this(Error.NoCause, logSource, logClass, message)
-    override def level = ErrorLevel
+    override def level: _root_.akka.event.Logging.LogLevel = ErrorLevel
   }
   class Error2(cause: Throwable, logSource: String, logClass: Class[_], message: Any = "", override val mdc: MDC) extends Error(cause, logSource, logClass, message) {
     def this(logSource: String, logClass: Class[_], message: Any, mdc: MDC) = this(Error.NoCause, logSource, logClass, message, mdc)
@@ -755,73 +755,73 @@ object Logging {
   }
 
   object Error {
-    def apply(logSource: String, logClass: Class[_], message: Any) =
+    def apply(logSource: String, logClass: Class[_], message: Any): _root_.akka.event.Logging.Error =
       new Error(NoCause, logSource, logClass, message)
-    def apply(logSource: String, logClass: Class[_], message: Any, marker: LogMarker) =
+    def apply(logSource: String, logClass: Class[_], message: Any, marker: LogMarker): _root_.akka.event.Logging.Error3 =
       new Error3(NoCause, logSource, logClass, message, Map.empty, marker)
 
-    def apply(cause: Throwable, logSource: String, logClass: Class[_], message: Any, mdc: MDC) =
+    def apply(cause: Throwable, logSource: String, logClass: Class[_], message: Any, mdc: MDC): _root_.akka.event.Logging.Error2 =
       new Error2(cause, logSource, logClass, message, mdc)
-    def apply(cause: Throwable, logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker) =
+    def apply(cause: Throwable, logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker): _root_.akka.event.Logging.Error3 =
       new Error3(cause, logSource, logClass, message, mdc, marker)
 
-    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC) =
+    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC): _root_.akka.event.Logging.Error2 =
       new Error2(NoCause, logSource, logClass, message, mdc)
-    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker) =
+    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker): _root_.akka.event.Logging.Error3 =
       new Error3(NoCause, logSource, logClass, message, mdc, marker)
 
     /** Null Object used for errors without cause Throwable */
     object NoCause extends NoStackTrace
   }
-  def noCause = Error.NoCause
+  def noCause: _root_.akka.event.Logging.Error.NoCause.type = Error.NoCause
 
   /**
    * For WARNING Logging
    */
   case class Warning(logSource: String, logClass: Class[_], message: Any = "") extends LogEvent {
-    override def level = WarningLevel
+    override def level: _root_.akka.event.Logging.LogLevel = WarningLevel
   }
   class Warning2(logSource: String, logClass: Class[_], message: Any, override val mdc: MDC) extends Warning(logSource, logClass, message)
   class Warning3(logSource: String, logClass: Class[_], message: Any, override val mdc: MDC, override val marker: LogMarker)
     extends Warning2(logSource, logClass, message, mdc) with LogEventWithMarker
   object Warning {
-    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC) = new Warning2(logSource, logClass, message, mdc)
-    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker) = new Warning3(logSource, logClass, message, mdc, marker)
+    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC): _root_.akka.event.Logging.Warning2 = new Warning2(logSource, logClass, message, mdc)
+    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker): _root_.akka.event.Logging.Warning3 = new Warning3(logSource, logClass, message, mdc, marker)
   }
 
   /**
    * For INFO Logging
    */
   case class Info(logSource: String, logClass: Class[_], message: Any = "") extends LogEvent {
-    override def level = InfoLevel
+    override def level: _root_.akka.event.Logging.LogLevel = InfoLevel
   }
   class Info2(logSource: String, logClass: Class[_], message: Any, override val mdc: MDC) extends Info(logSource, logClass, message)
   class Info3(logSource: String, logClass: Class[_], message: Any, override val mdc: MDC, override val marker: LogMarker)
     extends Info2(logSource, logClass, message, mdc) with LogEventWithMarker
   object Info {
-    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC) = new Info2(logSource, logClass, message, mdc)
-    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker) = new Info3(logSource, logClass, message, mdc, marker)
+    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC): _root_.akka.event.Logging.Info2 = new Info2(logSource, logClass, message, mdc)
+    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker): _root_.akka.event.Logging.Info3 = new Info3(logSource, logClass, message, mdc, marker)
   }
 
   /**
    * For DEBUG Logging
    */
   case class Debug(logSource: String, logClass: Class[_], message: Any = "") extends LogEvent {
-    override def level = DebugLevel
+    override def level: _root_.akka.event.Logging.LogLevel = DebugLevel
   }
   class Debug2(logSource: String, logClass: Class[_], message: Any, override val mdc: MDC) extends Debug(logSource, logClass, message)
   class Debug3(logSource: String, logClass: Class[_], message: Any, override val mdc: MDC, override val marker: LogMarker)
     extends Debug2(logSource, logClass, message, mdc) with LogEventWithMarker
   object Debug {
-    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC) = new Debug2(logSource, logClass, message, mdc)
-    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker) = new Debug3(logSource, logClass, message, mdc, marker)
+    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC): _root_.akka.event.Logging.Debug2 = new Debug2(logSource, logClass, message, mdc)
+    def apply(logSource: String, logClass: Class[_], message: Any, mdc: MDC, marker: LogMarker): _root_.akka.event.Logging.Debug3 = new Debug3(logSource, logClass, message, mdc, marker)
   }
 
   /** INTERNAL API, Marker interface for LogEvents containing Markers, which can be set for example on an slf4j logger */
   sealed trait LogEventWithMarker extends LogEvent {
     def marker: LogMarker
     /** Appends the marker to the Debug/Info/Warning/Error toString representations */
-    override def toString = {
+    override def toString: _root_.java.lang.String = {
       val s = super.toString
       s.substring(0, s.length - 1) + "," + marker + ")"
     }
@@ -847,7 +847,7 @@ object Logging {
     /**
      * Java API: get the singleton instance
      */
-    def getInstance = this
+    def getInstance: _root_.akka.event.Logging.LoggerInitialized.type = this
   }
 
   /**
@@ -1002,7 +1002,7 @@ object Logging {
     private def readResolve(): AnyRef = Logging.StandardOutLogger
   }
 
-  val StandardOutLogger = new StandardOutLogger
+  val StandardOutLogger: _root_.akka.event.Logging.StandardOutLogger = new StandardOutLogger
 
   /**
    * Actor wrapper around the standard output logger. If
@@ -1061,7 +1061,7 @@ object Logging {
 trait LoggingAdapter {
 
   type MDC = Logging.MDC
-  def mdc = Logging.emptyMDC
+  def mdc: _root_.akka.event.Logging.MDC = Logging.emptyMDC
 
   /*
    * implement these as precisely as needed/possible: always returning true
@@ -1332,10 +1332,10 @@ class DefaultLoggingFilter(logLevel: () ⇒ Logging.LogLevel) extends LoggingFil
   def this(settings: Settings, eventStream: EventStream) = this(() ⇒ eventStream.logLevel)
 
   import Logging._
-  def isErrorEnabled(logClass: Class[_], logSource: String) = logLevel() >= ErrorLevel
-  def isWarningEnabled(logClass: Class[_], logSource: String) = logLevel() >= WarningLevel
-  def isInfoEnabled(logClass: Class[_], logSource: String) = logLevel() >= InfoLevel
-  def isDebugEnabled(logClass: Class[_], logSource: String) = logLevel() >= DebugLevel
+  def isErrorEnabled(logClass: Class[_], logSource: String): _root_.scala.Boolean = logLevel() >= ErrorLevel
+  def isWarningEnabled(logClass: Class[_], logSource: String): _root_.scala.Boolean = logLevel() >= WarningLevel
+  def isInfoEnabled(logClass: Class[_], logSource: String): _root_.scala.Boolean = logLevel() >= InfoLevel
+  def isDebugEnabled(logClass: Class[_], logSource: String): _root_.scala.Boolean = logLevel() >= DebugLevel
 }
 
 /**
@@ -1685,10 +1685,10 @@ class BusLogging(val bus: LoggingBus, val logSource: String, val logClass: Class
 
   import Logging._
 
-  def isErrorEnabled = loggingFilter.isErrorEnabled(logClass, logSource)
-  def isWarningEnabled = loggingFilter.isWarningEnabled(logClass, logSource)
-  def isInfoEnabled = loggingFilter.isInfoEnabled(logClass, logSource)
-  def isDebugEnabled = loggingFilter.isDebugEnabled(logClass, logSource)
+  def isErrorEnabled: _root_.scala.Boolean = loggingFilter.isErrorEnabled(logClass, logSource)
+  def isWarningEnabled: _root_.scala.Boolean = loggingFilter.isWarningEnabled(logClass, logSource)
+  def isInfoEnabled: _root_.scala.Boolean = loggingFilter.isInfoEnabled(logClass, logSource)
+  def isDebugEnabled: _root_.scala.Boolean = loggingFilter.isDebugEnabled(logClass, logSource)
 
   protected def notifyError(message: String): Unit =
     bus.publish(Error(logSource, logClass, message, mdc))
@@ -1711,7 +1711,7 @@ object NoLogging extends LoggingAdapter {
    * Java API to return the reference to NoLogging
    * @return The NoLogging instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.event.NoLogging.type = this
 
   final override def isErrorEnabled = false
   final override def isWarningEnabled = false
@@ -1733,7 +1733,7 @@ object NoMarkerLogging extends MarkerLoggingAdapter(null, "source", classOf[Stri
    * Java API to return the reference to NoLogging
    * @return The NoLogging instance
    */
-  def getInstance = this
+  def getInstance: _root_.akka.event.NoMarkerLogging.type = this
 
   final override def isErrorEnabled = false
   final override def isWarningEnabled = false

@@ -14,7 +14,7 @@ import akka.serialization.SerializerWithStringManifest
 import java.util.Optional
 
 private[akka] object Children {
-  val GetNobody = () ⇒ Nobody
+  val GetNobody: _root_.scala.Function0[_root_.akka.actor.Nobody.type] = () ⇒ Nobody
 }
 
 private[akka] trait Children { this: ActorCell ⇒
@@ -165,11 +165,11 @@ private[akka] trait Children { this: ActorCell ⇒
    * ActorCell-internal API
    */
 
-  protected def isNormal = childrenRefs.isNormal
+  protected def isNormal: _root_.scala.Boolean = childrenRefs.isNormal
 
-  protected def isTerminating = childrenRefs.isTerminating
+  protected def isTerminating: _root_.scala.Boolean = childrenRefs.isTerminating
 
-  protected def waitingForChildrenOrNull = childrenRefs match {
+  protected def waitingForChildrenOrNull: _root_.akka.actor.dungeon.ChildrenContainer.SuspendReason with _root_.akka.actor.dungeon.ChildrenContainer.WaitingForChildren {} = childrenRefs match {
     case TerminatingChildrenContainer(_, _, w: WaitingForChildren) ⇒ w
     case _ ⇒ null
   }

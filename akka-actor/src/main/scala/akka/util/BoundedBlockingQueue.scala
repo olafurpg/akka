@@ -28,7 +28,7 @@ class BoundedBlockingQueue[E <: AnyRef](
       require(maxCapacity > 0)
   }
 
-  protected val lock = new ReentrantLock(false)
+  protected val lock: _root_.java.util.concurrent.locks.ReentrantLock = new ReentrantLock(false)
 
   private val notEmpty = lock.newCondition()
   private val notFull = lock.newCondition()
@@ -270,7 +270,7 @@ class BoundedBlockingQueue[E <: AnyRef](
     try backing.isEmpty() finally lock.unlock()
   }
 
-  override def toArray[X](a: Array[X with AnyRef]) = {
+  override def toArray[X](a: Array[X with AnyRef]): _root_.scala.Array[X with _root_.java.lang.Object {}] = {
     lock.lock()
     try backing.toArray[X](a) finally lock.unlock()
   }

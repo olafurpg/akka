@@ -48,7 +48,7 @@ private[akka] class RepointableActorRef(
   @volatile private var _lookupDoNotCallMeDirectly: Cell = _
 
   def underlying: Cell = Unsafe.instance.getObjectVolatile(this, cellOffset).asInstanceOf[Cell]
-  def lookup = Unsafe.instance.getObjectVolatile(this, lookupOffset).asInstanceOf[Cell]
+  def lookup: _root_.akka.actor.Cell = Unsafe.instance.getObjectVolatile(this, lookupOffset).asInstanceOf[Cell]
 
   @tailrec final def swapCell(next: Cell): Cell = {
     val old = underlying
@@ -168,9 +168,9 @@ private[akka] class RepointableActorRef(
 
   def children: immutable.Iterable[ActorRef] = lookup.childrenRefs.children
 
-  def !(message: Any)(implicit sender: ActorRef = Actor.noSender) = underlying.sendMessage(message, sender)
+  def !(message: Any)(implicit sender: ActorRef = Actor.noSender): _root_.scala.Unit = underlying.sendMessage(message, sender)
 
-  def sendSystemMessage(message: SystemMessage) = underlying.sendSystemMessage(message)
+  def sendSystemMessage(message: SystemMessage): _root_.scala.Unit = underlying.sendSystemMessage(message)
 
   @throws(classOf[java.io.ObjectStreamException])
   protected def writeReplace(): AnyRef = SerializedActorRef(this)

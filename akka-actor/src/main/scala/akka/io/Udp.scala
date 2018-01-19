@@ -26,7 +26,7 @@ import akka.actor._
  */
 object Udp extends ExtensionId[UdpExt] with ExtensionIdProvider {
 
-  override def lookup = Udp
+  override def lookup: _root_.akka.io.Udp.type = Udp
 
   override def createExtension(system: ExtendedActorSystem): UdpExt = new UdpExt(system)
 
@@ -44,7 +44,7 @@ object Udp extends ExtensionId[UdpExt] with ExtensionIdProvider {
    * The common type of all commands supported by the UDP implementation.
    */
   trait Command extends SelectionHandler.HasFailureMessage with Message {
-    def failureMessage = CommandFailed(this)
+    def failureMessage: _root_.akka.io.Udp.CommandFailed = CommandFailed(this)
   }
 
   /**
@@ -331,5 +331,5 @@ object UdpSO extends SoJavaFactories {
    *
    * For more information see [[java.net.DatagramSocket#setBroadcast]]
    */
-  def broadcast(on: Boolean) = Broadcast(on)
+  def broadcast(on: Boolean): _root_.akka.io.Udp.SO.Broadcast = Broadcast(on)
 }

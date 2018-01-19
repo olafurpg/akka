@@ -66,7 +66,7 @@ object CircuitBreaker {
 
   private def exceptionAsFailureJava[T]: BiFunction[Optional[T], Optional[Throwable], java.lang.Boolean] =
     new BiFunction[Optional[T], Optional[Throwable], java.lang.Boolean] {
-      override def apply(t: Optional[T], err: Optional[Throwable]) = {
+      override def apply(t: Optional[T], err: Optional[Throwable]): _root_.java.lang.Boolean = {
         if (err.isPresent)
           true
         else
@@ -359,7 +359,7 @@ class CircuitBreaker(
    * @param callback Handler to be invoked on state change
    * @return CircuitBreaker for fluent usage
    */
-  def onOpen(callback: ⇒ Unit): CircuitBreaker = addOnOpenListener(new Runnable { def run = callback })
+  def onOpen(callback: ⇒ Unit): CircuitBreaker = addOnOpenListener(new Runnable { def run: _root_.scala.Unit = callback })
 
   /**
    * Java API for onOpen
@@ -388,7 +388,7 @@ class CircuitBreaker(
    * @param callback Handler to be invoked on state change
    * @return CircuitBreaker for fluent usage
    */
-  def onHalfOpen(callback: ⇒ Unit): CircuitBreaker = addOnHalfOpenListener(new Runnable { def run = callback })
+  def onHalfOpen(callback: ⇒ Unit): CircuitBreaker = addOnHalfOpenListener(new Runnable { def run: _root_.scala.Unit = callback })
 
   /**
    * JavaAPI for onHalfOpen
@@ -418,7 +418,7 @@ class CircuitBreaker(
    * @param callback Handler to be invoked on state change
    * @return CircuitBreaker for fluent usage
    */
-  def onClose(callback: ⇒ Unit): CircuitBreaker = addOnCloseListener(new Runnable { def run = callback })
+  def onClose(callback: ⇒ Unit): CircuitBreaker = addOnCloseListener(new Runnable { def run: _root_.scala.Unit = callback })
 
   /**
    * JavaAPI for onClose
@@ -517,7 +517,7 @@ class CircuitBreaker(
    * @param callback Handler to be invoked on call failed due to open breaker.
    * @return CircuitBreaker for fluent usage
    */
-  def onCallBreakerOpen(callback: ⇒ Unit): CircuitBreaker = addOnCallBreakerOpenListener(new Runnable { def run = callback })
+  def onCallBreakerOpen(callback: ⇒ Unit): CircuitBreaker = addOnCallBreakerOpenListener(new Runnable { def run: _root_.scala.Unit = callback })
 
   /**
    * JavaAPI for onCallBreakerOpen.
@@ -573,7 +573,7 @@ class CircuitBreaker(
     while (iterator.hasNext) {
       val listener = iterator.next()
       executor.execute(new Runnable {
-        def run() = listener.accept(elapsed)
+        def run(): _root_.scala.Unit = listener.accept(elapsed)
       })
     }
   }
@@ -589,7 +589,7 @@ class CircuitBreaker(
     while (iterator.hasNext) {
       val listener = iterator.next()
       executor.execute(new Runnable {
-        def run() = listener.accept(elapsed)
+        def run(): _root_.scala.Unit = listener.accept(elapsed)
       })
     }
   }
@@ -605,7 +605,7 @@ class CircuitBreaker(
     while (iterator.hasNext) {
       val listener = iterator.next()
       executor.execute(new Runnable {
-        def run() = listener.accept(elapsed)
+        def run(): _root_.scala.Unit = listener.accept(elapsed)
       })
     }
   }

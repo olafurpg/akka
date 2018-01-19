@@ -109,7 +109,7 @@ abstract class ActorRef extends java.lang.Comparable[ActorRef] with Serializable
   /**
    * Comparison takes path and the unique id of the actor cell into account.
    */
-  final def compareTo(other: ActorRef) = {
+  final def compareTo(other: ActorRef): _root_.scala.Int = {
     val x = this.path compareTo other.path
     if (x == 0) if (this.path.uid < other.path.uid) -1 else if (this.path.uid == other.path.uid) 0 else 1
     else x
@@ -128,7 +128,7 @@ abstract class ActorRef extends java.lang.Comparable[ActorRef] with Serializable
    *
    * Works, no matter whether originally sent with tell/'!' or ask/'?'.
    */
-  def forward(message: Any)(implicit context: ActorContext) = tell(message, context.sender())
+  def forward(message: Any)(implicit context: ActorContext): _root_.scala.Unit = tell(message, context.sender())
 
   /**
    * INTERNAL API
@@ -276,7 +276,7 @@ private[akka] abstract class ActorRefWithCell extends InternalActorRef { this: A
  */
 private[akka] case object Nobody extends MinimalActorRef {
   override val path: RootActorPath = new RootActorPath(Address("akka", "all-systems"), "/Nobody")
-  override def provider = throw new UnsupportedOperationException("Nobody does not provide")
+  override def provider: _root_.scala.Nothing = throw new UnsupportedOperationException("Nobody does not provide")
 
   private val serialized = new SerializedNobody
 
@@ -507,7 +507,7 @@ private[akka] object DeadLetterActorRef {
     private def readResolve(): AnyRef = JavaSerializer.currentSystem.value.deadLetters
   }
 
-  val serialized = new SerializedDeadLetterActorRef
+  val serialized: _root_.akka.actor.DeadLetterActorRef.SerializedDeadLetterActorRef = new SerializedDeadLetterActorRef
 }
 
 /**
@@ -728,7 +728,7 @@ private[akka] final class FunctionRef(
   private[this] var watching = ActorCell.emptyActorRefSet
   private[this] val _watchedBy = new AtomicReference[Set[ActorRef]](ActorCell.emptyActorRefSet)
 
-  override def isTerminated = _watchedBy.get() == null
+  override def isTerminated: _root_.scala.Boolean = _watchedBy.get() == null
 
   //noinspection EmptyCheck
   protected def sendTerminated(): Unit = {

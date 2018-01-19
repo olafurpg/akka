@@ -43,14 +43,14 @@ class LightArrayRevolverScheduler(
   import Helpers.Requiring
   import Helpers.ConfigOps
 
-  val WheelSize =
+  val WheelSize: _root_.scala.Int =
     config.getInt("akka.scheduler.ticks-per-wheel")
       .requiring(ticks ⇒ (ticks & (ticks - 1)) == 0, "ticks-per-wheel must be a power of 2")
-  val TickDuration =
+  val TickDuration: _root_.scala.concurrent.duration.FiniteDuration =
     config.getMillisDuration("akka.scheduler.tick-duration")
       .requiring(_ >= 10.millis || !Helpers.isWindows, "minimum supported akka.scheduler.tick-duration on Windows is 10ms")
       .requiring(_ >= 1.millis, "minimum supported akka.scheduler.tick-duration is 1ms")
-  val ShutdownTimeout = config.getMillisDuration("akka.scheduler.shutdown-timeout")
+  val ShutdownTimeout: _root_.scala.concurrent.duration.FiniteDuration = config.getMillisDuration("akka.scheduler.shutdown-timeout")
 
   import LightArrayRevolverScheduler._
 
@@ -195,9 +195,9 @@ class LightArrayRevolverScheduler(
 
   @volatile private var timerThread: Thread = threadFactory.newThread(new Runnable {
 
-    var tick = startTick
+    var tick: _root_.scala.Int = startTick
     var totalTick: Long = tick // tick count that doesn't wrap around, used for calculating sleep time
-    val wheel = Array.fill(WheelSize)(new TaskQueue)
+    val wheel: _root_.scala.Array[_root_.akka.actor.LightArrayRevolverScheduler.TaskQueue] = Array.fill(WheelSize)(new TaskQueue)
 
     private def clearAll(): immutable.Seq[TimerTask] = {
       @tailrec def collect(q: TaskQueue, acc: Vector[TimerTask]): Vector[TimerTask] = {
@@ -231,7 +231,7 @@ class LightArrayRevolverScheduler(
         checkQueue(time)
     }
 
-    override final def run =
+    override final def run: _root_.scala.Unit =
       try nextTick()
       catch {
         case t: Throwable ⇒

@@ -13,7 +13,7 @@ import java.util.{ AbstractQueue, Comparator, Iterator, PriorityQueue }
  */
 trait PriorityQueueStabilizer[E <: AnyRef] extends AbstractQueue[E] {
   val backingQueue: AbstractQueue[PriorityQueueStabilizer.WrappedElement[E]]
-  val seqNum = new AtomicLong(0)
+  val seqNum: _root_.java.util.concurrent.atomic.AtomicLong = new AtomicLong(0)
 
   override def peek(): E = {
     val wrappedElement = backingQueue.peek()
@@ -32,7 +32,7 @@ trait PriorityQueueStabilizer[E <: AnyRef] extends AbstractQueue[E] {
     private[this] val backingIterator = backingQueue.iterator()
     def hasNext: Boolean = backingIterator.hasNext
     def next(): E = backingIterator.next().element
-    override def remove() = backingIterator.remove()
+    override def remove(): _root_.scala.Unit = backingIterator.remove()
   }
 
   override def poll(): E = {
@@ -61,7 +61,7 @@ object PriorityQueueStabilizer {
  * @param cmp - Comparator for comparing Queue elements
  */
 class StablePriorityQueue[E <: AnyRef](capacity: Int, cmp: Comparator[E]) extends PriorityQueueStabilizer[E] {
-  val backingQueue = new PriorityQueue[PriorityQueueStabilizer.WrappedElement[E]](
+  val backingQueue: _root_.java.util.PriorityQueue[_root_.akka.util.PriorityQueueStabilizer.WrappedElement[E]] = new PriorityQueue[PriorityQueueStabilizer.WrappedElement[E]](
     capacity,
     new PriorityQueueStabilizer.WrappedElementComparator[E](cmp))
 }
@@ -72,7 +72,7 @@ class StablePriorityQueue[E <: AnyRef](capacity: Int, cmp: Comparator[E]) extend
  * @param cmp - Comparator for comparing Queue elements
  */
 class StablePriorityBlockingQueue[E <: AnyRef](capacity: Int, cmp: Comparator[E]) extends PriorityQueueStabilizer[E] {
-  val backingQueue = new PriorityBlockingQueue[PriorityQueueStabilizer.WrappedElement[E]](
+  val backingQueue: _root_.java.util.concurrent.PriorityBlockingQueue[_root_.akka.util.PriorityQueueStabilizer.WrappedElement[E]] = new PriorityBlockingQueue[PriorityQueueStabilizer.WrappedElement[E]](
     capacity,
     new PriorityQueueStabilizer.WrappedElementComparator[E](cmp))
 }

@@ -221,7 +221,7 @@ trait BaseSerializer extends Serializer {
    * where `FQCN` is fully qualified class name of the serializer implementation
    * and `ID` is globally unique serializer identifier number.
    */
-  final val SerializationIdentifiers = BaseSerializer.SerializationIdentifiers
+  final val SerializationIdentifiers: _root_.java.lang.String = BaseSerializer.SerializationIdentifiers
 
   /**
    * Globally unique serialization identifier configured in the `reference.conf`.
@@ -291,7 +291,7 @@ object JavaSerializer {
    *
    * currentSystem.withValue(system, callable)
    */
-  val currentSystem = new CurrentSystem
+  val currentSystem: _root_.akka.serialization.JavaSerializer.CurrentSystem = new CurrentSystem
   final class CurrentSystem extends DynamicVariable[ExtendedActorSystem](null) {
     /**
      * Java API: invoke the callable with the current system being set to the given value for this thread.
@@ -373,15 +373,15 @@ final case class DisabledJavaSerializer(system: ExtendedActorSystem) extends Ser
 
 object DisabledJavaSerializer {
   final class JavaSerializationException(msg: String) extends RuntimeException(msg) with NoStackTrace
-  final val IllegalSerialization = new JavaSerializationException("Attempted to serialize message using Java serialization while `akka.actor.allow-java-serialization` was disabled. Check WARNING logs for more details.")
-  final val IllegalDeserialization = new JavaSerializationException("Attempted to deserialize message using Java serialization while `akka.actor.allow-java-serialization` was disabled. Check WARNING logs for more details.")
+  final val IllegalSerialization: _root_.akka.serialization.DisabledJavaSerializer.JavaSerializationException = new JavaSerializationException("Attempted to serialize message using Java serialization while `akka.actor.allow-java-serialization` was disabled. Check WARNING logs for more details.")
+  final val IllegalDeserialization: _root_.akka.serialization.DisabledJavaSerializer.JavaSerializationException = new JavaSerializationException("Attempted to deserialize message using Java serialization while `akka.actor.allow-java-serialization` was disabled. Check WARNING logs for more details.")
 }
 
 /**
  * This is a special Serializer that Serializes and deserializes nulls only
  */
 class NullSerializer extends Serializer {
-  val nullAsBytes = Array[Byte]()
+  val nullAsBytes: _root_.scala.Array[_root_.scala.Byte] = Array[Byte]()
   def includeManifest: Boolean = false
   def identifier = 0
   def toBinary(o: AnyRef): Array[Byte] = nullAsBytes

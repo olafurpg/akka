@@ -25,7 +25,7 @@ import akka.actor._
  */
 object UdpConnected extends ExtensionId[UdpConnectedExt] with ExtensionIdProvider {
 
-  override def lookup = UdpConnected
+  override def lookup: _root_.akka.io.UdpConnected.type = UdpConnected
 
   override def createExtension(system: ExtendedActorSystem): UdpConnectedExt = new UdpConnectedExt(system)
 
@@ -43,7 +43,7 @@ object UdpConnected extends ExtensionId[UdpConnectedExt] with ExtensionIdProvide
    * The common type of all commands supported by the UDP implementation.
    */
   trait Command extends SelectionHandler.HasFailureMessage with Message {
-    def failureMessage = CommandFailed(this)
+    def failureMessage: _root_.akka.io.UdpConnected.CommandFailed = CommandFailed(this)
   }
 
   /**

@@ -96,7 +96,7 @@ object BackoffSupervisor {
    * Java API: Send this message to the [[BackoffSupervisor]] and it will reply with
    * [[BackoffSupervisor.CurrentChild]] containing the `ActorRef` of the current child, if any.
    */
-  def getCurrentChild = GetCurrentChild
+  def getCurrentChild: _root_.akka.pattern.BackoffSupervisor.GetCurrentChild.type = GetCurrentChild
 
   /**
    * Send this message to the [[BackoffSupervisor]] and it will reply with
@@ -119,7 +119,7 @@ object BackoffSupervisor {
    * Java API: Send this message to the [[BackoffSupervisor]] and it will reset the back-off.
    * This should be used in conjunction with `withManualReset` in [[BackoffOptions]].
    */
-  def reset = Reset
+  def reset: _root_.akka.pattern.BackoffSupervisor.Reset.type = Reset
 
   /**
    * Send this message to the [[BackoffSupervisor]] and it will reply with
@@ -131,7 +131,7 @@ object BackoffSupervisor {
    * Java API: Send this message to the [[BackoffSupervisor]] and it will reply with
    * [[BackoffSupervisor.RestartCount]] containing the current restart count.
    */
-  def getRestartCount = GetRestartCount
+  def getRestartCount: _root_.akka.pattern.BackoffSupervisor.GetRestartCount.type = GetRestartCount
 
   final case class RestartCount(count: Int)
 
@@ -182,7 +182,7 @@ final class BackoffSupervisor(
   import context.dispatcher
 
   // to keep binary compatibility with 2.4.1
-  override val supervisorStrategy = strategy match {
+  override val supervisorStrategy: _root_.akka.actor.SupervisorStrategy = strategy match {
     case oneForOne: OneForOneStrategy ⇒
       OneForOneStrategy(oneForOne.maxNrOfRetries, oneForOne.withinTimeRange, oneForOne.loggingEnabled) {
         case ex ⇒
@@ -221,7 +221,7 @@ final class BackoffSupervisor(
       restartCount += 1
   }
 
-  def receive = onTerminated orElse handleBackoff
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = onTerminated orElse handleBackoff
 }
 
 private[akka] trait HandleBackoff { this: Actor ⇒

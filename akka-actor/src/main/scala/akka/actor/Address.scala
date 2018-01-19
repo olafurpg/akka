@@ -70,12 +70,12 @@ object Address {
   /**
    * Constructs a new Address with the specified protocol and system name
    */
-  def apply(protocol: String, system: String) = new Address(protocol, system)
+  def apply(protocol: String, system: String): _root_.akka.actor.Address = new Address(protocol, system)
 
   /**
    * Constructs a new Address with the specified protocol, system name, host and port
    */
-  def apply(protocol: String, system: String, host: String, port: Int) = new Address(protocol, system, Some(host), Some(port))
+  def apply(protocol: String, system: String, host: String, port: Int): _root_.akka.actor.Address = new Address(protocol, system, Some(host), Some(port))
 
   /**
    * `Address` ordering type class, sorts addresses by protocol, name, host and port.

@@ -36,7 +36,7 @@ import akka.annotation.InternalApi
  */
 object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
 
-  override def lookup = Tcp
+  override def lookup: _root_.akka.io.Tcp.type = Tcp
 
   override def createExtension(system: ExtendedActorSystem): TcpExt = new TcpExt(system)
 
@@ -101,7 +101,7 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    * This is the common trait for all commands understood by TCP actors.
    */
   trait Command extends Message with SelectionHandler.HasFailureMessage {
-    def failureMessage = CommandFailed(this)
+    def failureMessage: _root_.akka.io.Tcp.CommandFailed = CommandFailed(this)
   }
 
   /**
@@ -196,7 +196,7 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
      * The corresponding event which is sent as an acknowledgment once the
      * close operation is finished.
      */
-    override def event = Closed
+    override def event: _root_.akka.io.Tcp.Closed.type = Closed
   }
 
   /**
@@ -210,7 +210,7 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
      * The corresponding event which is sent as an acknowledgment once the
      * close operation is finished.
      */
-    override def event = ConfirmedClosed
+    override def event: _root_.akka.io.Tcp.ConfirmedClosed.type = ConfirmedClosed
   }
 
   /**
@@ -225,7 +225,7 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
      * The corresponding event which is sent as an acknowledgment once the
      * close operation is finished.
      */
-    override def event = Aborted
+    override def event: _root_.akka.io.Tcp.Aborted.type = Aborted
   }
 
   /**
@@ -537,13 +537,13 @@ object Tcp extends ExtensionId[TcpExt] with ExtensionIdProvider {
    */
   final case class ErrorClosed(cause: String) extends ConnectionClosed {
     override def isErrorClosed = true
-    override def getErrorCause = cause
+    override def getErrorCause: _root_.scala.Predef.String = cause
   }
 }
 
 class TcpExt(system: ExtendedActorSystem) extends IO.Extension {
 
-  val Settings = new Settings(system.settings.config.getConfig("akka.io.tcp"))
+  val Settings: TcpExt.this.Settings = new Settings(system.settings.config.getConfig("akka.io.tcp"))
   class Settings private[TcpExt] (_config: Config) extends SelectionHandlerSettings(_config) {
     import akka.util.Helpers.ConfigOps
     import _config._
@@ -600,7 +600,7 @@ class TcpExt(system: ExtendedActorSystem) extends IO.Extension {
   def getManager: ActorRef = manager
 
   val bufferPool: BufferPool = new DirectByteBufferPool(Settings.DirectBufferSize, Settings.MaxDirectBufferPoolSize)
-  val fileIoDispatcher = system.dispatchers.lookup(Settings.FileIODispatcher)
+  val fileIoDispatcher: _root_.akka.dispatch.MessageDispatcher = system.dispatchers.lookup(Settings.FileIODispatcher)
 }
 
 /**
@@ -614,7 +614,7 @@ object TcpSO extends SoJavaFactories {
    *
    * For more information see `java.net.Socket.setKeepAlive`
    */
-  def keepAlive(on: Boolean) = KeepAlive(on)
+  def keepAlive(on: Boolean): _root_.akka.io.Tcp.SO.KeepAlive = KeepAlive(on)
 
   /**
    * [[akka.io.Inet.SocketOption]] to enable or disable OOBINLINE (receipt
@@ -623,7 +623,7 @@ object TcpSO extends SoJavaFactories {
    *
    * For more information see `java.net.Socket.setOOBInline`
    */
-  def oobInline(on: Boolean) = OOBInline(on)
+  def oobInline(on: Boolean): _root_.akka.io.Tcp.SO.OOBInline = OOBInline(on)
 
   /**
    * [[akka.io.Inet.SocketOption]] to enable or disable TCP_NODELAY
@@ -633,7 +633,7 @@ object TcpSO extends SoJavaFactories {
    *
    * For more information see `java.net.Socket.setTcpNoDelay`
    */
-  def tcpNoDelay(on: Boolean) = TcpNoDelay(on)
+  def tcpNoDelay(on: Boolean): _root_.akka.io.Tcp.SO.TcpNoDelay = TcpNoDelay(on)
 }
 
 object TcpMessage {

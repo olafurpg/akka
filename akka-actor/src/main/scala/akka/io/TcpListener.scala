@@ -21,7 +21,7 @@ import akka.util.Helpers
 private[io] object TcpListener {
 
   final case class RegisterIncoming(channel: SocketChannel) extends HasFailureMessage with NoSerializationVerificationNeeded {
-    def failureMessage = FailedRegisterIncoming(channel)
+    def failureMessage: _root_.akka.io.TcpListener.FailedRegisterIncoming = FailedRegisterIncoming(channel)
   }
 
   final case class FailedRegisterIncoming(channel: SocketChannel) extends NoSerializationVerificationNeeded
@@ -44,12 +44,12 @@ private[io] class TcpListener(
 
   context.watch(bind.handler) // sign death pact
 
-  val channel = ServerSocketChannel.open
+  val channel: _root_.java.nio.channels.ServerSocketChannel = ServerSocketChannel.open
   channel.configureBlocking(false)
 
-  var acceptLimit = if (bind.pullMode) 0 else BatchAcceptLimit
+  var acceptLimit: _root_.scala.Int = if (bind.pullMode) 0 else BatchAcceptLimit
 
-  val localAddress =
+  val localAddress: _root_.scala.Any =
     try {
       val socket = channel.socket
       bind.options.foreach(_.beforeServerSocketBind(socket))
@@ -72,7 +72,7 @@ private[io] class TcpListener(
         context.stop(self)
     }
 
-  override def supervisorStrategy = SelectionHandler.connectionSupervisorStrategy
+  override def supervisorStrategy: _root_.akka.actor.SupervisorStrategy = SelectionHandler.connectionSupervisorStrategy
 
   def receive: Receive = {
     case registration: ChannelRegistration ⇒

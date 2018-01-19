@@ -50,21 +50,21 @@ private[akka] object ChildrenContainer {
   case object Termination extends SuspendReason
 
   class ChildRestartsIterable(stats: immutable.MapLike[_, ChildStats, _]) extends PartialImmutableValuesIterable[ChildStats, ChildRestartStats] {
-    override final def apply(c: ChildStats) = c.asInstanceOf[ChildRestartStats]
-    override final def isDefinedAt(c: ChildStats) = c.isInstanceOf[ChildRestartStats]
-    override final def valuesIterator = stats.valuesIterator
+    override final def apply(c: ChildStats): _root_.akka.actor.ChildRestartStats = c.asInstanceOf[ChildRestartStats]
+    override final def isDefinedAt(c: ChildStats): _root_.scala.Boolean = c.isInstanceOf[ChildRestartStats]
+    override final def valuesIterator: _root_.scala.collection.Iterator[_root_.akka.actor.ChildStats] = stats.valuesIterator
   }
 
   class ChildrenIterable(stats: immutable.MapLike[_, ChildStats, _]) extends PartialImmutableValuesIterable[ChildStats, ActorRef] {
-    override final def apply(c: ChildStats) = c.asInstanceOf[ChildRestartStats].child
-    override final def isDefinedAt(c: ChildStats) = c.isInstanceOf[ChildRestartStats]
-    override final def valuesIterator = stats.valuesIterator
+    override final def apply(c: ChildStats): _root_.akka.actor.ActorRef = c.asInstanceOf[ChildRestartStats].child
+    override final def isDefinedAt(c: ChildStats): _root_.scala.Boolean = c.isInstanceOf[ChildRestartStats]
+    override final def valuesIterator: _root_.scala.collection.Iterator[_root_.akka.actor.ChildStats] = stats.valuesIterator
   }
 
   trait WaitingForChildren
 
   trait EmptyChildrenContainer extends ChildrenContainer {
-    val emptyStats = immutable.TreeMap.empty[String, ChildStats]
+    val emptyStats: _root_.scala.collection.immutable.TreeMap[_root_.scala.Predef.String, _root_.akka.actor.ChildStats] = immutable.TreeMap.empty[String, ChildStats]
     override def add(name: String, stats: ChildRestartStats): ChildrenContainer = new NormalChildrenContainer(emptyStats.updated(name, stats))
     override def remove(child: ActorRef): ChildrenContainer = this
     override def getByName(name: String): Option[ChildRestartStats] = None
@@ -134,7 +134,7 @@ private[akka] object ChildrenContainer {
       case _                       ⇒ this
     }
 
-    override def toString =
+    override def toString: _root_.java.lang.String =
       if (c.size > 20) c.size + " children"
       else c.mkString("children:\n    ", "\n    ", "")
   }
@@ -200,7 +200,7 @@ private[akka] object ChildrenContainer {
     override def isTerminating: Boolean = reason == Termination
     override def isNormal: Boolean = reason == UserRequest
 
-    override def toString =
+    override def toString: _root_.java.lang.String =
       if (c.size > 20) c.size + " children"
       else c.mkString("children (" + toDie.size + " terminating):\n    ", "\n    ", "\n") + toDie
   }

@@ -27,7 +27,7 @@ abstract class Setup {
 
 object ActorSystemSetup {
 
-  val empty = new ActorSystemSetup(Map.empty)
+  val empty: _root_.akka.actor.setup.ActorSystemSetup = new ActorSystemSetup(Map.empty)
 
   /**
    * Scala API: Create an [[ActorSystemSetup]] containing all the provided settings

@@ -30,7 +30,7 @@ private[io] class UdpConnection(
   import udpConn.settings._
 
   var pendingSend: (Send, ActorRef) = null
-  def writePending = pendingSend ne null
+  def writePending: _root_.scala.Boolean = pendingSend ne null
 
   context.watch(handler) // sign death pact
   var channel: DatagramChannel = null
@@ -66,7 +66,7 @@ private[io] class UdpConnection(
     log.debug("Successfully connected to [{}]", remoteAddress)
   }
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case registration: ChannelRegistration ⇒
       options.foreach {
         case v2: Inet.SocketOptionV2 ⇒ v2.afterConnect(channel.socket)

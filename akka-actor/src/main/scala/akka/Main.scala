@@ -40,7 +40,7 @@ object Main {
 
   class Terminator(app: ActorRef) extends Actor with ActorLogging {
     context watch app
-    def receive = {
+    def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
       case Terminated(_) ⇒
         log.info("application supervisor has terminated, shutting down")
         context.system.terminate()

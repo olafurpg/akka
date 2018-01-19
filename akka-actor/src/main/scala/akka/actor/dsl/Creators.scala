@@ -42,46 +42,46 @@ trait Creators { this: ActorDSL.type ⇒
     /**
      * @see [[akka.actor.OneForOneStrategy]]
      */
-    def OneForOneStrategy = akka.actor.OneForOneStrategy
+    def OneForOneStrategy: _root_.akka.actor.OneForOneStrategy.type = akka.actor.OneForOneStrategy
 
     /**
      * @see [[akka.actor.AllForOneStrategy]]
      */
-    def AllForOneStrategy = akka.actor.AllForOneStrategy
+    def AllForOneStrategy: _root_.akka.actor.AllForOneStrategy.type = akka.actor.AllForOneStrategy
 
     /**
      * @see [[akka.actor.SupervisorStrategy]]
      */
-    def Stop = SupervisorStrategy.Stop
+    def Stop: _root_.akka.actor.SupervisorStrategy.Stop.type = SupervisorStrategy.Stop
 
     /**
      * @see [[akka.actor.SupervisorStrategy]]
      */
-    def Restart = SupervisorStrategy.Restart
+    def Restart: _root_.akka.actor.SupervisorStrategy.Restart.type = SupervisorStrategy.Restart
 
     /**
      * @see [[akka.actor.SupervisorStrategy]]
      */
-    def Resume = SupervisorStrategy.Resume
+    def Resume: _root_.akka.actor.SupervisorStrategy.Resume.type = SupervisorStrategy.Resume
 
     /**
      * @see [[akka.actor.SupervisorStrategy]]
      */
-    def Escalate = SupervisorStrategy.Escalate
+    def Escalate: _root_.akka.actor.SupervisorStrategy.Escalate.type = SupervisorStrategy.Escalate
 
     /**
      * Add the given behavior on top of the behavior stack for this actor. This
      * stack is cleared upon restart. Use `unbecome()` to pop an element off
      * this stack.
      */
-    def becomeStacked(r: Receive) = context.become(r, discardOld = false)
+    def becomeStacked(r: Receive): _root_.scala.Unit = context.become(r, discardOld = false)
 
     /**
      * Replace the behavior at the top of the behavior stack for this actor. The
      * stack is cleared upon restart. Use `unbecome()` to pop an element off
      * this stack or `becomeStacked()` to push a new element on top of it.
      */
-    def become(r: Receive) = context.become(r, discardOld = true)
+    def become(r: Receive): _root_.scala.Unit = context.become(r, discardOld = true)
 
     /**
      * Pop the active behavior from the behavior stack of this actor. This stack

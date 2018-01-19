@@ -28,7 +28,7 @@ private[io] class TcpIncomingConnection(
 
   registry.register(channel, initialOps = 0)
 
-  def receive = {
+  def receive: _root_.scala.PartialFunction[_root_.scala.Any, _root_.scala.Unit] = {
     case registration: ChannelRegistration ⇒ completeConnect(registration, bindHandler, options)
   }
 }

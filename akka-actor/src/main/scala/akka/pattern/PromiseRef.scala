@@ -42,7 +42,7 @@ trait PromiseRef[T] { this: FutureRef[T] ⇒
   /**
    * Future containing the value of the Promise associated with this PromiseRef.
    */
-  final def future = promise.future
+  final def future: _root_.scala.concurrent.Future[T] = promise.future
 
   /**
    * Converts this PromiseRef to FutureRef, effectively narrowing it's API.

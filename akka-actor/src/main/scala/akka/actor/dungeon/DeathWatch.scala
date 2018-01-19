@@ -240,6 +240,6 @@ private[akka] trait DeathWatch { this: ActorCell ⇒
 }
 
 private[akka] class UndefinedUidActorRef(ref: ActorRef) extends MinimalActorRef {
-  override val path = ref.path.withUid(ActorCell.undefinedUid)
-  override def provider = throw new UnsupportedOperationException("UndefinedUidActorRef does not provide")
+  override val path: _root_.akka.actor.ActorPath = ref.path.withUid(ActorCell.undefinedUid)
+  override def provider: _root_.scala.Nothing = throw new UnsupportedOperationException("UndefinedUidActorRef does not provide")
 }

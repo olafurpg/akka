@@ -222,7 +222,7 @@ object japi {
  * Java API
  */
 abstract class OnSuccess[-T] extends japi.CallbackBridge[T] {
-  protected final override def internal(result: T) = onSuccess(result)
+  protected final override def internal(result: T): _root_.scala.Unit = onSuccess(result)
 
   /**
    * This method will be invoked once when/if a Future that this callback is registered on
@@ -239,7 +239,7 @@ abstract class OnSuccess[-T] extends japi.CallbackBridge[T] {
  * Java API
  */
 abstract class OnFailure extends japi.CallbackBridge[Throwable] {
-  protected final override def internal(failure: Throwable) = onFailure(failure)
+  protected final override def internal(failure: Throwable): _root_.scala.Unit = onFailure(failure)
 
   /**
    * This method will be invoked once when/if a Future that this callback is registered on

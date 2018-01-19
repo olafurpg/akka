@@ -124,25 +124,25 @@ object SupervisorStrategy extends SupervisorStrategyLowPriorityImplicits {
   /**
    * Java API: Returning this directive resumes message processing for the failed Actor
    */
-  def resume = Resume
+  def resume: _root_.akka.actor.SupervisorStrategy.Resume.type = Resume
 
   /**
    * Java API: Returning this directive discards the old Actor instance and replaces it with a new,
    * then resumes message processing.
    */
-  def restart = Restart
+  def restart: _root_.akka.actor.SupervisorStrategy.Restart.type = Restart
 
   /**
    * Java API: Returning this directive stops the Actor
    */
-  def stop = Stop
+  def stop: _root_.akka.actor.SupervisorStrategy.Stop.type = Stop
 
   /**
    * Java API: Returning this directive escalates the failure to the supervisor of the supervisor,
    * by rethrowing the cause of the failure, i.e. the supervisor fails with
    * the same exception as the child.
    */
-  def escalate = Escalate
+  def escalate: _root_.akka.actor.SupervisorStrategy.Escalate.type = Escalate
 
   /**
    * When supervisorStrategy is not specified for an actor this

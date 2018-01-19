@@ -86,8 +86,8 @@ object Inet {
   }
 
   object DatagramChannelCreator {
-    val default = new DatagramChannelCreator()
-    def apply() = default
+    val default: _root_.akka.io.Inet.DatagramChannelCreator = new DatagramChannelCreator()
+    def apply(): _root_.akka.io.Inet.DatagramChannelCreator = default
   }
 
   object SO {
@@ -147,21 +147,21 @@ object Inet {
      *
      * For more information see [[java.net.Socket#setReceiveBufferSize]]
      */
-    val ReceiveBufferSize = SO.ReceiveBufferSize
+    val ReceiveBufferSize: _root_.akka.io.Inet.SO.ReceiveBufferSize.type = SO.ReceiveBufferSize
 
     /**
      * [[akka.io.Inet.SocketOption]] to enable or disable SO_REUSEADDR
      *
      * For more information see [[java.net.Socket#setReuseAddress]]
      */
-    val ReuseAddress = SO.ReuseAddress
+    val ReuseAddress: _root_.akka.io.Inet.SO.ReuseAddress.type = SO.ReuseAddress
 
     /**
      * [[akka.io.Inet.SocketOption]] to set the SO_SNDBUF option.
      *
      * For more information see [[java.net.Socket#setSendBufferSize]]
      */
-    val SendBufferSize = SO.SendBufferSize
+    val SendBufferSize: _root_.akka.io.Inet.SO.SendBufferSize.type = SO.SendBufferSize
 
     /**
      * [[akka.io.Inet.SocketOption]] to set the traffic class or
@@ -170,7 +170,7 @@ object Inet {
      *
      * For more information see [[java.net.Socket#setTrafficClass]]
      */
-    val TrafficClass = SO.TrafficClass
+    val TrafficClass: _root_.akka.io.Inet.SO.TrafficClass.type = SO.TrafficClass
   }
 
   trait SoJavaFactories {
@@ -180,21 +180,21 @@ object Inet {
      *
      * For more information see [[java.net.Socket#setReceiveBufferSize]]
      */
-    def receiveBufferSize(size: Int) = ReceiveBufferSize(size)
+    def receiveBufferSize(size: Int): _root_.akka.io.Inet.SO.ReceiveBufferSize = ReceiveBufferSize(size)
 
     /**
      * [[akka.io.Inet.SocketOption]] to enable or disable SO_REUSEADDR
      *
      * For more information see [[java.net.Socket#setReuseAddress]]
      */
-    def reuseAddress(on: Boolean) = ReuseAddress(on)
+    def reuseAddress(on: Boolean): _root_.akka.io.Inet.SO.ReuseAddress = ReuseAddress(on)
 
     /**
      * [[akka.io.Inet.SocketOption]] to set the SO_SNDBUF option.
      *
      * For more information see [[java.net.Socket#setSendBufferSize]]
      */
-    def sendBufferSize(size: Int) = SendBufferSize(size)
+    def sendBufferSize(size: Int): _root_.akka.io.Inet.SO.SendBufferSize = SendBufferSize(size)
 
     /**
      * [[akka.io.Inet.SocketOption]] to set the traffic class or
@@ -203,7 +203,7 @@ object Inet {
      *
      * For more information see [[java.net.Socket#setTrafficClass]]
      */
-    def trafficClass(tc: Int) = TrafficClass(tc)
+    def trafficClass(tc: Int): _root_.akka.io.Inet.SO.TrafficClass = TrafficClass(tc)
   }
 
 }

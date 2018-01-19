@@ -18,7 +18,7 @@ private[akka] object OptionVal {
   /**
    * Represents non-existent values, `null` values.
    */
-  val None = new OptionVal[Null](null)
+  val None: _root_.akka.util.OptionVal[_root_.scala.Null] = new OptionVal[Null](null)
 }
 
 /**

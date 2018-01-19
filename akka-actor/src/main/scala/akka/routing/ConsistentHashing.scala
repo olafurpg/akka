@@ -67,7 +67,7 @@ object ConsistentHashingRouter {
   @SerialVersionUID(1L)
   object emptyConsistentHashMapping extends ConsistentHashMapping {
     def isDefinedAt(x: Any) = false
-    def apply(x: Any) = throw new UnsupportedOperationException("Empty ConsistentHashMapping apply()")
+    def apply(x: Any): _root_.scala.Nothing = throw new UnsupportedOperationException("Empty ConsistentHashMapping apply()")
   }
 
   /**
@@ -160,7 +160,7 @@ final case class ConsistentHashingRoutingLogic(
       throw new IllegalStateException("defaultAddress not available yet")
     a
   }
-  val vnodes =
+  val vnodes: _root_.scala.Int =
     if (virtualNodesFactor == 0) system.settings.DefaultVirtualNodesFactor
     else virtualNodesFactor
 
@@ -291,7 +291,7 @@ final case class ConsistentHashingPool(
   override def createRouter(system: ActorSystem): Router =
     new Router(ConsistentHashingRoutingLogic(system, virtualNodesFactor, hashMapping))
 
-  override def nrOfInstances(sys: ActorSystem) = this.nrOfInstances
+  override def nrOfInstances(sys: ActorSystem): _root_.scala.Int = this.nrOfInstances
 
   /**
    * Setting the supervisor strategy to be used for the “head” Router actor.

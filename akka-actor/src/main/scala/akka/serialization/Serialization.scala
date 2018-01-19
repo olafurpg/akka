@@ -108,7 +108,7 @@ object Serialization {
 class Serialization(val system: ExtendedActorSystem) extends Extension {
   import Serialization._
 
-  val settings = new Settings(system.settings.config)
+  val settings: _root_.akka.serialization.Serialization.Settings = new Settings(system.settings.config)
   val AllowJavaSerialization: Boolean = system.settings.AllowJavaSerialization
 
   private[this] val _log = Logging.withMarker(system, getClass.getName)
