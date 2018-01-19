@@ -30,16 +30,16 @@ import akka.japi.{ Pair ⇒ JPair }
   def scalaAnyTwoToNone[A, B, C]: (A, B) ⇒ Option[C] = two2none
   def javaAnyToNone[A, B]: A ⇒ Option[B] = none
 
-  val conforms: _root_.scala.Any => _root_.scala.Any = (a: Any) ⇒ a
+  val conforms: _root_.scala.Any ⇒ _root_.scala.Any = (a: Any) ⇒ a
 
-  val zeroLong: _root_.scala.Any => _root_.scala.Long = (_: Any) ⇒ 0L
+  val zeroLong: _root_.scala.Any ⇒ _root_.scala.Long = (_: Any) ⇒ 0L
 
-  val oneLong: _root_.scala.Any => _root_.scala.Long = (_: Any) ⇒ 1L
+  val oneLong: _root_.scala.Any ⇒ _root_.scala.Long = (_: Any) ⇒ 1L
 
-  val oneInt: _root_.scala.Any => _root_.scala.Int = (_: Any) ⇒ 1
+  val oneInt: _root_.scala.Any ⇒ _root_.scala.Int = (_: Any) ⇒ 1
 
-  val none: _root_.scala.Any => _root_.scala.None.type = (_: Any) ⇒ None
+  val none: _root_.scala.Any ⇒ _root_.scala.None.type = (_: Any) ⇒ None
 
-  val two2none: (_root_.scala.Any, _root_.scala.Any) => _root_.scala.None.type = (_: Any, _: Any) ⇒ None
+  val two2none: (_root_.scala.Any, _root_.scala.Any) ⇒ _root_.scala.None.type = (_: Any, _: Any) ⇒ None
 
 }

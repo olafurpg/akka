@@ -29,7 +29,7 @@ import scala.util.{ Failure, Success, Try }
 
 private[akka] object FileSource {
 
-  val completionHandler: _root_.java.lang.Object with _root_.java.nio.channels.CompletionHandler[_root_.java.lang.Integer, _root_.scala.util.Try[_root_.scala.Int] => _root_.scala.Unit] {} = new CompletionHandler[Integer, Try[Int] ⇒ Unit] {
+  val completionHandler: _root_.java.lang.Object with _root_.java.nio.channels.CompletionHandler[_root_.java.lang.Integer, _root_.scala.util.Try[_root_.scala.Int] ⇒ _root_.scala.Unit] {} = new CompletionHandler[Integer, Try[Int] ⇒ Unit] {
 
     override def completed(result: Integer, attachment: Try[Int] ⇒ Unit): Unit = {
       attachment(Success(result))

@@ -44,7 +44,7 @@ object JsonFraming {
 
       override protected def initialAttributes: Attributes = Attributes.name("JsonFraming.objectScanner")
 
-      override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) with InHandler with OutHandler {
+      override def createLogic(inheritedAttributes: Attributes): _root_.akka.stream.stage.GraphStageLogic with _root_.akka.stream.stage.InHandler with _root_.akka.stream.stage.OutHandler {} = new GraphStageLogic(shape) with InHandler with OutHandler {
         private val buffer = new JsonObjectParser(maximumObjectLength)
 
         setHandlers(in, out, this)
@@ -64,7 +64,7 @@ object JsonFraming {
           }
         }
 
-        def tryPopBuffer() = {
+        def tryPopBuffer(): _root_.scala.Unit = {
           try buffer.poll() match {
             case Some(json) ⇒ push(out, json)
             case _          ⇒ if (isClosed(in)) completeStage() else pull(in)

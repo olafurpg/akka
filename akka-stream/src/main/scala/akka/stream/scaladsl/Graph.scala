@@ -514,8 +514,8 @@ final class MergeSorted[T: Ordering] extends GraphStage[FanInShape2[T, T, T]] {
       if (l < r) { other = r; emit(out, l, readL) }
       else { other = l; emit(out, r, readR) }
 
-    val dispatchR: T => _root_.scala.Unit = dispatch(other, _: T)
-    val dispatchL: T => _root_.scala.Unit = dispatch(_: T, other)
+    val dispatchR: T ⇒ _root_.scala.Unit = dispatch(other, _: T)
+    val dispatchL: T ⇒ _root_.scala.Unit = dispatch(_: T, other)
     val passR: _root_.scala.Function0[_root_.scala.Unit] = () ⇒ emit(out, other, () ⇒ { nullOut(); passAlong(right, out, doPull = true) })
     val passL: _root_.scala.Function0[_root_.scala.Unit] = () ⇒ emit(out, other, () ⇒ { nullOut(); passAlong(left, out, doPull = true) })
     val readR: _root_.scala.Function0[_root_.scala.Unit] = () ⇒ read(right)(dispatchR, passL)
@@ -975,8 +975,8 @@ class ZipWithN[A, O](zipper: immutable.Seq[A] ⇒ O)(n: Int) extends GraphStage[
     // Without this field the completion signalling would take one extra pull
     var willShutDown = false
 
-    val grabInlet: _root_.akka.stream.Inlet[A] => A = grab[A] _
-    val pullInlet: _root_.akka.stream.Inlet[A] => _root_.scala.Unit = pull[A] _
+    val grabInlet: _root_.akka.stream.Inlet[A] ⇒ A = grab[A] _
+    val pullInlet: _root_.akka.stream.Inlet[A] ⇒ _root_.scala.Unit = pull[A] _
 
     private def pushAll(): Unit = {
       push(out, zipper(shape.inlets.map(grabInlet)))
