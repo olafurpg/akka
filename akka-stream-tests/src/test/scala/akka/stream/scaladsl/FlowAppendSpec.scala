@@ -48,7 +48,7 @@ trait River { self: Matchers ⇒
   val elements: _root_.scala.collection.immutable.Range.Inclusive = 1 to 10
   val otherFlow: _root_.akka.stream.scaladsl.Flow[_root_.scala.Int, _root_.java.lang.String, _root_.akka.NotUsed] = Flow[Int].map(_.toString)
 
-  def riverOf[T](flowConstructor: Subscriber[T] ⇒ Unit)(implicit system: ActorSystem): _root_.akka.stream.testkit.TestSubscriber.ManualProbe#Self = {
+  def riverOf[T](flowConstructor: Subscriber[T] ⇒ Unit)(implicit system: ActorSystem): _root_.akka.stream.testkit.TestSubscriber.ManualProbe[T]#Self = {
     val subscriber = TestSubscriber.manualProbe[T]()
 
     flowConstructor(subscriber)
