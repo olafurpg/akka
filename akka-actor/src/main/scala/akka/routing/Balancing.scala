@@ -93,7 +93,7 @@ final case class BalancingPool(
    */
   def withDispatcher(dispatcherId: String): BalancingPool = copy(routerDispatcher = dispatcherId)
 
-  def nrOfInstances(sys: ActorSystem) = this.nrOfInstances
+  def nrOfInstances(sys: ActorSystem): Int = this.nrOfInstances
 
   /**
    * INTERNAL API
@@ -158,5 +158,5 @@ final case class BalancingPool(
  * Can't be in the `BalancingPool` companion for binary compatibility reasons.
  */
 private[akka] object BalancingPoolDeploy {
-  val invalidConfigKeyChars = List('$', '@', ':')
+  val invalidConfigKeyChars: immutable.List[Char] = List('$', '@', ':')
 }

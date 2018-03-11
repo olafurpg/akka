@@ -10,6 +10,9 @@ import akka.routing.{ Deafen, Listen, Listeners }
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 import akka.annotation.InternalApi
+import akka.actor.FSM
+import akka.actor.FSM.->
+import scala.concurrent.ExecutionContextExecutor
 
 object FSM {
 
@@ -23,7 +26,7 @@ object FSM {
    */
   object NullFunction extends PartialFunction[Any, Nothing] {
     def isDefinedAt(o: Any) = false
-    def apply(o: Any) = sys.error("undefined")
+    def apply(o: Any): Nothing = sys.error("undefined")
   }
 
   /**
@@ -94,7 +97,7 @@ object FSM {
     extends NoSerializationVerificationNeeded {
     private var ref: Option[Cancellable] = _
     private val scheduler = context.system.scheduler
-    private implicit val executionContext = context.dispatcher
+    private implicit val executionContext: ExecutionContextExecutor = context.dispatcher
 
     def schedule(actor: ActorRef, timeout: FiniteDuration): Unit =
       ref = Some(
@@ -113,9 +116,9 @@ object FSM {
    * reminder what the new state is.
    */
   object `->` {
-    def unapply[S](in: (S, S)) = Some(in)
+    def unapply[S](in: (S, S)): Some[(S, S)] = Some(in)
   }
-  val `→` = `->`
+  val `→`: ->.type = `->`
 
   /**
    * Log Entry of the [[akka.actor.LoggingFSM]], can be obtained by calling `getLog`.
@@ -323,12 +326,12 @@ trait FSM[S, D] extends Actor with Listeners with ActorLogging {
    * This extractor is just convenience for matching a (S, S) pair, including a
    * reminder what the new state is.
    */
-  val `->` = FSM.`->`
+  val `->`: FSM.->.type = FSM.`->`
 
   /**
    * This case object is received in case of a state timeout.
    */
-  val StateTimeout = FSM.StateTimeout
+  val StateTimeout: FSM.StateTimeout.type = FSM.StateTimeout
 
   /**
    * ****************************************
@@ -541,7 +544,7 @@ trait FSM[S, D] extends Actor with Listeners with ActorLogging {
   /**
    * Return next state data (available in onTransition handlers)
    */
-  final def nextStateData = nextState match {
+  final def nextStateData: D = nextState match {
     case null ⇒ throw new IllegalStateException("nextStateData is only available during onTransition")
     case x    ⇒ x.stateData
   }

@@ -10,6 +10,8 @@ import akka.io.Inet.SocketOption
 import akka.io.Udp.UdpSettings
 import akka.util.ByteString
 import akka.actor._
+import akka.io.UdpConnected
+import akka.io.UdpConnected.CommandFailed
 
 /**
  * UDP Extension for Akka’s IO layer.
@@ -25,7 +27,7 @@ import akka.actor._
  */
 object UdpConnected extends ExtensionId[UdpConnectedExt] with ExtensionIdProvider {
 
-  override def lookup = UdpConnected
+  override def lookup: UdpConnected.type = UdpConnected
 
   override def createExtension(system: ExtendedActorSystem): UdpConnectedExt = new UdpConnectedExt(system)
 
@@ -43,7 +45,7 @@ object UdpConnected extends ExtensionId[UdpConnectedExt] with ExtensionIdProvide
    * The common type of all commands supported by the UDP implementation.
    */
   trait Command extends SelectionHandler.HasFailureMessage with Message {
-    def failureMessage = CommandFailed(this)
+    def failureMessage: CommandFailed = CommandFailed(this)
   }
 
   /**

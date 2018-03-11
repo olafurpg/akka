@@ -4,6 +4,8 @@
 package akka.util
 
 import scala.collection.immutable
+import akka.util.SubclassifiedIndex
+import akka.util.SubclassifiedIndex.Nonroot
 
 /**
  * Typeclass which describes a classification hierarchy. Observe the contract between `isEqual` and `isSubclass`!
@@ -53,7 +55,7 @@ private[akka] object SubclassifiedIndex {
     override def innerFindValues(key: K): Set[V] =
       if (sc.isEqual(key, this.key)) values else super.innerFindValues(key)
 
-    override def toString = subkeys.mkString("Nonroot(" + key + ", " + values + ",\n", ",\n", ")")
+    override def toString: String = subkeys.mkString("Nonroot(" + key + ", " + values + ",\n", ",\n", ")")
   }
 
   private[SubclassifiedIndex] def emptyMergeMap[K, V] = internalEmptyMergeMap.asInstanceOf[Map[K, Set[V]]]
@@ -78,11 +80,11 @@ private[akka] class SubclassifiedIndex[K, V] private (protected var values: Set[
 
   type Changes = immutable.Seq[(K, Set[V])]
 
-  protected var subkeys = Vector.empty[Nonroot[K, V]]
+  protected var subkeys: immutable.Vector[Nonroot[K, V]] = Vector.empty[Nonroot[K, V]]
 
   def this()(implicit sc: Subclassification[K]) = this(Set.empty)
 
-  protected val root = this
+  protected val root: SubclassifiedIndex[K, V] = this
 
   /**
    * Add key to this index which inherits its value set from the most specific
@@ -193,7 +195,7 @@ private[akka] class SubclassifiedIndex[K, V] private (protected var values: Set[
       }
     }
 
-  override def toString = subkeys.mkString("SubclassifiedIndex(" + values + ",\n", ",\n", ")")
+  override def toString: String = subkeys.mkString("SubclassifiedIndex(" + values + ",\n", ",\n", ")")
 
   /**
    * Add new Nonroot below this node and check all existing nodes for subclass relationship.

@@ -30,14 +30,14 @@ class EventStream(sys: ActorSystem, private val debug: Boolean) extends LoggingB
   /** Either the list of subscribed actors, or a ref to an [[akka.event.EventStreamUnsubscriber]] */
   private val initiallySubscribedOrUnsubscriber = new AtomicReference[Either[Set[ActorRef], ActorRef]](Left(Set.empty))
 
-  protected implicit val subclassification = new Subclassification[Class[_]] {
-    def isEqual(x: Class[_], y: Class[_]) = x == y
-    def isSubclass(x: Class[_], y: Class[_]) = y isAssignableFrom x
+  protected implicit val subclassification: AnyRef with Subclassification[Class[_]] {} = new Subclassification[Class[_]] {
+    def isEqual(x: Class[_], y: Class[_]): Boolean = x == y
+    def isSubclass(x: Class[_], y: Class[_]): Boolean = y isAssignableFrom x
   }
 
   protected def classify(event: AnyRef): Class[_] = event.getClass
 
-  protected def publish(event: AnyRef, subscriber: ActorRef) = {
+  protected def publish(event: AnyRef, subscriber: ActorRef): Unit = {
     if (sys == null && subscriber.isTerminated) unsubscribe(subscriber)
     else subscriber ! event
   }

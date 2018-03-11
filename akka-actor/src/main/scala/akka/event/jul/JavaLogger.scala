@@ -20,7 +20,7 @@ import akka.event.LoggingFilter
 class JavaLogger extends Actor with RequiresMessageQueue[LoggerMessageQueueSemantics] {
   import Logger.mapLevel
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case event @ Error(cause, _, _, _) ⇒ log(mapLevel(event.level), cause, event)
     case event: Warning                ⇒ log(mapLevel(event.level), null, event)
     case event: Info                   ⇒ log(mapLevel(event.level), null, event)
@@ -90,12 +90,12 @@ object Logger {
 class JavaLoggingFilter(settings: ActorSystem.Settings, eventStream: EventStream) extends LoggingFilter {
   import Logger.mapLevel
 
-  def isErrorEnabled(logClass: Class[_], logSource: String) =
+  def isErrorEnabled(logClass: Class[_], logSource: String): Boolean =
     (eventStream.logLevel >= ErrorLevel) && Logger(logClass, logSource).isLoggable(mapLevel(ErrorLevel))
-  def isWarningEnabled(logClass: Class[_], logSource: String) =
+  def isWarningEnabled(logClass: Class[_], logSource: String): Boolean =
     (eventStream.logLevel >= WarningLevel) && Logger(logClass, logSource).isLoggable(mapLevel(WarningLevel))
-  def isInfoEnabled(logClass: Class[_], logSource: String) =
+  def isInfoEnabled(logClass: Class[_], logSource: String): Boolean =
     (eventStream.logLevel >= InfoLevel) && Logger(logClass, logSource).isLoggable(mapLevel(InfoLevel))
-  def isDebugEnabled(logClass: Class[_], logSource: String) =
+  def isDebugEnabled(logClass: Class[_], logSource: String): Boolean =
     (eventStream.logLevel >= DebugLevel) && Logger(logClass, logSource).isLoggable(mapLevel(DebugLevel))
 }

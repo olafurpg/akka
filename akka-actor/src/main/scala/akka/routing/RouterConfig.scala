@@ -15,6 +15,7 @@ import akka.actor.Terminated
 import akka.dispatch.Dispatchers
 import akka.actor.ActorSystem
 import akka.japi.Util.immutableSeq
+import akka.routing.{ FromConfig, GetRoutees, NoRouter }
 
 /**
  * This trait represents a router factory: it produces the actual router actor
@@ -266,11 +267,11 @@ case object FromConfig extends FromConfig {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: FromConfig.type = this
   @inline final def apply(
     resizer:            Option[Resizer]    = None,
     supervisorStrategy: SupervisorStrategy = Pool.defaultSupervisorStrategy,
-    routerDispatcher:   String             = Dispatchers.DefaultDispatcherId) =
+    routerDispatcher:   String             = Dispatchers.DefaultDispatcherId): FromConfig =
     new FromConfig(resizer, supervisorStrategy, routerDispatcher)
 
   @inline final def unapply(fc: FromConfig): Option[String] = Some(fc.routerDispatcher)
@@ -355,7 +356,7 @@ case object NoRouter extends NoRouter {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: NoRouter.type = this
 
   def props(routeeProps: Props): Props = routeeProps.withRouter(this)
 
@@ -377,7 +378,7 @@ case object NoRouter extends NoRouter {
   /**
    * Java API: get the singleton instance
    */
-  def getInstance = this
+  def getInstance: GetRoutees.type = this
 }
 
 /**

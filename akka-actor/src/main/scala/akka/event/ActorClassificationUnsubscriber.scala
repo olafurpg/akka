@@ -6,6 +6,7 @@ package akka.event
 import akka.actor._
 import akka.event.Logging.simpleName
 import java.util.concurrent.atomic.AtomicInteger
+import akka.actor.ActorRef
 
 /**
  * INTERNAL API
@@ -24,7 +25,7 @@ protected[akka] class ActorClassificationUnsubscriber(bus: ManagedActorClassific
     if (debug) context.system.eventStream.publish(Logging.Debug(simpleName(getClass), getClass, s"will monitor $bus"))
   }
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case Register(actor, seq) if seq == nextSeq ⇒
       if (debug) context.system.eventStream.publish(Logging.Debug(simpleName(getClass), getClass, s"registered watch for $actor in $bus"))
       context watch actor
@@ -64,7 +65,7 @@ private[akka] object ActorClassificationUnsubscriber {
   final case class Register(actor: ActorRef, seq: Int)
   final case class Unregister(actor: ActorRef, seq: Int)
 
-  def start(system: ActorSystem, bus: ManagedActorClassification, debug: Boolean = false) = {
+  def start(system: ActorSystem, bus: ManagedActorClassification, debug: Boolean = false): ActorRef = {
     val debug = system.settings.config.getBoolean("akka.actor.debug.event-stream")
     system.asInstanceOf[ExtendedActorSystem]
       .systemActorOf(props(bus, debug), "actorClassificationUnsubscriber-" + unsubscribersCount.incrementAndGet())

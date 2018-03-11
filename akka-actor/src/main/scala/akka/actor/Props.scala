@@ -11,6 +11,8 @@ import akka.routing._
 import scala.collection.immutable
 import scala.language.existentials
 import scala.reflect.ClassTag
+import akka.actor.{ Deploy, Props }
+import akka.actor.Actor.emptyBehavior
 
 /**
  * Factory for Props instances.
@@ -34,17 +36,17 @@ object Props extends AbstractProps {
   /**
    * The default Deploy instance which is used when creating a Props
    */
-  final val defaultDeploy = Deploy()
+  final val defaultDeploy: Deploy = Deploy()
 
   /**
    * A Props instance whose creator will create an actor that doesn't respond to any message
    */
-  final val empty = Props[EmptyActor]
+  final val empty: Props = Props[EmptyActor]
 
   /**
    * The default Props instance, uses the settings from the Props object starting with default*.
    */
-  final val default = Props(defaultDeploy, classOf[CreatorFunctionConsumer], List(defaultCreator))
+  final val default: Props = Props(defaultDeploy, classOf[CreatorFunctionConsumer], List(defaultCreator))
 
   /**
    * INTERNAL API
@@ -52,7 +54,7 @@ object Props extends AbstractProps {
    * (Not because it is so immensely complicated, only because we might remove it if no longer needed internally)
    */
   private[akka] class EmptyActor extends Actor {
-    def receive = Actor.emptyBehavior
+    def receive: emptyBehavior.type = Actor.emptyBehavior
   }
 
   /**

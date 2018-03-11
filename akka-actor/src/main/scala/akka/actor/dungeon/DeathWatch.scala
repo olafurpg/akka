@@ -8,6 +8,7 @@ import akka.dispatch.sysmsg.{ Unwatch, Watch, DeathWatchNotification }
 import akka.event.Logging.{ Warning, Debug }
 import akka.actor.{ InternalActorRef, Address, Terminated, Actor, ActorRefScope, ActorCell, ActorRef, MinimalActorRef }
 import akka.event.AddressTerminatedTopic
+import akka.actor.ActorPath
 
 private[akka] trait DeathWatch { this: ActorCell ⇒
 
@@ -240,6 +241,6 @@ private[akka] trait DeathWatch { this: ActorCell ⇒
 }
 
 private[akka] class UndefinedUidActorRef(ref: ActorRef) extends MinimalActorRef {
-  override val path = ref.path.withUid(ActorCell.undefinedUid)
-  override def provider = throw new UnsupportedOperationException("UndefinedUidActorRef does not provide")
+  override val path: ActorPath = ref.path.withUid(ActorCell.undefinedUid)
+  override def provider: Nothing = throw new UnsupportedOperationException("UndefinedUidActorRef does not provide")
 }

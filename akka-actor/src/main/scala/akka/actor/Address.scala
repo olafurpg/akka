@@ -7,6 +7,7 @@ import java.net.URISyntaxException
 import java.net.MalformedURLException
 import scala.annotation.tailrec
 import scala.collection.immutable
+import akka.actor.Address
 
 /**
  * The address specifies the physical location under which an Actor can be
@@ -70,12 +71,12 @@ object Address {
   /**
    * Constructs a new Address with the specified protocol and system name
    */
-  def apply(protocol: String, system: String) = new Address(protocol, system)
+  def apply(protocol: String, system: String): Address = new Address(protocol, system)
 
   /**
    * Constructs a new Address with the specified protocol, system name, host and port
    */
-  def apply(protocol: String, system: String, host: String, port: Int) = new Address(protocol, system, Some(host), Some(port))
+  def apply(protocol: String, system: String, host: String, port: Int): Address = new Address(protocol, system, Some(host), Some(port))
 
   /**
    * `Address` ordering type class, sorts addresses by protocol, name, host and port.

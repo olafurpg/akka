@@ -6,11 +6,12 @@ package akka.event
 import akka.actor.Actor
 import akka.actor.DeadLetter
 import akka.event.Logging.Info
+import akka.event.EventStream
 
 class DeadLetterListener extends Actor {
 
-  val eventStream = context.system.eventStream
-  val maxCount = context.system.settings.LogDeadLetters
+  val eventStream: EventStream = context.system.eventStream
+  val maxCount: Int = context.system.settings.LogDeadLetters
   var count = 0
 
   override def preStart(): Unit =
@@ -25,7 +26,7 @@ class DeadLetterListener extends Actor {
   override def postStop(): Unit =
     eventStream.unsubscribe(self)
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case DeadLetter(message, snd, rcp) ⇒
       count += 1
       val origin = if (snd eq context.system.deadLetters) "without sender" else s"from $snd"

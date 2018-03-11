@@ -8,6 +8,7 @@ import java.util.Optional
 import scala.annotation.varargs
 import scala.compat.java8.OptionConverters._
 import scala.reflect.ClassTag
+import akka.actor.setup.ActorSystemSetup
 
 /**
  * Marker supertype for a setup part that can be put inside [[ActorSystemSetup]], if a specific concrete setup
@@ -27,7 +28,7 @@ abstract class Setup {
 
 object ActorSystemSetup {
 
-  val empty = new ActorSystemSetup(Map.empty)
+  val empty: ActorSystemSetup = new ActorSystemSetup(Map.empty)
 
   /**
    * Scala API: Create an [[ActorSystemSetup]] containing all the provided settings

@@ -6,6 +6,7 @@ package akka.util
 /**
  * INTERNAL API
  */
+import akka.util.OptionVal
 private[akka] object OptionVal {
 
   def apply[A >: Null](x: A): OptionVal[A] = new OptionVal(x)
@@ -18,7 +19,7 @@ private[akka] object OptionVal {
   /**
    * Represents non-existent values, `null` values.
    */
-  val None = new OptionVal[Null](null)
+  val None: OptionVal[Null] = new OptionVal[Null](null)
 }
 
 /**
