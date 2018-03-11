@@ -30,13 +30,13 @@ import akka.japi.function
   def scalaAnyToNone[A, B]: A ⇒ Option[B] = none
   def scalaAnyTwoToNone[A, B, C]: (A, B) ⇒ Option[C] = two2none
   def javaAnyToNone[A, B]: A ⇒ Option[B] = none
-  def nullFun[T]: Any => T = _nullFun.asInstanceOf[Any ⇒ T]
+  def nullFun[T]: Any ⇒ T = _nullFun.asInstanceOf[Any ⇒ T]
 
-  val zeroLong: Any => Long = (_: Any) ⇒ 0L
+  val zeroLong: Any ⇒ Long = (_: Any) ⇒ 0L
 
-  val oneLong: Any => Long = (_: Any) ⇒ 1L
+  val oneLong: Any ⇒ Long = (_: Any) ⇒ 1L
 
-  val oneInt: Any => Int = (_: Any) ⇒ 1
+  val oneInt: Any ⇒ Int = (_: Any) ⇒ 1
 
   private val _nullFun = (_: Any) ⇒ null
 
