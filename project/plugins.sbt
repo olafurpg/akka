@@ -9,7 +9,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-multi-jvm" % "0.4.0")
 //#sbt-multi-jvm
 
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.1")
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.6.0-M1-30-f2288340")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.6.0-M1-43-bc714793")
 addSbtPlugin("com.typesafe.sbt" % "sbt-osgi" % "0.9.2")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.18")
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.0-M1")
